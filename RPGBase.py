@@ -222,3 +222,4 @@ def batalha():
 if __name__ == "__main__":
     print("Bem-vindo ao RPG de Turnos!")
     batalha()
+     #teste de mudança pra ele enxergar o bagulho do git
