@@ -1,5 +1,25 @@
 import random
+import sys
+import time
 
+
+# Tempo entre caracteres exibidos no terminal.
+VELOCIDADE_TEXTO = 0.00
+
+
+def imprimir_lento(*args, sep=" ", end="\n"):
+    texto = sep.join(str(arg) for arg in args)
+
+    for caractere in texto:
+        sys.stdout.write(caractere)
+        sys.stdout.flush()
+        time.sleep(VELOCIDADE_TEXTO)
+
+    sys.stdout.write(end)
+    sys.stdout.flush()
+
+
+print = imprimir_lento
 
 # ============================================================
 # CLASSE BASE - PERSONAGEM
@@ -15,6 +35,8 @@ import random
 # - Ataque
 # - Defesa
 # - Velocidade
+# - Barra de Ação oculta
+# - Barra de Ação Max oculta
 #
 # Por isso criamos esses atributos e funções aqui.
 #
@@ -66,7 +88,8 @@ class Personagem:
         self.ataque = 2
         self.velocidade = 1
         self.defesa = 0
-
+        self.atb_barra = 0.0
+        self.atb_max = 100.0
     # --------------------------------------------------------
     # mostrar_status
     # --------------------------------------------------------
@@ -120,6 +143,7 @@ class Personagem:
     # False -> personagem está morto
     # --------------------------------------------------------
 
+   
     def estar_vivo(self):
 
         return self.hp > 0
@@ -141,6 +165,30 @@ class Personagem:
     # O max(1, ...) garante que o dano mínimo seja sempre 1.
     # --------------------------------------------------------
 
+
+    # --------------------------------------------------------
+    # Carregar a barra de ação
+    # --------------------------------------------------------
+    # se o personagem estiver vivo, a barra de ação aumenta de acordo com a velocidade.
+
+    def carregar_atb(self, multiplicador_tempo):
+
+        if self.estar_vivo():
+            self.atb_barra = min(
+                self.atb_max,
+                self.atb_barra + (self.velocidade * multiplicador_tempo)
+            )
+
+    # --------------------------------------------------------
+    # Resetar a barra de ação
+    # --------------------------------------------------------
+    def resetar_atb(self):
+        self.atb_barra = 0.0
+
+
+    # --------------------------------------------------------
+    # Função para receber dano
+    # --------------------------------------------------------
     def receber_dano(self, dano):
 
         dano_final = max(
@@ -173,6 +221,7 @@ class Personagem:
 # - ataque
 # - defesa
 # - velocidade
+# - barra de ATD
 # - receber_dano()
 # - estar_vivo()
 #
@@ -942,6 +991,28 @@ class Inimigo(Personagem):
 
 
 # ============================================================
+# EXIBIR BARRA DE AÇÃO
+# ============================================================
+# Essa função mostra a barra de ação de todos os combatentes.
+# Essa barra é atualizada a cada tick do loop principal da batalha.
+# futuramente no layout irá estar na no canto superior esquerdo da tela.
+# =======================================================================
+#  
+def exibir_barra_atb(combatentes):
+
+    print("\n========== BARRA DE AÇÃO ==========")
+
+    for personagem in combatentes:
+        if personagem.estar_vivo():
+            progressao = int(personagem.atb_barra / 10)
+            barra_visual = "#" * progressao + "." * (10 - progressao)
+            print(
+                f"{personagem.nome:<16} "
+                f"ATB: [{barra_visual}] "
+                f"{personagem.atb_barra:.1f}/{personagem.atb_max:.0f}"
+            )
+
+# ============================================================
 # CRIAR OS HERÓIS
 # ============================================================
 # Essa função cria os personagens que irão participar da
@@ -1115,84 +1186,6 @@ def verificar_drop_pocao(inimigo, herois):
     )
 
     return False
-
-
-# ============================================================
-# CRIAR ORDEM DOS TURNOS
-# ============================================================
-# Essa função implementa a regra de VELOCIDADE.
-#
-# Todos os personagens vivos são colocados em uma lista.
-#
-# Depois a lista é ordenada pela velocidade.
-#
-# Maior velocidade = joga primeiro.
-#
-# Exemplo:
-#
-# Ladino       VEL 16
-# Arqueiro     VEL 13
-# Mago         VEL 9
-# Guerreiro    VEL 7
-# Goblin       VEL 5
-#
-# A ordem será:
-#
-# 1 - Ladino
-# 2 - Arqueiro
-# 3 - Mago
-# 4 - Guerreiro
-# 5 - Goblin
-# ============================================================
-
-def criar_ordem_turnos(herois, inimigo):
-
-    # Cria uma lista contendo somente os heróis vivos.
-    personagens_vivos = [
-
-        heroi
-
-        for heroi in herois
-
-        if heroi.estar_vivo()
-
-    ]
-
-    # Se o inimigo estiver vivo, ele também entra na lista.
-    if inimigo.estar_vivo():
-
-        personagens_vivos.append(
-            inimigo
-        )
-
-    # --------------------------------------------------------
-    # EMPATE DE VELOCIDADE
-    # --------------------------------------------------------
-    # shuffle mistura aleatoriamente a lista.
-    #
-    # Depois o sort organiza pela velocidade.
-    #
-    # Dessa forma, se dois personagens tiverem a mesma
-    # velocidade, a posição entre eles será aleatória.
-    random.shuffle(
-        personagens_vivos
-    )
-
-    # --------------------------------------------------------
-    # ORDENAR PELA VELOCIDADE
-    # --------------------------------------------------------
-    # reverse=True significa ordem decrescente.
-    #
-    # Portanto:
-    #
-    # 20 vem antes de 10.
-    personagens_vivos.sort(
-        key=lambda personagem:
-        personagem.velocidade,
-        reverse=True
-    )
-
-    return personagens_vivos
 
 
 # ============================================================
@@ -1386,7 +1379,7 @@ def turno_jogador(heroi, inimigo):
 # 1. Cria os heróis.
 # 2. Cria o inimigo.
 # 3. Inicia a batalha.
-# 4. Define a ordem dos turnos.
+# 4. Inicia a ordem de turnos baseado na barra de ação.
 # 5. Executa os ataques.
 # 6. Verifica vitória ou derrota.
 # 7. Verifica o drop.
@@ -1430,105 +1423,98 @@ def batalha():
     # - O inimigo morrer.
     # OU
     # - Todos os heróis morrerem.
+    #
+    # -A cada tick do loop, a barra de ação de todos os
+    # combatentes aumenta de acordo com a velocidade.
+    # É como se fosse uma corrida para ver quem ataca primeiro,
+    # e a velocidade determina o quão rápido cada um carrega a barra.
+    # Exemplo:
+    #
+    # Herói 1: Velocidade 13
+    # Herói 2: Velocidade 8
+    # Inimigo: Velocidade 5
+    # 
+    # A cada tick, a barra de ação aumenta:
+    # adiconando a velocidade de cada combatente a barra de ação.
+    # 
+    # Primeiro trica a barra de ação do Herói 1, depois do Herói 2, e por último do Inimigo.
+    # Novos valores da barra de ação:
+    # Herói 1: 26
+    # Herói 2: 16
+    # Inimigo: 10
+    #
+    # Quando a barra de ação de algum combatente atingir 100, ele poderá atacar.
     # ========================================================
+
+
+    combatentes = herois + [inimigo]
+    tick_rate = 0.1
+    multiplicador_tempo = 0.5
 
     while True:
 
-        # Cria uma nova ordem para cada rodada.
-        ordem_turnos = criar_ordem_turnos(
-            herois,
-            inimigo
+        if not inimigo.estar_vivo():
+
+            print("\n======================================")
+            print("              VITÓRIA!")
+            print("======================================")
+            print(f"🏆 {inimigo.nome} foi derrotado!")
+            print(inimigo.mostrar_status())
+            verificar_drop_pocao(inimigo, herois)
+            break
+
+        if not any(heroi.estar_vivo() for heroi in herois):
+
+            print("\n======================================")
+            print("              DERROTA!")
+            print("======================================")
+            print("💀 Todos os heróis foram derrotados.")
+            break
+
+        for personagem in combatentes:
+            personagem.carregar_atb(multiplicador_tempo)
+
+        exibir_barra_atb(combatentes)
+        time.sleep(tick_rate)
+
+        personagem_pronto = next(
+            (
+                personagem
+                for personagem in combatentes
+                if personagem.estar_vivo()
+                and personagem.atb_barra >= personagem.atb_max
+            ),
+            None
         )
 
-        print("\n")
-        print("======================================")
-        print("            NOVA RODADA")
-        print("======================================")
+        if personagem_pronto is None:
+            continue
 
-        print(
-            "\n⚡ Ordem dos turnos:"
-        )
+        if isinstance(personagem_pronto, Heroi):
 
-        # Mostra quem irá jogar primeiro.
-        for personagem in ordem_turnos:
-
-            print(
-                f"  {personagem.nome} "
-                f"→ VEL {personagem.velocidade}"
+            turno_jogador(
+                personagem_pronto,
+                inimigo
             )
 
-        # ====================================================
-        # EXECUTAR OS TURNOS
-        # ====================================================
-        #
-        # Percorre a lista já ordenada pela velocidade.
-        # ====================================================
+        else:
 
-        for personagem in ordem_turnos:
+            herois_vivos = [
+                heroi
+                for heroi in herois
+                if heroi.estar_vivo()
+            ]
 
-            # Se o personagem morreu antes de chegar
-            # seu turno, ele não poderá jogar.
-            if not personagem.estar_vivo():
-
-                continue
-
-            # Se o inimigo morreu durante a rodada,
-            # não precisamos continuar.
-            if not inimigo.estar_vivo():
-
-                break
-
-            # ------------------------------------------------
-            # SE FOR UM HERÓI
-            # ------------------------------------------------
-
-            if isinstance(
-                personagem,
-                Heroi
-            ):
-
-                turno_jogador(
-                    personagem,
-                    inimigo
+            if herois_vivos:
+                alvo = random.choice(herois_vivos)
+                print(
+                    f"\n🚨 TURNO INIMIGO: "
+                    f"{personagem_pronto.nome} atacou!"
                 )
+                personagem_pronto.atacar(alvo)
+                print(alvo.mostrar_status())
 
-            # ------------------------------------------------
-            # SE FOR UM INIMIGO
-            # ------------------------------------------------
-
-            elif isinstance(
-                personagem,
-                Inimigo
-            ):
-
-                # Cria uma lista apenas com heróis vivos.
-                herois_vivos = [
-
-                    heroi
-
-                    for heroi in herois
-
-                    if heroi.estar_vivo()
-
-                ]
-
-                # Se ainda houver algum herói vivo...
-                if herois_vivos:
-
-                    # Escolhe um alvo aleatoriamente.
-                    alvo = random.choice(
-                        herois_vivos
-                    )
-
-                    # Inimigo ataca o alvo.
-                    personagem.atacar(
-                        alvo
-                    )
-
-                    # Mostra o novo status do herói.
-                    print(
-                        alvo.mostrar_status()
-                    )
+        personagem_pronto.resetar_atb()
 
         # ====================================================
         # VERIFICAR VITÓRIA
