@@ -4,7 +4,7 @@ import time
 
 
 # Tempo entre caracteres exibidos no terminal.
-VELOCIDADE_TEXTO = 0.00
+VELOCIDADE_TEXTO = 0.007
 
 
 def imprimir_lento(*args, sep=" ", end="\n"):
@@ -944,7 +944,7 @@ class Inimigo(Personagem):
 
         # XP que o inimigo poderá dar futuramente.
         self.XpDrop = 0
-
+        # eu preciso lembrar que o drop de xp sera referente ao nivel do monstro e a classe do monstro sendo elite,normal boss
         # ----------------------------------------------------
         # CHANCE DE DROP
         # ----------------------------------------------------
