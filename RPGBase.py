@@ -3,10 +3,15 @@ import sys
 import time
 
 
-# Tempo entre caracteres exibidos no terminal.
-VELOCIDADE_TEXTO = 0.00
+# ============================================================
+# CONFIGURAÇÕES
+# ============================================================
+
+# Tempo entre os caracteres exibidos no terminal.
+VELOCIDADE_TEXTO = 0.007
 
 
+# Função responsável por imprimir o texto lentamente.
 def imprimir_lento(*args, sep=" ", end="\n"):
     texto = sep.join(str(arg) for arg in args)
 
@@ -19,111 +24,62 @@ def imprimir_lento(*args, sep=" ", end="\n"):
     sys.stdout.flush()
 
 
+# Substitui o print normal pelo nosso print com efeito de texto.
 print = imprimir_lento
+
 
 # ============================================================
 # CLASSE BASE - PERSONAGEM
-# ============================================================
-# Esta é a classe "pai" dos personagens do jogo.
-#
-# Tanto os HERÓIS quanto os INIMIGOS possuem características
-# em comum, como:
-#
-# - Nome
-# - Nível
-# - HP
-# - Ataque
-# - Defesa
-# - Velocidade
-# - Barra de Ação oculta
-# - Barra de Ação Max oculta
-#
-# Por isso criamos esses atributos e funções aqui.
-#
-# Depois, Heroi e Inimigo irão HERDAR dessa classe.
 # ============================================================
 
 class Personagem:
 
     # --------------------------------------------------------
-    # __init__
-    # --------------------------------------------------------
-    # É o construtor da classe.
-    #
-    # Ele é executado automaticamente quando criamos um objeto.
-    #
-    # Exemplo:
-    #
-    # personagem = Personagem("Guilherme", 1)
-    #
-    # Nesse momento o Python executa automaticamente
-    # o __init__.
+    # CONSTRUTOR
     # --------------------------------------------------------
 
     def __init__(self, nome, level=1):
 
-        # Guarda o nome recebido no objeto.
+        # Nome do personagem.
         self.nome = nome
 
-        # Define o nível do personagem.
-        #
-        # max(1, ...) impede que o nível seja menor que 1.
-        #
-        # min(level, 10) impede que o nível seja maior que 10.
-        #
-        # Portanto o nível sempre ficará entre 1 e 10.
+        # O nível fica limitado entre 1 e 10.
         self.level = max(1, min(level, 10))
 
-        # ----------------------------------------------------
-        # ATRIBUTOS BASE
-        # ----------------------------------------------------
-        # Esses valores são apenas valores iniciais.
-        #
-        # As classes filhas irão modificar esses atributos
-        # de acordo com o tipo do personagem.
-
+        # Atributos básicos.
         self.hpMax = 10
         self.hp = 10
 
         self.ataque = 2
         self.velocidade = 1
         self.defesa = 0
+
+        # ----------------------------------------------------
+        # BARRA DE AÇÃO
+        # ----------------------------------------------------
+
+        # Barra atual.
         self.atb_barra = 0.0
+
+        # Valor necessário para executar uma ação.
         self.atb_max = 100.0
+
     # --------------------------------------------------------
-    # mostrar_status
-    # --------------------------------------------------------
-    # Retorna uma string contendo os atributos do personagem.
-    #
-    # A função também cria uma pequena barra visual de HP.
-    #
-    # Exemplo:
-    #
-    # HP: 80/100 [################....]
+    # MOSTRAR STATUS
     # --------------------------------------------------------
 
     def mostrar_status(self):
 
-        # Calcula quantos dos 20 espaços da barra devem
-        # ser preenchidos com "#".
-        #
-        # Se o personagem possui 50% de HP:
-        #
-        # 50 / 100 = 0.5
-        # 0.5 * 20 = 10
-        #
-        # Então teremos 10 "#".
+        # Calcula o tamanho da barra de HP.
         barra_hp = (
             int((self.hp / self.hpMax) * 20)
             if self.hpMax > 0
             else 0
         )
 
-        # Garante que a barra nunca tenha menos de 0
-        # ou mais de 20 caracteres.
+        # Mantém a barra entre 0 e 20.
         barra_hp = max(0, min(20, barra_hp))
 
-        # Retorna todas as informações em formato de texto.
         return (
             f"{self.nome} (Lvl {self.level}): "
             f"HP: {self.hp}/{self.hpMax} "
@@ -134,203 +90,133 @@ class Personagem:
         )
 
     # --------------------------------------------------------
-    # estar_vivo
-    # --------------------------------------------------------
-    # Verifica se o personagem ainda possui HP.
-    #
-    # Retorna:
-    # True  -> personagem está vivo
-    # False -> personagem está morto
+    # VERIFICAR SE ESTÁ VIVO
     # --------------------------------------------------------
 
-   
     def estar_vivo(self):
 
         return self.hp > 0
 
     # --------------------------------------------------------
-    # receber_dano
-    # --------------------------------------------------------
-    # Calcula quanto dano realmente será recebido.
-    #
-    # A defesa reduz o dano recebido.
-    #
-    # Exemplo:
-    #
-    # Dano recebido = 20
-    # Defesa = 5
-    #
-    # Dano final = 20 - 5 = 15
-    #
-    # O max(1, ...) garante que o dano mínimo seja sempre 1.
+    # RECEBER DANO
     # --------------------------------------------------------
 
-
-    # --------------------------------------------------------
-    # Carregar a barra de ação
-    # --------------------------------------------------------
-    # se o personagem estiver vivo, a barra de ação aumenta de acordo com a velocidade.
-
-    def carregar_atb(self, multiplicador_tempo):
-
-        if self.estar_vivo():
-            self.atb_barra = min(
-                self.atb_max,
-                self.atb_barra + (self.velocidade * multiplicador_tempo)
-            )
-
-    # --------------------------------------------------------
-    # Resetar a barra de ação
-    # --------------------------------------------------------
-    def resetar_atb(self):
-        self.atb_barra = 0.0
-
-
-    # --------------------------------------------------------
-    # Função para receber dano
-    # --------------------------------------------------------
     def receber_dano(self, dano):
 
+        # A defesa reduz o dano recebido.
         dano_final = max(
             1,
             dano - self.defesa
         )
 
-        # Reduz o HP do personagem.
-        #
-        # max(0, ...) impede que o HP fique negativo.
+        # Reduz o HP.
         self.hp = max(
             0,
             self.hp - dano_final
         )
 
-        # Retorna o dano que realmente foi causado.
+        # Retorna o dano realmente recebido.
         return dano_final
+
+    # --------------------------------------------------------
+    # CARREGAR ATB
+    # --------------------------------------------------------
+
+    def carregar_atb(self, multiplicador_tempo):
+
+        # Personagem morto não carrega a barra.
+        if self.estar_vivo():
+
+            self.atb_barra = min(
+                self.atb_max,
+                self.atb_barra
+                + (self.velocidade * multiplicador_tempo)
+            )
+
+    # --------------------------------------------------------
+    # RESETAR ATB
+    # --------------------------------------------------------
+
+    def resetar_atb(self):
+
+        self.atb_barra = 0.0
 
 
 # ============================================================
 # CLASSE HEROI
 # ============================================================
-# Heroi herda da classe Personagem.
-#
-# Isso significa que Heroi já possui:
-#
-# - nome
-# - level
-# - HP
-# - ataque
-# - defesa
-# - velocidade
-# - barra de ATD
-# - receber_dano()
-# - estar_vivo()
-#
-# Além disso, Heroi possui coisas próprias:
-#
-# - Classe RPG
-# - XP
-# - Pontos de Ação
-# - Poções
-# - Habilidades
-# ============================================================
 
 class Heroi(Personagem):
 
     # --------------------------------------------------------
-    # CONSTRUTOR DO HERÓI
+    # CONSTRUTOR
     # --------------------------------------------------------
 
     def __init__(self, nome, ClasseRPG, Level=1):
 
-        # super() chama o __init__ da classe Personagem.
-        #
-        # Assim não precisamos repetir aqui:
-        #
-        # self.nome
-        # self.level
-        # self.hp
-        # self.ataque
-        # etc.
+        # Inicializa a classe pai.
         super().__init__(nome, Level)
 
-        # Guarda a classe do herói.
-        #
-        # Exemplos:
-        # Guerreiro
-        # Mago
-        # Arqueiro
-        # Ladino
-        # Paladino
+        # Classe do personagem.
         self.ClasseRPG = ClasseRPG
 
         # ----------------------------------------------------
-        # SISTEMA DE EXPERIÊNCIA
+        # EXPERIÊNCIA
         # ----------------------------------------------------
 
         self.Xp = 0
 
-        # Quantidade de XP necessária para evoluir.
+        # XP necessária para próximo nível.
         self.XpMax = 100
 
         # ----------------------------------------------------
-        # SISTEMA DE PONTOS DE AÇÃO
+        # PONTOS DE AÇÃO
         # ----------------------------------------------------
 
-        # Quantidade máxima de PA.
         self.PAMax = 100
 
-        # O personagem começa com a barra de PA cheia.
+        # Começa com PA cheio.
         self.PA = self.PAMax
 
-        # Quantidade inicial de poções.
+        # ----------------------------------------------------
+        # POÇÕES
+        # ----------------------------------------------------
+
         self.pocoesPA = 3
 
-        # Calcula os atributos de acordo com a classe
-        # e o nível do personagem.
+        # ----------------------------------------------------
+        # ESTATÍSTICAS PARA ULTIMATES
+        # ----------------------------------------------------
+
+        # Quanto PA o personagem gastou desde a última Ultimate.
+        self.pa_gasto_ultimate = 0
+
+        # Quanto dano o personagem recebeu desde a última Ultimate.
+        self.dano_recebido_ultimate = 0
+
+        # Quantas ações o personagem realizou desde a última Ultimate.
+        self.acoes_realizadas = 0
+
+        # Calcula os atributos da classe.
         self.CalcularAtributosPorLevel()
 
     # ========================================================
-    # CALCULAR ATRIBUTOS POR NÍVEL
-    # ========================================================
-    # Essa função define os atributos de cada classe.
-    #
-    # Cada classe possui características diferentes.
-    #
-    # Guerreiro:
-    # Muito HP e boa defesa.
-    #
-    # Mago:
-    # Menos HP, mas muito ataque.
-    #
-    # Arqueiro:
-    # Velocidade alta.
-    #
-    # Ladino:
-    # Velocidade muito alta.
-    #
-    # Paladino:
-    # Muito HP, mas pouca velocidade.
+    # ATRIBUTOS POR CLASSE E NÍVEL
     # ========================================================
 
     def CalcularAtributosPorLevel(self):
 
         # ----------------------------------------------------
-        # GUERREIRO
+        # BERSERK
         # ----------------------------------------------------
 
-        if self.ClasseRPG == "Guerreiro":
+        if self.ClasseRPG == "Berserk":
 
-            self.hpMax = 80 + (
-                self.level * 20
-            )
+            self.hpMax = 80 + (self.level * 20)
 
-            self.ataque = 5 + (
-                self.level * 3
-            )
+            self.ataque = 6 + (self.level * 4)
 
-            self.velocidade = 4 + (
-                self.level * 3
-            )
+            self.velocidade = 4 + (self.level * 3)
 
         # ----------------------------------------------------
         # MAGO
@@ -338,17 +224,11 @@ class Heroi(Personagem):
 
         elif self.ClasseRPG == "Mago":
 
-            self.hpMax = 50 + (
-                self.level * 10
-            )
+            self.hpMax = 50 + (self.level * 10)
 
-            self.ataque = 7 + (
-                self.level * 5
-            )
+            self.ataque = 7 + (self.level * 5)
 
-            self.velocidade = 5 + (
-                self.level * 4
-            )
+            self.velocidade = 5 + (self.level * 4)
 
         # ----------------------------------------------------
         # ARQUEIRO
@@ -356,17 +236,11 @@ class Heroi(Personagem):
 
         elif self.ClasseRPG == "Arqueiro":
 
-            self.hpMax = 60 + (
-                self.level * 15
-            )
+            self.hpMax = 60 + (self.level * 15)
 
-            self.ataque = 6 + (
-                self.level * 4
-            )
+            self.ataque = 6 + (self.level * 4)
 
-            self.velocidade = 8 + (
-                self.level * 5
-            )
+            self.velocidade = 8 + (self.level * 5)
 
         # ----------------------------------------------------
         # LADINO
@@ -374,17 +248,11 @@ class Heroi(Personagem):
 
         elif self.ClasseRPG == "Ladino":
 
-            self.hpMax = 55 + (
-                self.level * 12
-            )
+            self.hpMax = 65 + (self.level * 12)
 
-            self.ataque = 6 + (
-                self.level * 4
-            )
+            self.ataque = 8 + (self.level * 4)
 
-            self.velocidade = 10 + (
-                self.level * 6
-            )
+            self.velocidade = 12 + (self.level * 6)
 
         # ----------------------------------------------------
         # PALADINO
@@ -392,39 +260,42 @@ class Heroi(Personagem):
 
         elif self.ClasseRPG == "Paladino":
 
-            self.hpMax = 90 + (
-                self.level * 25
-            )
+            self.hpMax = 90 + (self.level * 25)
 
-            self.ataque = 5 + (
-                self.level * 3
-            )
+            self.ataque = 5 + (self.level * 3)
 
-            self.velocidade = 3 + (
-                self.level * 2
-            )
+            self.velocidade = 3 + (self.level * 2)
 
-        # Depois de calcular os atributos,
-        # o personagem começa com HP cheio.
+        # Começa com HP cheio.
         self.hp = self.hpMax
+
+    # ========================================================
+    # RECEBER DANO
+    # ========================================================
+
+    def receber_dano(self, dano):
+
+        # Guarda o HP antes do ataque.
+        hp_antes = self.hp
+
+        # Usa a função da classe Personagem.
+        dano_real = super().receber_dano(dano)
+
+        # Calcula quanto HP foi perdido.
+        dano_recebido = hp_antes - self.hp
+
+        # Guarda o dano para a Ultimate do Berserk.
+        self.dano_recebido_ultimate += dano_recebido
+
+        return dano_real
 
     # ========================================================
     # STATUS DO HERÓI
     # ========================================================
-    # Sobrescrevemos o mostrar_status() da classe Personagem
-    # porque o herói possui informações extras:
-    #
-    # - PA
-    # - Poções
-    # - Classe
-    # ========================================================
 
     def mostrar_status(self):
 
-        # -----------------------------
-        # BARRA DE HP
-        # -----------------------------
-
+        # Barra de HP.
         barra_hp = int(
             (self.hp / self.hpMax) * 20
         )
@@ -434,10 +305,7 @@ class Heroi(Personagem):
             min(20, barra_hp)
         )
 
-        # -----------------------------
-        # BARRA DE PA
-        # -----------------------------
-
+        # Barra de PA.
         barra_pa = int(
             (self.PA / self.PAMax) * 20
         )
@@ -469,35 +337,23 @@ class Heroi(Personagem):
     # ========================================================
     # ATAQUE NORMAL
     # ========================================================
-    # Ataque básico do herói.
-    #
-    # O dano é:
-    #
-    # Ataque do personagem
-    # +
-    # número aleatório entre 0 e 10.
-    # ========================================================
 
     def atacar(self, alvo):
 
-        # Verifica se existe um alvo e se ele está vivo.
         if not alvo or not alvo.estar_vivo():
-
             return False
 
-        # Calcula o dano.
+        # Ataque base + dano aleatório.
         dano = (
             self.ataque
             + random.randint(0, 10)
         )
 
-        # Aplica o dano no alvo.
-        #
-        # receber_dano() retorna o dano real depois
-        # de considerar a defesa do inimigo.
-        dano_causado = alvo.receber_dano(
-            dano
-        )
+        # Aplica o dano.
+        dano_causado = alvo.receber_dano(dano)
+
+        # Registra uma ação para a Ultimate do Ladino.
+        self.acoes_realizadas += 1
 
         print(
             f"{self.nome} ataca "
@@ -510,42 +366,27 @@ class Heroi(Personagem):
     # ========================================================
     # HABILIDADE ESPECIAL 1
     # ========================================================
-    # Essa habilidade está disponível desde o nível 1.
-    #
-    # Custo: 20 PA
-    # ========================================================
 
     def habilidade_especial(self, alvo):
 
         if not alvo or not alvo.estar_vivo():
-
             return False
 
-        # Quantidade de PA necessária.
         custo = 20
 
-        # Verifica se o personagem possui PA suficiente.
+        # Verifica PA.
         if self.PA < custo:
 
             print(
-                f"{self.nome} não possui "
-                f"PA suficiente!"
-            )
-
-            print(
-                f"Necessário: {custo} PA | "
-                f"Atual: {self.PA} PA"
+                f"{self.nome} não possui PA suficiente!"
             )
 
             return False
 
-        # ----------------------------------------------------
-        # CADA CLASSE POSSUI UMA HABILIDADE DIFERENTE
-        # ----------------------------------------------------
+        # Define habilidade de acordo com a classe.
+        if self.ClasseRPG == "Berserk":
 
-        if self.ClasseRPG == "Guerreiro":
-
-            nome_skill = "Golpe Destruidor"
+            nome_skill = "Golpe Glamoroso"
 
             dano = (
                 self.ataque
@@ -572,7 +413,7 @@ class Heroi(Personagem):
 
         elif self.ClasseRPG == "Ladino":
 
-            nome_skill = "Golpe Sombrio"
+            nome_skill = "Te Passei o Calote"
 
             dano = (
                 self.ataque
@@ -588,13 +429,17 @@ class Heroi(Personagem):
                 + random.randint(10, 20)
             )
 
-        # Consome os 20 PA.
+        # Gasta PA.
         self.PA -= custo
 
-        # Aplica o dano.
-        dano_causado = alvo.receber_dano(
-            dano
-        )
+        # Registra o PA gasto.
+        self.pa_gasto_ultimate += custo
+
+        # Registra ação.
+        self.acoes_realizadas += 1
+
+        # Aplica dano.
+        dano_causado = alvo.receber_dano(dano)
 
         print(
             f"{self.nome} usa "
@@ -602,24 +447,15 @@ class Heroi(Personagem):
             f"e causa {dano_causado} de dano!"
         )
 
-        print(
-            f"PA restante: "
-            f"{self.PA}/{self.PAMax}"
-        )
-
         return True
 
     # ========================================================
     # HABILIDADE ESPECIAL 2
     # ========================================================
-    # Essa habilidade só pode ser utilizada a partir do nível 5.
-    #
-    # Custo: 40 PA
-    # ========================================================
 
     def segunda_habilidade(self, alvo):
 
-        # Verifica se o herói possui nível suficiente.
+        # Só libera no nível 5.
         if self.level < 5:
 
             print(
@@ -630,34 +466,21 @@ class Heroi(Personagem):
             return False
 
         if not alvo or not alvo.estar_vivo():
-
             return False
 
-        # Custo da habilidade.
         custo = 40
 
-        # Verifica se possui PA.
         if self.PA < custo:
 
             print(
-                f"{self.nome} não possui "
-                f"PA suficiente!"
-            )
-
-            print(
-                f"Necessário: {custo} PA | "
-                f"Atual: {self.PA} PA"
+                f"{self.nome} não possui PA suficiente!"
             )
 
             return False
 
-        # ----------------------------------------------------
-        # HABILIDADES DE CADA CLASSE
-        # ----------------------------------------------------
+        if self.ClasseRPG == "Berserk":
 
-        if self.ClasseRPG == "Guerreiro":
-
-            nome_skill = "Investida Brutal"
+            nome_skill = "Investida Fabulosa"
 
             dano = (
                 self.ataque
@@ -684,7 +507,7 @@ class Heroi(Personagem):
 
         elif self.ClasseRPG == "Ladino":
 
-            nome_skill = "Execução Sombria"
+            nome_skill = "Passa a Grana"
 
             dano = (
                 self.ataque
@@ -700,13 +523,16 @@ class Heroi(Personagem):
                 + random.randint(20, 35)
             )
 
-        # Gasta os 40 PA.
+        # Gasta PA.
         self.PA -= custo
 
-        # Aplica o dano.
-        dano_causado = alvo.receber_dano(
-            dano
-        )
+        # Guarda o PA gasto para a Ultimate.
+        self.pa_gasto_ultimate += custo
+
+        # Conta como uma ação.
+        self.acoes_realizadas += 1
+
+        dano_causado = alvo.receber_dano(dano)
 
         print(
             f"{self.nome} usa "
@@ -714,26 +540,15 @@ class Heroi(Personagem):
             f"e causa {dano_causado} de dano!"
         )
 
-        print(
-            f"PA restante: "
-            f"{self.PA}/{self.PAMax}"
-        )
-
         return True
 
     # ========================================================
     # ULTIMATE
     # ========================================================
-    # A Ultimate só pode ser utilizada no nível 10.
-    #
-    # Custo: 100 PA
-    #
-    # Depois de usar a Ultimate, o PA fica em 0.
-    # ========================================================
 
     def ultimate(self, alvo):
 
-        # Verifica se desbloqueou a Ultimate.
+        # Ultimate só libera no nível 10.
         if self.level < 10:
 
             print(
@@ -744,45 +559,118 @@ class Heroi(Personagem):
             return False
 
         if not alvo or not alvo.estar_vivo():
-
             return False
 
-        # A Ultimate precisa de PA cheio.
-        custo = 100
+        # ====================================================
+        # MAGO
+        # ====================================================
 
-        if self.PA < custo:
+        if self.ClasseRPG == "Mago":
 
-            print(
-                f"{self.nome} não possui "
-                f"PA suficiente para usar "
-                f"a Ultimate!"
-            )
+            # O Mago precisa ter gasto pelo menos 60 PA
+            # desde a última Ultimate.
+            if self.pa_gasto_ultimate < 60:
 
-            return False
+                print(
+                    f"🔥 O Mago precisa gastar "
+                    f"pelo menos 60 PA antes da Ultimate."
+                )
 
-        # ----------------------------------------------------
-        # ULTIMATE DE CADA CLASSE
-        # ----------------------------------------------------
+                print(
+                    f"PA gasto atualmente: "
+                    f"{self.pa_gasto_ultimate}"
+                )
 
-        if self.ClasseRPG == "Guerreiro":
+                return False
 
-            nome_skill = "Fúria dos Titãs"
+            nome_skill = "NÃO ME ESTRESSA PORRA"
 
-            dano = (
-                self.ataque * 3
-                + random.randint(20, 40)
-            )
-
-        elif self.ClasseRPG == "Mago":
-
-            nome_skill = "TESTICULAR TORSION"
-
+            # Quanto mais PA gastou, mais forte.
             dano = (
                 self.ataque * 4
+                + self.pa_gasto_ultimate
                 + random.randint(30, 50)
             )
 
+        # ====================================================
+        # BERSERK
+        # ====================================================
+
+        elif self.ClasseRPG == "Berserk":
+
+            # O Berserk precisa ter levado pelo menos
+            # 50 de dano.
+            if self.dano_recebido_ultimate < 50:
+
+                print(
+                    f"🔥 O Berserk precisa levar "
+                    f"pelo menos 50 de dano!"
+                )
+
+                print(
+                    f"Dano recebido: "
+                    f"{self.dano_recebido_ultimate}"
+                )
+
+                return False
+
+            nome_skill = "NÃO TOCA NO CABELO"
+
+            # Quanto mais dano recebeu,
+            # mais forte fica a Ultimate.
+            dano = (
+                self.ataque * 3
+                + self.dano_recebido_ultimate
+                + random.randint(20, 40)
+            )
+
+        # ====================================================
+        # LADINO
+        # ====================================================
+
+        elif self.ClasseRPG == "Ladino":
+
+            # O Ladino precisa realizar pelo menos
+            # 5 ações.
+            if self.acoes_realizadas < 5:
+
+                print(
+                    f"🔥 O Ladino precisa realizar "
+                    f"5 ações antes da Ultimate!"
+                )
+
+                print(
+                    f"Ações realizadas: "
+                    f"{self.acoes_realizadas}"
+                )
+
+                return False
+
+            nome_skill = "A RESSACA BATEU"
+
+            # Quanto mais ações realizou,
+            # maior o dano.
+            dano = (
+                self.ataque * 4
+                + (self.acoes_realizadas * 10)
+                + random.randint(20, 40)
+            )
+
+        # ====================================================
+        # OUTRAS CLASSES
+        # ====================================================
+
         elif self.ClasseRPG == "Arqueiro":
+
+            # Arqueiro precisa de PA cheio.
+            if self.PA < 100:
+
+                print(
+                    "🏹 O Arqueiro precisa estar "
+                    "com PA cheio!"
+                )
+
+                return False
 
             nome_skill = "Flecha Celestial"
 
@@ -791,16 +679,17 @@ class Heroi(Personagem):
                 + random.randint(30, 50)
             )
 
-        elif self.ClasseRPG == "Ladino":
-
-            nome_skill = "Morte Instantânea"
-
-            dano = (
-                self.ataque * 4
-                + random.randint(20, 40)
-            )
-
         elif self.ClasseRPG == "Paladino":
+
+            # Paladino precisa de PA cheio.
+            if self.PA < 100:
+
+                print(
+                    "🛡️ O Paladino precisa estar "
+                    "com PA cheio!"
+                )
+
+                return False
 
             nome_skill = "Ira Divina"
 
@@ -809,13 +698,18 @@ class Heroi(Personagem):
                 + random.randint(30, 50)
             )
 
-        # A Ultimate consome todos os 100 PA.
+        else:
+            return False
+
+        # ====================================================
+        # EXECUTAR ULTIMATE
+        # ====================================================
+
+        # A Ultimate consome todo o PA.
         self.PA = 0
 
         # Aplica o dano.
-        dano_causado = alvo.receber_dano(
-            dano
-        )
+        dano_causado = alvo.receber_dano(dano)
 
         print("\n🔥 ===============================")
 
@@ -830,20 +724,24 @@ class Heroi(Personagem):
 
         print("🔥 ===============================")
 
+        # ----------------------------------------------------
+        # RESET DAS CONDIÇÕES DA ULTIMATE
+        # ----------------------------------------------------
+
+        # Depois de usar a Ultimate,
+        # começamos a contabilizar novamente.
+        self.pa_gasto_ultimate = 0
+        self.dano_recebido_ultimate = 0
+        self.acoes_realizadas = 0
+
         return True
 
     # ========================================================
-    # USAR POÇÃO DE PA
-    # ========================================================
-    # A poção recupera 50 PA.
-    #
-    # O PA NÃO é regenerado automaticamente.
-    # Só aumenta através da poção.
+    # USAR POÇÃO
     # ========================================================
 
     def usar_pocao_pa(self):
 
-        # Verifica se o personagem possui poções.
         if self.pocoesPA <= 0:
 
             print(
@@ -853,7 +751,6 @@ class Heroi(Personagem):
 
             return False
 
-        # Não permite usar poção se o PA já estiver cheio.
         if self.PA >= self.PAMax:
 
             print(
@@ -863,23 +760,18 @@ class Heroi(Personagem):
 
             return False
 
-        # Quantidade recuperada.
         recuperacao = 50
 
-        # min() impede que o PA ultrapasse 100.
-        #
-        # Exemplo:
-        # PA = 80
-        # Recuperação = 50
-        #
-        # Resultado = 100, e não 130.
+        # Recupera no máximo até 100.
         self.PA = min(
             self.PAMax,
             self.PA + recuperacao
         )
 
-        # Remove uma poção do inventário.
         self.pocoesPA -= 1
+
+        # Usar poção também conta como ação.
+        self.acoes_realizadas += 1
 
         print(
             f"🧪 {self.nome} usou "
@@ -901,85 +793,143 @@ class Heroi(Personagem):
 # ============================================================
 # CLASSE INIMIGO
 # ============================================================
-# Inimigo também herda de Personagem.
-#
-# Ele possui os atributos básicos do personagem, mas possui
-# valores próprios de HP, ataque, defesa e velocidade.
-#
-# Também possui uma chance de dropar poção.
-# ============================================================
 
 class Inimigo(Personagem):
 
-    def __init__(self, nome, Level=1):
+    def __init__(
+        self,
+        nome,
+        Level=1,
+        tipo="Normal",
+        tipo_inimigo="Soldado"
+    ):
 
-        # Inicializa os atributos herdados.
-        super().__init__(nome, Level)
+        super().__init__(
+            nome,
+            Level
+        )
+
+        # Categoria do inimigo:
+        #
+        # Normal
+        # Elite
+        # Boss
+
+        self.tipo = tipo
+        self.tipo_inimigo = tipo_inimigo
 
         # ----------------------------------------------------
-        # ATRIBUTOS DO INIMIGO
+        # ATRIBUTOS
         # ----------------------------------------------------
 
-        self.hpMax = (
-            60
-            + (self.level * 18)
+        multiplicador = 1
+
+        if self.tipo == "Elite":
+            multiplicador = 1.5
+
+        elif self.tipo == "Boss":
+            multiplicador = 2.0
+
+        #------------------------------------
+        #TIPO DO INIMIGO
+        #------------------------------------
+        
+        multiplicadores_tipo = {
+            "Xama": (0.8, 1.3, 3),
+            "Soldado": (1.0, 1.0, 2),
+            "Batedor": (0.85, 0.9, 4)
+        }
+
+        multiplicador_hp, multiplicador_ataque, multiplicador_velocidade = (
+            multiplicadores_tipo.get(
+                self.tipo_inimigo,
+                multiplicadores_tipo["Soldado"]
+            )
+        )
+
+        self.hpMax = int(
+            (60 + (self.level * 18))
+            * multiplicador
+            * multiplicador_hp
         )
 
         self.hp = self.hpMax
 
-        self.ataque = (
-            8
-            + (self.level * 3)
+        self.ataque = int(
+            (8 + (self.level * 3))
+            * multiplicador
+            * multiplicador_ataque
         )
 
         self.velocidade = (
-            2
-            + self.level
+            2 + self.level
+        ) * multiplicador_velocidade
+
+        self.defesa = int(
+            (1 + self.level)
+            * multiplicador
         )
 
-        self.defesa = (
-            1
-            + self.level
-        )
+        # ----------------------------------------------------
+        # XP
+        # ----------------------------------------------------
 
-        # XP que o inimigo poderá dar futuramente.
-        self.XpDrop = 0
+        # A quantidade de XP será calculada
+        # de acordo com nível + tipo.
+        self.XpDrop = self.calcular_xp_drop()
 
         # ----------------------------------------------------
-        # CHANCE DE DROP
+        # DROP DE POÇÃO
         # ----------------------------------------------------
-        # 0.30 significa 30%.
+
+        # REGRA FIXA:
         #
-        # Esse valor pode ser alterado futuramente.
-        #
-        # 0.10 = 10%
-        # 0.30 = 30%
-        # 0.50 = 50%
-        # 1.00 = 100%
-        # ----------------------------------------------------
-
+        # Todo inimigo possui exatamente 30%.
         self.chanceDropPocao = 0.30
 
     # ========================================================
-    # ATAQUE DO INIMIGO
+    # CALCULAR XP
+    # ========================================================
+
+    def calcular_xp_drop(self):
+
+        # XP base aumenta conforme o nível.
+        xp_base = 50 * self.level
+
+        # Multiplicador conforme o tipo.
+        if self.tipo == "Normal":
+
+            multiplicador = 1
+
+        elif self.tipo == "Elite":
+
+            multiplicador = 2
+
+        elif self.tipo == "Boss":
+
+            multiplicador = 5
+
+        else:
+
+            multiplicador = 1
+
+        return xp_base * multiplicador
+
+    # ========================================================
+    # ATAQUE
     # ========================================================
 
     def atacar(self, alvo):
 
         if not alvo or not alvo.estar_vivo():
-
             return False
 
-        # Ataque base + número aleatório.
         dano = (
             self.ataque
             + random.randint(0, 5)
         )
 
-        # Aplica o dano.
-        dano_causado = alvo.receber_dano(
-            dano
-        )
+        dano_causado = alvo.receber_dano(dano)
 
         print(
             f"{self.nome} ataca "
@@ -991,34 +941,36 @@ class Inimigo(Personagem):
 
 
 # ============================================================
-# EXIBIR BARRA DE AÇÃO
+# BARRA DE AÇÃO
 # ============================================================
-# Essa função mostra a barra de ação de todos os combatentes.
-# Essa barra é atualizada a cada tick do loop principal da batalha.
-# futuramente no layout irá estar na no canto superior esquerdo da tela.
-# =======================================================================
-#  
+
 def exibir_barra_atb(combatentes):
 
     print("\n========== BARRA DE AÇÃO ==========")
 
     for personagem in combatentes:
+
         if personagem.estar_vivo():
-            progressao = int(personagem.atb_barra / 10)
-            barra_visual = "#" * progressao + "." * (10 - progressao)
+
+            progressao = int(
+                personagem.atb_barra / 10
+            )
+
+            barra_visual = (
+                "#" * progressao
+                + "." * (10 - progressao)
+            )
+
             print(
                 f"{personagem.nome:<16} "
                 f"ATB: [{barra_visual}] "
-                f"{personagem.atb_barra:.1f}/{personagem.atb_max:.0f}"
+                f"{personagem.atb_barra:.1f}/"
+                f"{personagem.atb_max:.0f}"
             )
 
+
 # ============================================================
-# CRIAR OS HERÓIS
-# ============================================================
-# Essa função cria os personagens que irão participar da
-# batalha.
-#
-# O número 1 no final representa o nível inicial.
+# CRIAR HERÓIS
 # ============================================================
 
 def criar_herois():
@@ -1027,73 +979,112 @@ def criar_herois():
 
         Heroi(
             "Lucas",
-            "Guerreiro",
-            1
+            "Berserk",
+            3
         ),
 
         Heroi(
             "Guilherme",
             "Mago",
-            1
+            3
         ),
 
         Heroi(
             "Cezar",
-            "Arqueiro",
-            1
+            "Ladino",
+            3
         )
-
     ]
 
     return herois
 
 
 # ============================================================
-# CRIAR INIMIGO
-# ============================================================
-# Escolhe aleatoriamente um nome para o inimigo.
-#
-# Depois cria um objeto da classe Inimigo.
-#
-# Exemplo:
-#
-# Goblin Lv.3
-# Orc Lv.3
-# Slime Lv.3
+# CRIAR 3 TIPOS DE INIMIGOS, 
+# XAMA, SOLDADO E BATEDOR
+# COM 3 CATEGORIAS DIFERENTES, 
+# NORMAL, ELITE E BOSS
 # ============================================================
 
-def criar_inimigo(level=1):
+def criar_inimigo(level=1, tipo="Normal", tipo_inimigo=None):
 
-    nomes = [
-        "Goblin",
-        "Esqueleto",
-        "Slime",
-        "Orc",
-        "Besta"
-    ]
+    nomes = {
+        "Xama": [
+            "Cantor dos Rios",
+            "Tritã das Névoas",
+            "Biomante Bêntico"
+            
+        ],
+        "Soldado": [
+            "Seguidor de Harkbal",
+            "Mestre do Tridente Perolado",
+            "Elite da Raiz Profunda"
+        ],
+        "Batedor": [
+            "Mergulhadora da Caverna tritã",
+            "Mergulhadora Celeste",
+            "Nicanzil, Condutora da Corrente"
 
-    # Escolhe um nome aleatório da lista.
-    nome = random.choice(nomes)
+        ]
+    }
 
-    # Cria o inimigo utilizando o nome e o nível.
+    if tipo_inimigo is None:
+        tipo_inimigo = random.choice(
+            list(nomes)
+        )
+
+    nome = random.choice(nomes[tipo_inimigo])
+
     return Inimigo(
         f"{nome} Lv.{level}",
-        level
+        level,
+        tipo,
+        tipo_inimigo
     )
+
+
+def criar_inimigo_normal(level=1):
+
+    return criar_inimigo(level, "Normal")
+
+
+def criar_inimigo_elite(level=1):
+
+    return criar_inimigo(level, "Elite")
+
+
+def criar_inimigo_boss(level=1):
+
+    return criar_inimigo(level, "Boss")
+
+
+def criar_inimigo_xama(level=1, tipo="Normal"):
+
+    return criar_inimigo(level, tipo, "Xama")
+
+
+def criar_inimigo_soldado(level=1, tipo="Normal"):
+
+    return criar_inimigo(level, tipo, "Soldado")
+
+
+def criar_inimigo_batedor(level=1, tipo="Normal"):
+
+    return criar_inimigo(level, tipo, "Batedor")
 
 
 # ============================================================
 # MOSTRAR STATUS DOS HERÓIS
 # ============================================================
-# Percorre todos os heróis e mostra o status de cada um.
-# ============================================================
 
 def mostrar_status_herois(herois):
 
     print("\n")
-    print("========== STATUS DOS HERÓIS ==========")
 
-    # Percorre cada herói da lista.
+    print(
+        "========== STATUS DOS HERÓIS =========="
+    )
+
     for heroi in herois:
 
         print(
@@ -1102,63 +1093,105 @@ def mostrar_status_herois(herois):
 
 
 # ============================================================
-# VERIFICAR DROP DE POÇÃO
+# DROP DE XP
 # ============================================================
-# Essa função é chamada quando o inimigo é derrotado.
-#
-# O inimigo possui uma chance fixa de drop.
-#
-# Atualmente:
-#
-# 30% = dropa poção
-# 70% = não dropa
+
+def dar_xp(inimigo, herois):
+
+    # XP definido pelo nível e tipo do inimigo.
+    xp = inimigo.XpDrop
+
+    # Apenas heróis vivos recebem XP.
+    herois_vivos = [
+        heroi
+        for heroi in herois
+        if heroi.estar_vivo()
+    ]
+
+    if not herois_vivos:
+        return
+
+    # Divide o XP entre os heróis vivos.
+    xp_por_heroi = xp // len(herois_vivos)
+
+    print("\n⭐ ===============================")
+
+    print(
+        f"⭐ O grupo derrotou um "
+        f"{inimigo.tipo}!"
+    )
+
+    print(
+        f"⭐ XP total: {xp}"
+    )
+
+    for heroi in herois_vivos:
+
+        heroi.Xp += xp_por_heroi
+
+        print(
+            f"⭐ {heroi.nome} recebeu "
+            f"{xp_por_heroi} XP."
+        )
+
+        # ----------------------------------------------------
+        # LEVEL UP
+        # ----------------------------------------------------
+
+        while (
+            heroi.Xp >= heroi.XpMax
+            and heroi.level < 10
+        ):
+
+            heroi.Xp -= heroi.XpMax
+
+            heroi.level += 1
+
+            # Aumenta a XP necessária.
+            heroi.XpMax = int(
+                heroi.XpMax * 1.5
+            )
+
+            # Recalcula os atributos.
+            heroi.CalcularAtributosPorLevel()
+
+            print(
+                f"🎉 {heroi.nome} subiu "
+                f"para o nível "
+                f"{heroi.level}!"
+            )
+
+    print("⭐ ===============================")
+
+
+# ============================================================
+# DROP DE POÇÃO
 # ============================================================
 
 def verificar_drop_pocao(inimigo, herois):
 
-    # random.random() gera um número entre 0 e 1.
+    # REGRA FIXA:
     #
-    # Exemplo:
-    #
-    # 0.12
-    # 0.45
-    # 0.87
-    #
-    # Como a chance é 0.30:
-    #
-    # 0.12 <= 0.30 -> DROP
-    # 0.45 <= 0.30 -> NÃO DROP
+    # Sempre 30%.
     sorteio = random.random()
 
-    # Compara o sorteio com a chance configurada
-    # no inimigo.
-    if sorteio <= inimigo.chanceDropPocao:
+    if sorteio <= 0.30:
 
-        # Pega somente os heróis vivos.
         herois_vivos = [
-
             heroi
-
             for heroi in herois
-
             if heroi.estar_vivo()
-
         ]
 
-        # Se existir pelo menos um herói vivo...
         if herois_vivos:
 
-            # Escolhe aleatoriamente qual herói receberá
-            # a poção.
             heroi = random.choice(
                 herois_vivos
             )
 
-            # Adiciona uma poção ao herói.
             heroi.pocoesPA += 1
 
-            print("\n")
-            print("🧪 ===============================")
+            print("\n🧪 ===============================")
 
             print(
                 f"🧪 {inimigo.nome} "
@@ -1179,7 +1212,6 @@ def verificar_drop_pocao(inimigo, herois):
 
             return True
 
-    # Caso o sorteio não esteja dentro da chance de drop.
     print(
         f"\n{inimigo.nome} não deixou "
         f"nenhuma poção."
@@ -1189,32 +1221,111 @@ def verificar_drop_pocao(inimigo, herois):
 
 
 # ============================================================
+# SISTEMA DE PERGAMINHOS
+# ============================================================
+
+def abrir_bau(heroi):
+
+    # Lista de pergaminhos disponíveis.
+    pergaminhos = [
+
+        "Pergaminho de Fogo",
+
+        "Pergaminho de Gelo",
+
+        "Pergaminho de Cura",
+
+        "Pergaminho de Trovão",
+
+        "Pergaminho das Sombras"
+    ]
+
+    # Chance de encontrar um pergaminho.
+    if random.random() <= 0.50:
+
+        pergaminho = random.choice(
+            pergaminhos
+        )
+
+        print("\n📜 ===============================")
+
+        print(
+            f"📜 {heroi.nome} abriu o baú!"
+        )
+
+        print(
+            f"📜 Encontrou: {pergaminho}"
+        )
+
+        print("📜 ===============================")
+
+        return pergaminho
+
+    print(
+        f"\n📦 {heroi.nome} abriu o baú, "
+        f"mas não encontrou um pergaminho."
+    )
+
+    return None
+
+
+# ============================================================
+# Escolher inimigo para atacar
+# ============================================================
+
+def escolher_inimigo(inimigos):
+
+    inimigos_vivos = [
+        inimigo
+        for inimigo in inimigos
+        if inimigo.estar_vivo()
+    ]
+
+    print("\nEscolha qual inimigo atacar:")
+
+#=================================================================
+# Este loop exibe os inimigos vivos com seus índices e informações de status,
+# permitindo que o jogador escolha um alvo para atacar.
+#====================================================================
+
+    for indice, inimigo in enumerate(inimigos_vivos, start=1):
+
+        print(
+            f"{indice} - {inimigo.nome} "
+            f"({inimigo.tipo_inimigo} - {inimigo.tipo}) | "
+            f"HP: {inimigo.hp}/{inimigo.hpMax}"
+        )
+#=================================================================
+# Este loop continua solicitando ao jogador que escolha um inimigo até
+# que uma opção válida seja fornecida.
+#====================================================================
+# O método .isdigit() é uma função do Python usada para verificar se um texto (string)
+#  contém apenas números inteiros e positivos.
+#==============================================================================
+    while True:
+
+        escolha = input("Número do inimigo: ")
+
+        if escolha.isdigit():
+
+            indice = int(escolha) - 1
+
+            if 0 <= indice < len(inimigos_vivos):
+
+                return inimigos_vivos[indice]
+
+        print("Opção inválida. Escolha um inimigo vivo.")
+
+# ============================================================
 # TURNO DO JOGADOR
 # ============================================================
-# Mostra as ações disponíveis para o jogador.
-#
-# As opções mudam de acordo com o nível do personagem.
-#
-# Nível 1:
-# Ataque
-# Skill 1
-# Poção
-# Defender
-#
-# Nível 5:
-# Também libera Skill 2.
-#
-# Nível 10:
-# Também libera Ultimate.
-# ============================================================
 
-def turno_jogador(heroi, inimigo):
+def turno_jogador(heroi, inimigos):
 
-    # while True mantém o menu aberto caso o jogador
-    # digite uma opção inválida.
     while True:
 
         print("\n")
+
         print(
             f"========== TURNO DE "
             f"{heroi.nome} =========="
@@ -1232,18 +1343,31 @@ def turno_jogador(heroi, inimigo):
             f"Poções: {heroi.pocoesPA}"
         )
 
-        print("\nEscolha sua ação:")
+        # Informações úteis para as Ultimates.
+        print(
+            f"PA gasto para Ultimate: "
+            f"{heroi.pa_gasto_ultimate}"
+        )
 
         print(
-            "1 - Ataque normal"
+            f"Dano recebido para Ultimate: "
+            f"{heroi.dano_recebido_ultimate}"
         )
+
+        print(
+            f"Ações realizadas: "
+            f"{heroi.acoes_realizadas}"
+        )
+
+        print("\nEscolha sua ação:")
+
+        print("1 - Ataque normal")
 
         print(
             "2 - Habilidade especial "
             "(20 PA)"
         )
 
-        # A Skill 2 só aparece para personagens nível 5+
         if heroi.level >= 5:
 
             print(
@@ -1251,12 +1375,10 @@ def turno_jogador(heroi, inimigo):
                 "(40 PA)"
             )
 
-        # A Ultimate só aparece para personagens nível 10.
         if heroi.level >= 10:
 
             print(
-                "4 - Ultimate "
-                "(100 PA)"
+                "4 - Ultimate"
             )
 
         print(
@@ -1267,36 +1389,34 @@ def turno_jogador(heroi, inimigo):
             "6 - Defender"
         )
 
-        # input() espera o jogador digitar uma opção.
         escolha = input(
             "\nEscolha sua ação: "
         )
 
         # ----------------------------------------------------
-        # OPÇÃO 1 - ATAQUE NORMAL
+        # ATAQUE
         # ----------------------------------------------------
 
         if escolha == "1":
 
-            # Se o ataque funcionar, encerra o turno.
-            if heroi.atacar(inimigo):
+            alvo = escolher_inimigo(inimigos)
 
+            if heroi.atacar(alvo):
                 return
 
         # ----------------------------------------------------
-        # OPÇÃO 2 - SKILL 1
+        # SKILL 1
         # ----------------------------------------------------
 
         elif escolha == "2":
 
-            if heroi.habilidade_especial(
-                inimigo
-            ):
+            alvo = escolher_inimigo(inimigos)
 
+            if heroi.habilidade_especial(alvo):
                 return
 
         # ----------------------------------------------------
-        # OPÇÃO 3 - SKILL 2
+        # SKILL 2
         # ----------------------------------------------------
 
         elif (
@@ -1304,14 +1424,13 @@ def turno_jogador(heroi, inimigo):
             and heroi.level >= 5
         ):
 
-            if heroi.segunda_habilidade(
-                inimigo
-            ):
+            alvo = escolher_inimigo(inimigos)
 
+            if heroi.segunda_habilidade(alvo):
                 return
 
         # ----------------------------------------------------
-        # OPÇÃO 4 - ULTIMATE
+        # ULTIMATE
         # ----------------------------------------------------
 
         elif (
@@ -1319,31 +1438,22 @@ def turno_jogador(heroi, inimigo):
             and heroi.level >= 10
         ):
 
-            if heroi.ultimate(
-                inimigo
-            ):
+            alvo = escolher_inimigo(inimigos)
 
+            if heroi.ultimate(alvo):
                 return
 
         # ----------------------------------------------------
-        # OPÇÃO 5 - POÇÃO
+        # POÇÃO
         # ----------------------------------------------------
 
         elif escolha == "5":
 
             if heroi.usar_pocao_pa():
-
                 return
 
         # ----------------------------------------------------
-        # OPÇÃO 6 - DEFENDER
-        # ----------------------------------------------------
-        # A defesa aumenta em 5.
-        #
-        # OBS:
-        # Neste momento esse bônus não é removido depois.
-        # Posteriormente podemos fazer a defesa voltar ao
-        # normal no começo da próxima rodada.
+        # DEFENDER
         # ----------------------------------------------------
 
         elif escolha == "6":
@@ -1353,13 +1463,13 @@ def turno_jogador(heroi, inimigo):
                 f"para defender."
             )
 
+            # Aumenta a defesa.
             heroi.defesa += 5
 
-            return
+            # Conta como uma ação.
+            heroi.acoes_realizadas += 1
 
-        # ----------------------------------------------------
-        # OPÇÃO INVÁLIDA
-        # ----------------------------------------------------
+            return
 
         else:
 
@@ -1370,19 +1480,41 @@ def turno_jogador(heroi, inimigo):
 
 
 # ============================================================
-# BATALHA
+# HISTÓRIA
 # ============================================================
-# Essa é a principal função do sistema de combate.
-#
-# Ela:
-#
-# 1. Cria os heróis.
-# 2. Cria o inimigo.
-# 3. Inicia a batalha.
-# 4. Inicia a ordem de turnos baseado na barra de ação.
-# 5. Executa os ataques.
-# 6. Verifica vitória ou derrota.
-# 7. Verifica o drop.
+
+# def mostrar_historia():
+
+#     print("\n")
+#     print("======================================")
+#     print("              HISTÓRIA")
+#     print("======================================")
+
+#     print(
+#         "O reino de Eldoria está sendo "
+#         "ameaçado por criaturas misteriosas."
+#     )
+
+#     print(
+#         "Um grupo de aventureiros foi "
+#         "convocado para descobrir a origem "
+#         "dessa ameaça."
+#     )
+
+#     print(
+#         "Durante a jornada, os heróis irão "
+#         "encontrar monstros, baús, "
+#         "pergaminhos e chefes."
+#     )
+
+#     print(
+#         "A verdadeira origem do conflito "
+#         "ainda permanece desconhecida..."
+#     )
+
+
+# ============================================================
+# BATALHA
 # ============================================================
 
 def batalha():
@@ -1390,178 +1522,110 @@ def batalha():
     # Cria os heróis.
     herois = criar_herois()
 
-    # Cria um inimigo nível 3.
-    inimigo = criar_inimigo(3)
+    # Cria os três inimigos da batalha.
+    inimigos = [
+        criar_inimigo_xama(3, "Normal"),
+        criar_inimigo_soldado(3, "Elite"),
+        criar_inimigo_batedor(3, "Boss")
+    ]
 
     print("\n")
+
     print("======================================")
-    print("        RPG DE TURNOS")
+    print("           RPG DE TURNOS")
     print("======================================")
 
-    print(
-        f"\n👹 Inimigo apareceu: "
-        f"{inimigo.nome}"
-    )
+    for inimigo in inimigos:
 
-    # Mostra o status inicial do inimigo.
-    print(
-        inimigo.mostrar_status()
-    )
+        print(
+            f"\n👹 Inimigo apareceu: "
+            f"{inimigo.nome}"
+        )
 
-    # Mostra o status dos heróis.
+        print(
+            f"Tipo: {inimigo.tipo_inimigo} | "
+            f"Categoria: {inimigo.tipo}"
+        )
+
+        print(
+            f"XP: {inimigo.XpDrop}"
+        )
+
+        print(
+            inimigo.mostrar_status()
+        )
+
     mostrar_status_herois(
         herois
     )
 
-    # ========================================================
-    # LOOP PRINCIPAL DA BATALHA
-    # ========================================================
-    # while True mantém a batalha acontecendo.
-    #
-    # Ela só termina quando:
-    #
-    # - O inimigo morrer.
-    # OU
-    # - Todos os heróis morrerem.
-    #
-    # -A cada tick do loop, a barra de ação de todos os
-    # combatentes aumenta de acordo com a velocidade.
-    # É como se fosse uma corrida para ver quem ataca primeiro,
-    # e a velocidade determina o quão rápido cada um carrega a barra.
-    # Exemplo:
-    #
-    # Herói 1: Velocidade 13
-    # Herói 2: Velocidade 8
-    # Inimigo: Velocidade 5
-    # 
-    # A cada tick, a barra de ação aumenta:
-    # adiconando a velocidade de cada combatente a barra de ação.
-    # 
-    # Primeiro trica a barra de ação do Herói 1, depois do Herói 2, e por último do Inimigo.
-    # Novos valores da barra de ação:
-    # Herói 1: 26
-    # Herói 2: 16
-    # Inimigo: 10
-    #
-    # Quando a barra de ação de algum combatente atingir 100, ele poderá atacar.
-    # ========================================================
+    # Todos os combatentes.
+    combatentes = herois + inimigos
 
-
-    combatentes = herois + [inimigo]
+    # Tempo do sistema de ATB.
     tick_rate = 0.1
+
     multiplicador_tempo = 0.5
+
+    # ========================================================
+    # LOOP DA BATALHA
+    # ========================================================
 
     while True:
 
-        if not inimigo.estar_vivo():
-
-            print("\n======================================")
-            print("              VITÓRIA!")
-            print("======================================")
-            print(f"🏆 {inimigo.nome} foi derrotado!")
-            print(inimigo.mostrar_status())
-            verificar_drop_pocao(inimigo, herois)
-            break
-
-        if not any(heroi.estar_vivo() for heroi in herois):
-
-            print("\n======================================")
-            print("              DERROTA!")
-            print("======================================")
-            print("💀 Todos os heróis foram derrotados.")
-            break
-
-        for personagem in combatentes:
-            personagem.carregar_atb(multiplicador_tempo)
-
-        exibir_barra_atb(combatentes)
-        time.sleep(tick_rate)
-
-        personagem_pronto = next(
-            (
-                personagem
-                for personagem in combatentes
-                if personagem.estar_vivo()
-                and personagem.atb_barra >= personagem.atb_max
-            ),
-            None
-        )
-
-        if personagem_pronto is None:
-            continue
-
-        if isinstance(personagem_pronto, Heroi):
-
-            turno_jogador(
-                personagem_pronto,
-                inimigo
-            )
-
-        else:
-
-            herois_vivos = [
-                heroi
-                for heroi in herois
-                if heroi.estar_vivo()
-            ]
-
-            if herois_vivos:
-                alvo = random.choice(herois_vivos)
-                print(
-                    f"\n🚨 TURNO INIMIGO: "
-                    f"{personagem_pronto.nome} atacou!"
-                )
-                personagem_pronto.atacar(alvo)
-                print(alvo.mostrar_status())
-
-        personagem_pronto.resetar_atb()
-
-        # ====================================================
+        # ----------------------------------------------------
         # VERIFICAR VITÓRIA
-        # ====================================================
+        # ----------------------------------------------------
 
-        if not inimigo.estar_vivo():
+        inimigos_vivos = [
+            inimigo
+            for inimigo in inimigos
+            if inimigo.estar_vivo()
+        ]
 
-            print("\n")
-            print("======================================")
+        if not inimigos_vivos:
+
+            print("\n======================================")
+
             print("              VITÓRIA!")
+
             print("======================================")
 
-            print(
-                f"🏆 {inimigo.nome} "
-                f"foi derrotado!"
-            )
+            for inimigo in inimigos:
 
-            # Mostra a barra de HP zerada.
-            print(
-                inimigo.mostrar_status()
-            )
+                print(
+                    f"🏆 {inimigo.nome} foi derrotado!"
+                )
 
-            # Verifica se o inimigo deixou uma poção.
-            verificar_drop_pocao(
-                inimigo,
-                herois
-            )
+                print(
+                    inimigo.mostrar_status()
+                )
 
-            # Encerra a batalha.
+                dar_xp(
+                    inimigo,
+                    herois
+                )
+
+                verificar_drop_pocao(
+                    inimigo,
+                    herois
+                )
+
             break
 
-        # ====================================================
+        # ----------------------------------------------------
         # VERIFICAR DERROTA
-        # ====================================================
-
-        # any() verifica se existe pelo menos um herói vivo.
-        #
-        # Se nenhum estiver vivo, todos foram derrotados.
+        # ----------------------------------------------------
 
         if not any(
             heroi.estar_vivo()
             for heroi in herois
         ):
 
-            print("\n")
-            print("======================================")
+            print("\n======================================")
+
             print("              DERROTA!")
+
             print("======================================")
 
             print(
@@ -1571,33 +1635,124 @@ def batalha():
 
             break
 
+        # ----------------------------------------------------
+        # CARREGAR ATB
+        # ----------------------------------------------------
+
+        for personagem in combatentes:
+
+            personagem.carregar_atb(
+                multiplicador_tempo
+            )
+
+        # Mostra a barra.
+        exibir_barra_atb(
+            combatentes
+        )
+
+        time.sleep(
+            tick_rate
+        )
+
+        # ----------------------------------------------------
+        # PROCURAR QUEM ESTÁ PRONTO
+        # ----------------------------------------------------
+
+        personagem_pronto = next(
+
+            (
+                personagem
+                for personagem in combatentes
+
+                if (
+                    personagem.estar_vivo()
+                    and
+                    personagem.atb_barra
+                    >= personagem.atb_max
+                )
+            ),
+
+            None
+        )
+
+        if personagem_pronto is None:
+
+            continue
+
         # ====================================================
-        # STATUS NO FINAL DA RODADA
+        # TURNO DO HERÓI
         # ====================================================
+
+        if isinstance(
+            personagem_pronto,
+            Heroi
+        ):
+
+            turno_jogador(
+                personagem_pronto,
+                inimigos
+            )
+
+        # ====================================================
+        # TURNO DO INIMIGO
+        # ====================================================
+
+        else:
+
+            herois_vivos = [
+
+                heroi
+                for heroi in herois
+
+                if heroi.estar_vivo()
+            ]
+
+            if herois_vivos:
+
+                alvo = random.choice(
+                    herois_vivos
+                )
+
+                print(
+                    f"\n🚨 TURNO INIMIGO: "
+                    f"{personagem_pronto.nome}"
+                )
+
+                personagem_pronto.atacar(
+                    alvo
+                )
+
+                print(
+                    alvo.mostrar_status()
+                )
+
+        # ----------------------------------------------------
+        # RESET DA ATB
+        # ----------------------------------------------------
+
+        personagem_pronto.resetar_atb()
+
+        # ----------------------------------------------------
+        # STATUS
+        # ----------------------------------------------------
 
         mostrar_status_herois(
             herois
         )
 
         print(
-            "\n========== STATUS DO INIMIGO =========="
+            "\n========== STATUS DOS INIMIGOS =========="
         )
 
-        print(
-            inimigo.mostrar_status()
-        )
+        for inimigo in inimigos:
+
+            print(
+                inimigo.mostrar_status()
+            )
 
 
 # ============================================================
 # INÍCIO DO PROGRAMA
-# ============================================================
-# Essa condição verifica se este arquivo está sendo executado
-# diretamente.
-#
-# Se estiver, o programa começa aqui.
-#
-# Isso permite futuramente importar as classes deste arquivo
-# sem iniciar automaticamente uma batalha.
 # ============================================================
 
 if __name__ == "__main__":
@@ -1606,5 +1761,8 @@ if __name__ == "__main__":
         "Bem-vindo ao RPG de Turnos!"
     )
 
-    # Inicia o sistema de batalha.
+    # Mostra a introdução da história.
+    # mostrar_historia()
+
+    # Inicia a batalha.
     batalha()
