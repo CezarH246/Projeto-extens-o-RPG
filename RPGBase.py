@@ -980,19 +980,19 @@ def criar_herois():
         Heroi(
             "Lucas",
             "Berserk",
-            3
+            5
         ),
 
         Heroi(
             "Guilherme",
             "Mago",
-            3
+            5
         ),
 
         Heroi(
             "Cezar",
             "Ladino",
-            3
+            5
         )
     ]
 
