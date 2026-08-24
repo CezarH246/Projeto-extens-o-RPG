@@ -1072,6 +1072,24 @@ def criar_inimigo_batedor(level=1, tipo="Normal"):
 
     return criar_inimigo(level, tipo, "Batedor")
 
+#================================================================
+# Essa função cria um cenário de batalha. quantidade de inimigos
+# e uma aleatoridade entre inimigos normais, elite e boss
+#=================================================================
+
+def criar_cenario_batalha(nivel_jogador, quantidade=3):
+
+    categorias = random.choices(
+        ["Normal", "Elite", "Boss"],
+        weights=[70, 20, 10],
+        k=quantidade
+    )
+
+    return [
+        criar_inimigo(nivel_jogador, categoria)
+        for categoria in categorias
+    ]
+
 
 # ============================================================
 # MOSTRAR STATUS DOS HERÓIS
@@ -1522,12 +1540,8 @@ def batalha():
     # Cria os heróis.
     herois = criar_herois()
 
-    # Cria os três inimigos da batalha.
-    inimigos = [
-        criar_inimigo_xama(3, "Normal"),
-        criar_inimigo_soldado(3, "Elite"),
-        criar_inimigo_batedor(3, "Boss")
-    ]
+    # Cria três inimigos com o nível atual do jogador.
+    inimigos = criar_cenario_batalha(herois[0].level)
 
     print("\n")
 
