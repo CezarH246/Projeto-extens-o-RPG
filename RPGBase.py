@@ -800,7 +800,8 @@ class Inimigo(Personagem):
         self,
         nome,
         Level=1,
-        tipo="Normal"
+        tipo="Normal",
+        tipo_inimigo="Soldado"
     ):
 
         super().__init__(
@@ -808,12 +809,14 @@ class Inimigo(Personagem):
             Level
         )
 
-        # Tipo do inimigo:
+        # Categoria do inimigo:
         #
         # Normal
         # Elite
         # Boss
+
         self.tipo = tipo
+        self.tipo_inimigo = tipo_inimigo
 
         # ----------------------------------------------------
         # ATRIBUTOS
@@ -827,9 +830,27 @@ class Inimigo(Personagem):
         elif self.tipo == "Boss":
             multiplicador = 2.0
 
+        #------------------------------------
+        #TIPO DO INIMIGO
+        #------------------------------------
+        
+        multiplicadores_tipo = {
+            "Xama": (0.8, 1.3, 3),
+            "Soldado": (1.0, 1.0, 2),
+            "Batedor": (0.85, 0.9, 4)
+        }
+
+        multiplicador_hp, multiplicador_ataque, multiplicador_velocidade = (
+            multiplicadores_tipo.get(
+                self.tipo_inimigo,
+                multiplicadores_tipo["Soldado"]
+            )
+        )
+
         self.hpMax = int(
             (60 + (self.level * 18))
             * multiplicador
+            * multiplicador_hp
         )
 
         self.hp = self.hpMax
@@ -837,11 +858,12 @@ class Inimigo(Personagem):
         self.ataque = int(
             (8 + (self.level * 3))
             * multiplicador
+            * multiplicador_ataque
         )
 
         self.velocidade = (
             2 + self.level
-        )
+        ) * multiplicador_velocidade
 
         self.defesa = int(
             (1 + self.level)
@@ -958,19 +980,19 @@ def criar_herois():
         Heroi(
             "Lucas",
             "Berserk",
-            10
+            5
         ),
 
         Heroi(
             "Guilherme",
             "Mago",
-            10
+            5
         ),
 
         Heroi(
             "Cezar",
             "Ladino",
-            10
+            5
         )
     ]
 
@@ -978,26 +1000,95 @@ def criar_herois():
 
 
 # ============================================================
-# CRIAR INIMIGO
+# CRIAR 3 TIPOS DE INIMIGOS, 
+# XAMA, SOLDADO E BATEDOR
+# COM 3 CATEGORIAS DIFERENTES, 
+# NORMAL, ELITE E BOSS
 # ============================================================
 
-def criar_inimigo(level=1, tipo="Normal"):
+def criar_inimigo(level=1, tipo="Normal", tipo_inimigo=None):
 
-    nomes = [
-        "Goblin",
-        "Esqueleto",
-        "Slime",
-        "Orc",
-        "Besta"
-    ]
+    nomes = {
+        "Xama": [
+            "Cantor dos Rios",
+            "Tritã das Névoas",
+            "Biomante Bêntico"
+            
+        ],
+        "Soldado": [
+            "Seguidor de Harkbal",
+            "Mestre do Tridente Perolado",
+            "Elite da Raiz Profunda"
+        ],
+        "Batedor": [
+            "Mergulhadora da Caverna tritã",
+            "Mergulhadora Celeste",
+            "Nicanzil, Condutora da Corrente"
 
-    nome = random.choice(nomes)
+        ]
+    }
+
+    if tipo_inimigo is None:
+        tipo_inimigo = random.choice(
+            list(nomes)
+        )
+
+    nome = random.choice(nomes[tipo_inimigo])
 
     return Inimigo(
         f"{nome} Lv.{level}",
         level,
-        tipo
+        tipo,
+        tipo_inimigo
     )
+
+
+def criar_inimigo_normal(level=1):
+
+    return criar_inimigo(level, "Normal")
+
+
+def criar_inimigo_elite(level=1):
+
+    return criar_inimigo(level, "Elite")
+
+
+def criar_inimigo_boss(level=1):
+
+    return criar_inimigo(level, "Boss")
+
+
+def criar_inimigo_xama(level=1, tipo="Normal"):
+
+    return criar_inimigo(level, tipo, "Xama")
+
+
+def criar_inimigo_soldado(level=1, tipo="Normal"):
+
+    return criar_inimigo(level, tipo, "Soldado")
+
+
+def criar_inimigo_batedor(level=1, tipo="Normal"):
+
+    return criar_inimigo(level, tipo, "Batedor")
+
+#================================================================
+# Essa função cria um cenário de batalha. quantidade de inimigos
+# e uma aleatoridade entre inimigos normais, elite e boss
+#=================================================================
+
+def criar_cenario_batalha(nivel_jogador, quantidade=3):
+
+    categorias = random.choices(
+        ["Normal", "Elite", "Boss"],
+        weights=[70, 20, 10],
+        k=quantidade
+    )
+
+    return [
+        criar_inimigo(nivel_jogador, categoria)
+        for categoria in categorias
+    ]
 
 
 # ============================================================
@@ -1197,10 +1288,57 @@ def abrir_bau(heroi):
 
 
 # ============================================================
+# Escolher inimigo para atacar
+# ============================================================
+
+def escolher_inimigo(inimigos):
+
+    inimigos_vivos = [
+        inimigo
+        for inimigo in inimigos
+        if inimigo.estar_vivo()
+    ]
+
+    print("\nEscolha qual inimigo atacar:")
+
+#=================================================================
+# Este loop exibe os inimigos vivos com seus índices e informações de status,
+# permitindo que o jogador escolha um alvo para atacar.
+#====================================================================
+
+    for indice, inimigo in enumerate(inimigos_vivos, start=1):
+
+        print(
+            f"{indice} - {inimigo.nome} "
+            f"({inimigo.tipo_inimigo} - {inimigo.tipo}) | "
+            f"HP: {inimigo.hp}/{inimigo.hpMax}"
+        )
+#=================================================================
+# Este loop continua solicitando ao jogador que escolha um inimigo até
+# que uma opção válida seja fornecida.
+#====================================================================
+# O método .isdigit() é uma função do Python usada para verificar se um texto (string)
+#  contém apenas números inteiros e positivos.
+#==============================================================================
+    while True:
+
+        escolha = input("Número do inimigo: ")
+
+        if escolha.isdigit():
+
+            indice = int(escolha) - 1
+
+            if 0 <= indice < len(inimigos_vivos):
+
+                return inimigos_vivos[indice]
+
+        print("Opção inválida. Escolha um inimigo vivo.")
+
+# ============================================================
 # TURNO DO JOGADOR
 # ============================================================
 
-def turno_jogador(heroi, inimigo):
+def turno_jogador(heroi, inimigos):
 
     while True:
 
@@ -1279,7 +1417,9 @@ def turno_jogador(heroi, inimigo):
 
         if escolha == "1":
 
-            if heroi.atacar(inimigo):
+            alvo = escolher_inimigo(inimigos)
+
+            if heroi.atacar(alvo):
                 return
 
         # ----------------------------------------------------
@@ -1288,7 +1428,9 @@ def turno_jogador(heroi, inimigo):
 
         elif escolha == "2":
 
-            if heroi.habilidade_especial(inimigo):
+            alvo = escolher_inimigo(inimigos)
+
+            if heroi.habilidade_especial(alvo):
                 return
 
         # ----------------------------------------------------
@@ -1300,7 +1442,9 @@ def turno_jogador(heroi, inimigo):
             and heroi.level >= 5
         ):
 
-            if heroi.segunda_habilidade(inimigo):
+            alvo = escolher_inimigo(inimigos)
+
+            if heroi.segunda_habilidade(alvo):
                 return
 
         # ----------------------------------------------------
@@ -1312,7 +1456,9 @@ def turno_jogador(heroi, inimigo):
             and heroi.level >= 10
         ):
 
-            if heroi.ultimate(inimigo):
+            alvo = escolher_inimigo(inimigos)
+
+            if heroi.ultimate(alvo):
                 return
 
         # ----------------------------------------------------
@@ -1394,17 +1540,8 @@ def batalha():
     # Cria os heróis.
     herois = criar_herois()
 
-    # Cria um inimigo.
-    #
-    # Podemos trocar:
-    #
-    # "Normal"
-    # "Elite"
-    # "Boss"
-    inimigo = criar_inimigo(
-        3,
-        "Elite"
-    )
+    # Cria três inimigos com o nível atual do jogador.
+    inimigos = criar_cenario_batalha(herois[0].level)
 
     print("\n")
 
@@ -1412,29 +1549,32 @@ def batalha():
     print("           RPG DE TURNOS")
     print("======================================")
 
-    print(
-        f"\n👹 Inimigo apareceu: "
-        f"{inimigo.nome}"
-    )
+    for inimigo in inimigos:
 
-    print(
-        f"Tipo: {inimigo.tipo}"
-    )
+        print(
+            f"\n👹 Inimigo apareceu: "
+            f"{inimigo.nome}"
+        )
 
-    print(
-        f"XP: {inimigo.XpDrop}"
-    )
+        print(
+            f"Tipo: {inimigo.tipo_inimigo} | "
+            f"Categoria: {inimigo.tipo}"
+        )
 
-    print(
-        inimigo.mostrar_status()
-    )
+        print(
+            f"XP: {inimigo.XpDrop}"
+        )
+
+        print(
+            inimigo.mostrar_status()
+        )
 
     mostrar_status_herois(
         herois
     )
 
     # Todos os combatentes.
-    combatentes = herois + [inimigo]
+    combatentes = herois + inimigos
 
     # Tempo do sistema de ATB.
     tick_rate = 0.1
@@ -1451,7 +1591,13 @@ def batalha():
         # VERIFICAR VITÓRIA
         # ----------------------------------------------------
 
-        if not inimigo.estar_vivo():
+        inimigos_vivos = [
+            inimigo
+            for inimigo in inimigos
+            if inimigo.estar_vivo()
+        ]
+
+        if not inimigos_vivos:
 
             print("\n======================================")
 
@@ -1459,25 +1605,25 @@ def batalha():
 
             print("======================================")
 
-            print(
-                f"🏆 {inimigo.nome} foi derrotado!"
-            )
+            for inimigo in inimigos:
 
-            print(
-                inimigo.mostrar_status()
-            )
+                print(
+                    f"🏆 {inimigo.nome} foi derrotado!"
+                )
 
-            # Dá XP.
-            dar_xp(
-                inimigo,
-                herois
-            )
+                print(
+                    inimigo.mostrar_status()
+                )
 
-            # Verifica o drop de poção.
-            verificar_drop_pocao(
-                inimigo,
-                herois
-            )
+                dar_xp(
+                    inimigo,
+                    herois
+                )
+
+                verificar_drop_pocao(
+                    inimigo,
+                    herois
+                )
 
             break
 
@@ -1558,7 +1704,7 @@ def batalha():
 
             turno_jogador(
                 personagem_pronto,
-                inimigo
+                inimigos
             )
 
         # ====================================================
@@ -1609,12 +1755,14 @@ def batalha():
         )
 
         print(
-            "\n========== STATUS DO INIMIGO =========="
+            "\n========== STATUS DOS INIMIGOS =========="
         )
 
-        print(
-            inimigo.mostrar_status()
-        )
+        for inimigo in inimigos:
+
+            print(
+                inimigo.mostrar_status()
+            )
 
 
 # ============================================================
