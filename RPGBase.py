@@ -395,7 +395,7 @@ class Heroi(Personagem):
 
         elif self.ClasseRPG == "Mago":
 
-            nome_skill = "ELEGEBETEEEEEEEE!!!!"
+            nome_skill = "Explosão Arcana"
 
             dano = (
                 self.ataque
@@ -413,7 +413,7 @@ class Heroi(Personagem):
 
         elif self.ClasseRPG == "Ladino":
 
-            nome_skill = "Te Passei o Calote"
+            nome_skill = "Ataque Fugaz"
 
             dano = (
                 self.ataque
@@ -489,7 +489,7 @@ class Heroi(Personagem):
 
         elif self.ClasseRPG == "Mago":
 
-            nome_skill = "TDAH Arcano"
+            nome_skill = "Inversão da Realidade"
 
             dano = (
                 self.ataque
@@ -507,7 +507,7 @@ class Heroi(Personagem):
 
         elif self.ClasseRPG == "Ladino":
 
-            nome_skill = "Passa a Grana"
+            nome_skill = "Adaga Venenosa"
 
             dano = (
                 self.ataque
@@ -583,7 +583,7 @@ class Heroi(Personagem):
 
                 return False
 
-            nome_skill = "NÃO ME ESTRESSA PORRA"
+            nome_skill = "NÃO ME ESTRESSA PORRA (O VAZIO SUSURRA)"
 
             # Quanto mais PA gastou, mais forte.
             dano = (
@@ -646,7 +646,7 @@ class Heroi(Personagem):
 
                 return False
 
-            nome_skill = "A RESSACA BATEU"
+            nome_skill = "AS SOMBRAS ME GUIAM(È A GARRAFA DE CERVEJA FALANDO)"
 
             # Quanto mais ações realizou,
             # maior o dano.
