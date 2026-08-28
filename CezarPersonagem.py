@@ -41,6 +41,9 @@ class Cezar(pygame.sprite.Sprite):
         # Vector2 permite guardar posições com casas decimais durante o movimento.
         self.posicao = pygame.Vector2(self.rect.topleft)
 
+        # Histórico usado por companheiros que seguem o personagem.
+        self.historico_posicoes = [pygame.Vector2(self.posicao)]
+
         # Velocidade em pixels por segundo. Diminua este valor para andar mais devagar.
         self.velocidade = 60
 
@@ -87,6 +90,10 @@ class Cezar(pygame.sprite.Sprite):
 
             # O rect precisa acompanhar a posição para o sprite aparecer no lugar certo.
             self.rect.topleft = round(self.posicao.x), round(self.posicao.y)
+
+            self.historico_posicoes.append(pygame.Vector2(self.posicao))
+            if len(self.historico_posicoes) > 30:
+                self.historico_posicoes.pop(0)
 
             # Troca o frame da caminhada conforme o tempo passa.
             self.tempo_animacao += tempo_frame

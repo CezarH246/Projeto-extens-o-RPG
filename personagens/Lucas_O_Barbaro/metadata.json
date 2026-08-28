@@ -1,0 +1,99 @@
+{
+  "group_id": "69a3d81b-7c55-4756-be5b-80495f0eb319",
+  "states": [
+    {
+      "character": {
+        "id": "823d50cb-c9ea-4b16-942e-dbecded35d9f",
+        "name": "Idle",
+        "prompt": "Um guerreiro de corpo inteiro de um b\u00e1rbaro muito gordo com uma barriga grande, com uma barba grande e desgrenhada. Ele est\u00e1 sem camisa e sem armadura, vestindo apenas uma roupa \u00edntima justa de cor vermelho-vivo. Ele segura um machado de batalha enorme. Personagem de RPG de fantasia, fundo de cor s\u00f3lida, pixels detalhados.   64pixel ",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-08-27T22:50:57.194582+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {
+          "Walking": {
+            "north-west": [
+              "Idle/animations/Walking/north-west/frame_000.png",
+              "Idle/animations/Walking/north-west/frame_001.png",
+              "Idle/animations/Walking/north-west/frame_002.png",
+              "Idle/animations/Walking/north-west/frame_003.png"
+            ],
+            "west-3d2e3cd1": [
+              "Idle/animations/Walking/west-3d2e3cd1/frame_000.png",
+              "Idle/animations/Walking/west-3d2e3cd1/frame_001.png",
+              "Idle/animations/Walking/west-3d2e3cd1/frame_002.png",
+              "Idle/animations/Walking/west-3d2e3cd1/frame_003.png"
+            ],
+            "north-east": [
+              "Idle/animations/Walking/north-east/frame_000.png",
+              "Idle/animations/Walking/north-east/frame_001.png",
+              "Idle/animations/Walking/north-east/frame_002.png",
+              "Idle/animations/Walking/north-east/frame_003.png"
+            ],
+            "south": [
+              "Idle/animations/Walking/south/frame_000.png",
+              "Idle/animations/Walking/south/frame_001.png",
+              "Idle/animations/Walking/south/frame_002.png",
+              "Idle/animations/Walking/south/frame_003.png"
+            ],
+            "west-9c02d4b6": [
+              "Idle/animations/Walking/west-9c02d4b6/frame_000.png",
+              "Idle/animations/Walking/west-9c02d4b6/frame_001.png",
+              "Idle/animations/Walking/west-9c02d4b6/frame_002.png",
+              "Idle/animations/Walking/west-9c02d4b6/frame_003.png"
+            ],
+            "north": [
+              "Idle/animations/Walking/north/frame_000.png",
+              "Idle/animations/Walking/north/frame_001.png",
+              "Idle/animations/Walking/north/frame_002.png",
+              "Idle/animations/Walking/north/frame_003.png"
+            ],
+            "west-c61c6cb2": [
+              "Idle/animations/Walking/west-c61c6cb2/frame_000.png",
+              "Idle/animations/Walking/west-c61c6cb2/frame_001.png",
+              "Idle/animations/Walking/west-c61c6cb2/frame_002.png",
+              "Idle/animations/Walking/west-c61c6cb2/frame_003.png"
+            ],
+            "east": [
+              "Idle/animations/Walking/east/frame_000.png",
+              "Idle/animations/Walking/east/frame_001.png",
+              "Idle/animations/Walking/east/frame_002.png",
+              "Idle/animations/Walking/east/frame_003.png"
+            ],
+            "south-east": [
+              "Idle/animations/Walking/south-east/frame_000.png",
+              "Idle/animations/Walking/south-east/frame_001.png",
+              "Idle/animations/Walking/south-east/frame_002.png",
+              "Idle/animations/Walking/south-east/frame_003.png"
+            ],
+            "south-west": [
+              "Idle/animations/Walking/south-west/frame_000.png",
+              "Idle/animations/Walking/south-west/frame_001.png",
+              "Idle/animations/Walking/south-west/frame_002.png",
+              "Idle/animations/Walking/south-west/frame_003.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-08-28T00:51:47.399091"
+}

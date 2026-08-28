@@ -3,6 +3,7 @@ import pygame
 #IMPORTANDO PERSONAGEM CEZAR
 #============================================
 from CezarPersonagem import Cezar
+from LucasPersonagem import Lucas
 
 #============================================
 #Funcao que ininicializa o pygame
@@ -25,7 +26,9 @@ pygame.display.set_caption("RPG Saga dos Falidos")
 #==================================================
 # O grupo organiza o personagem e chama o método update() dele.
 grupo_objetos = pygame.sprite.Group()
-personagem_cezar = Cezar(grupo_objetos)
+personagem_cezar = Cezar()
+personagem_lucas = Lucas(personagem_cezar)
+grupo_objetos.add(personagem_lucas, personagem_cezar)
 
 
 
