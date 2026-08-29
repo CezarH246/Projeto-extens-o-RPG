@@ -36,7 +36,7 @@ class Cezar(pygame.sprite.Sprite):
         self.image = self.imagens_parado[self.direcao_atual]
 
         # O rect guarda a posição e o tamanho usados pelo Pygame para desenhar.
-        self.rect = pygame.Rect(50, 50, 50, 50)
+        self.rect = pygame.Rect(80, 80, 50, 50)
 
         # Vector2 permite guardar posições com casas decimais durante o movimento.
         self.posicao = pygame.Vector2(self.rect.topleft)
@@ -88,11 +88,15 @@ class Cezar(pygame.sprite.Sprite):
             # O tempo do frame torna a velocidade estável mesmo se o FPS variar.
             self.posicao += direcao * self.velocidade * tempo_frame
 
+            tela_largura, tela_altura = 840, 480
+            self.posicao.x = max(0, min(self.posicao.x, tela_largura - self.rect.width))
+            self.posicao.y = max(0, min(self.posicao.y, tela_altura - self.rect.height))
+
             # O rect precisa acompanhar a posição para o sprite aparecer no lugar certo.
             self.rect.topleft = round(self.posicao.x), round(self.posicao.y)
 
             self.historico_posicoes.append(pygame.Vector2(self.posicao))
-            if len(self.historico_posicoes) > 30:
+            if len(self.historico_posicoes) > 80:
                 self.historico_posicoes.pop(0)
 
             # Troca o frame da caminhada conforme o tempo passa.

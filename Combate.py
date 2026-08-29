@@ -1535,10 +1535,11 @@ def turno_jogador(heroi, inimigos):
 # BATALHA
 # ============================================================
 
-def batalha():
+def batalha(herois=None):
 
-    # Cria os heróis.
-    herois = criar_herois()
+    # Reaproveita o grupo do mapa, ou cria heróis novos no modo terminal.
+    if herois is None:
+        herois = criar_herois()
 
     # Cria três inimigos com o nível atual do jogador.
     inimigos = criar_cenario_batalha(herois[0].level)
@@ -1625,7 +1626,7 @@ def batalha():
                     herois
                 )
 
-            break
+            return True
 
         # ----------------------------------------------------
         # VERIFICAR DERROTA
@@ -1647,7 +1648,7 @@ def batalha():
                 "foram derrotados."
             )
 
-            break
+            return False
 
         # ----------------------------------------------------
         # CARREGAR ATB
