@@ -1,0 +1,87 @@
+{
+  "group_id": "2acd5e34-a4cd-4aa1-a114-b5b745395ba2",
+  "states": [
+    {
+      "character": {
+        "id": "d0e982ad-532f-413b-998a-df15edf2ea41",
+        "name": "Idle",
+        "prompt": "16-bit pixel art full-body sprite of a young male dark mage, black spiky hair, dark eyes, wearing an ornate white and gold hooded robe over dark trousers, holding a staff with glowing purple dark magic on top in one hand, holding a floating purple dark magic fireball in the other hand, white background, detailed pixel art game character, sharp outline.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-08-29T14:09:17.305984+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {
+          "Walk": {
+            "north": [
+              "Idle/animations/Walk/north/frame_000.png",
+              "Idle/animations/Walk/north/frame_001.png",
+              "Idle/animations/Walk/north/frame_002.png",
+              "Idle/animations/Walk/north/frame_003.png",
+              "Idle/animations/Walk/north/frame_004.png",
+              "Idle/animations/Walk/north/frame_005.png"
+            ],
+            "east-42d50a93": [
+              "Idle/animations/Walk/east-42d50a93/frame_000.png",
+              "Idle/animations/Walk/east-42d50a93/frame_001.png",
+              "Idle/animations/Walk/east-42d50a93/frame_002.png",
+              "Idle/animations/Walk/east-42d50a93/frame_003.png",
+              "Idle/animations/Walk/east-42d50a93/frame_004.png",
+              "Idle/animations/Walk/east-42d50a93/frame_005.png"
+            ],
+            "south": [
+              "Idle/animations/Walk/south/frame_000.png",
+              "Idle/animations/Walk/south/frame_001.png",
+              "Idle/animations/Walk/south/frame_002.png",
+              "Idle/animations/Walk/south/frame_003.png",
+              "Idle/animations/Walk/south/frame_004.png",
+              "Idle/animations/Walk/south/frame_005.png"
+            ],
+            "west-cb0b1e8d": [
+              "Idle/animations/Walk/west-cb0b1e8d/frame_000.png",
+              "Idle/animations/Walk/west-cb0b1e8d/frame_001.png",
+              "Idle/animations/Walk/west-cb0b1e8d/frame_002.png",
+              "Idle/animations/Walk/west-cb0b1e8d/frame_003.png",
+              "Idle/animations/Walk/west-cb0b1e8d/frame_004.png",
+              "Idle/animations/Walk/west-cb0b1e8d/frame_005.png"
+            ],
+            "west-cdc3a2ce": [
+              "Idle/animations/Walk/west-cdc3a2ce/frame_000.png",
+              "Idle/animations/Walk/west-cdc3a2ce/frame_001.png",
+              "Idle/animations/Walk/west-cdc3a2ce/frame_002.png",
+              "Idle/animations/Walk/west-cdc3a2ce/frame_003.png",
+              "Idle/animations/Walk/west-cdc3a2ce/frame_004.png",
+              "Idle/animations/Walk/west-cdc3a2ce/frame_005.png"
+            ],
+            "east-e39e0c32": [
+              "Idle/animations/Walk/east-e39e0c32/frame_000.png",
+              "Idle/animations/Walk/east-e39e0c32/frame_001.png",
+              "Idle/animations/Walk/east-e39e0c32/frame_002.png",
+              "Idle/animations/Walk/east-e39e0c32/frame_003.png",
+              "Idle/animations/Walk/east-e39e0c32/frame_004.png",
+              "Idle/animations/Walk/east-e39e0c32/frame_005.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-08-29T14:23:45.367642"
+}
