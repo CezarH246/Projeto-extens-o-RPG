@@ -1018,7 +1018,7 @@ def criar_inimigo(level=1, tipo="Normal", tipo_inimigo=None):
         "Soldado": [
             "Seguidor de Harkbal",
             "Mestre do Tridente Perolado",
-            "Elite da Raiz Profunda"
+            "Tritão do Mar"
         ],
         "Batedor": [
             "Mergulhadora da Caverna tritã",
