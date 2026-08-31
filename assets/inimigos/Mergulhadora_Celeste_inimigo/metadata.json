@@ -1,0 +1,58 @@
+{
+  "group_id": "60aec612-41e3-4bed-b87a-0fcb568e0e7b",
+  "states": [
+    {
+      "character": {
+        "id": "af3194fa-f856-42e6-9167-794766b7d041",
+        "name": "Idle",
+        "prompt": "A detailed pixel art sprite of a female Merfolk Siren creature. The character has pale ice-blue skin, glowing pale eyes, and a tall, elegant purple-red finned crest extending from her forehead like a crown, with red bioluminescent vein lines along her face. Instead of legs, she has a long, serpentine sea-serpent fish tail covered in iridescent turquoise scales. Large, translucent webbed fins with pinkish-purple spine rays extend from her back like majestic aquatic wings, and smaller fins run along her forearms. She wears dark metallic bronze and green ornate shoulder armor and a fitted chest plate.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-08-30T23:01:10.780175+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {
+          "battle_stance_with_tiny_bolts_of_electricity_radia": {
+            "south-west": [
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_000.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_001.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_002.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_003.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_004.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_005.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_006.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_007.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_008.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_009.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_010.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_011.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_012.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_013.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_014.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_015.png",
+              "Idle/animations/battle_stance_with_tiny_bolts_of_electricity_radia/south-west/frame_016.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-08-30T23:14:59.282769"
+}

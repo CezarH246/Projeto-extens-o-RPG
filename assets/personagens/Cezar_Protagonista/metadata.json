@@ -1,0 +1,50 @@
+{
+  "group_id": "b26d86ea-6267-417e-a9e4-eb41b103eeb4",
+  "states": [
+    {
+      "character": {
+        "id": "2592936a-7233-4251-a9b5-00e174178a8f",
+        "name": "Idle",
+        "prompt": "crie exatamente esse mesmo personagem 64 x 64 pix",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-08-29T03:59:22.128026+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {
+          "Animation_for_performing_two_attacks_with_your_dag": {
+            "east": [
+              "Idle/animations/Animation_for_performing_two_attacks_with_your_dag/east/frame_000.png",
+              "Idle/animations/Animation_for_performing_two_attacks_with_your_dag/east/frame_001.png",
+              "Idle/animations/Animation_for_performing_two_attacks_with_your_dag/east/frame_002.png",
+              "Idle/animations/Animation_for_performing_two_attacks_with_your_dag/east/frame_003.png",
+              "Idle/animations/Animation_for_performing_two_attacks_with_your_dag/east/frame_004.png",
+              "Idle/animations/Animation_for_performing_two_attacks_with_your_dag/east/frame_005.png",
+              "Idle/animations/Animation_for_performing_two_attacks_with_your_dag/east/frame_006.png",
+              "Idle/animations/Animation_for_performing_two_attacks_with_your_dag/east/frame_007.png",
+              "Idle/animations/Animation_for_performing_two_attacks_with_your_dag/east/frame_008.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-08-30T00:57:43.514200"
+}

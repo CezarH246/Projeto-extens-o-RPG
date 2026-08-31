@@ -38,10 +38,14 @@ class Personagem:
     # CONSTRUTOR
     # --------------------------------------------------------
 
-    def __init__(self, nome, level=1):
+    def __init__(self, nome, level=1, escala=1.0):
 
         # Nome do personagem.
         self.nome = nome
+
+        # Escala individual do combatente na tela.
+        # Valores menores reduzem o sprite e valores maiores aumentam.
+        self.escala = float(escala)
 
         # O nível fica limitado entre 1 e 10.
         self.level = max(1, min(level, 10))
@@ -152,10 +156,10 @@ class Heroi(Personagem):
     # CONSTRUTOR
     # --------------------------------------------------------
 
-    def __init__(self, nome, ClasseRPG, Level=1):
+    def __init__(self, nome, ClasseRPG, Level=1, escala=1.0):
 
         # Inicializa a classe pai.
-        super().__init__(nome, Level)
+        super().__init__(nome, Level, escala)
 
         # Classe do personagem.
         self.ClasseRPG = ClasseRPG
@@ -801,12 +805,14 @@ class Inimigo(Personagem):
         nome,
         Level=1,
         tipo="Normal",
-        tipo_inimigo="Soldado"
+        tipo_inimigo="Soldado",
+        escala=1.0
     ):
 
         super().__init__(
             nome,
-            Level
+            Level,
+            escala
         )
 
         # Categoria do inimigo:
@@ -970,6 +976,20 @@ def exibir_barra_atb(combatentes):
 
 
 # ============================================================
+# ESCALAS DOS COMBATENTES
+# ============================================================
+# Centraliza a escala visual de cada combatente em um único lugar.
+# Ajuste os valores aqui para mudar o tamanho do sprite sem alterar
+# a lógica de criação dos personagens.
+
+ESCALAS = {
+    "Lucas": 1.5,
+    "Guilherme": 0.95,
+    "Cezar": 1.1,
+}
+
+
+# ============================================================
 # CRIAR HERÓIS
 # ============================================================
 
@@ -980,19 +1000,22 @@ def criar_herois():
         Heroi(
             "Lucas",
             "Berserk",
-            5
+            5,
+            escala=ESCALAS.get("Lucas", 1.0)
         ),
 
         Heroi(
             "Guilherme",
             "Mago",
-            5
+            5,
+            escala=ESCALAS.get("Guilherme", 1.0)
         ),
 
         Heroi(
             "Cezar",
             "Ladino",
-            5
+            5,
+            escala=ESCALAS.get("Cezar", 1.0)
         )
     ]
 
@@ -1016,7 +1039,7 @@ def criar_inimigo(level=1, tipo="Normal", tipo_inimigo=None):
             
         ],
         "Soldado": [
-            "Seguidor de Harkbal",
+            "Harkbal Mestre tritão",
             "Mestre do Tridente Perolado",
             "Tritão do Mar"
         ],
@@ -1035,11 +1058,18 @@ def criar_inimigo(level=1, tipo="Normal", tipo_inimigo=None):
 
     nome = random.choice(nomes[tipo_inimigo])
 
+    escala_padrao = {
+        "Xama": 1.2,
+        "Soldado": 1.3,
+        "Batedor": 1.2,
+    }.get(tipo_inimigo, 1.0)
+
     return Inimigo(
         f"{nome} Lv.{level}",
         level,
         tipo,
-        tipo_inimigo
+        tipo_inimigo,
+        escala_padrao
     )
 
 

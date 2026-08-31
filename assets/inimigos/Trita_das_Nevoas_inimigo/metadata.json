@@ -1,0 +1,58 @@
+{
+  "group_id": "444f0461-c6e9-43e6-9467-211653fe1bc5",
+  "states": [
+    {
+      "character": {
+        "id": "3282a2d1-f352-4e73-966e-493d5c991c72",
+        "name": "Idle",
+        "prompt": "A pixel art sprite of a Merfolk Shaman creature, female humanoid aquatic merfolk shaman, glowing purple skin with light bioluminescent patterning, vibrant magenta fin-like crest hairstyle on top of the head, glowing white eyes, wearing ancient golden tribal jewelry and armbands, holding a glowing green magical staff, surrounded by thick mystical green mist swirling around her body, ancient stone ruins background, high quality pixel art, game asset, 16-bit style, isolated details, full body character design.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-08-30T22:25:30.194172+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {
+          "battle_position": {
+            "south-west": [
+              "Idle/animations/battle_position/south-west/frame_000.png",
+              "Idle/animations/battle_position/south-west/frame_001.png",
+              "Idle/animations/battle_position/south-west/frame_002.png",
+              "Idle/animations/battle_position/south-west/frame_003.png",
+              "Idle/animations/battle_position/south-west/frame_004.png",
+              "Idle/animations/battle_position/south-west/frame_005.png",
+              "Idle/animations/battle_position/south-west/frame_006.png",
+              "Idle/animations/battle_position/south-west/frame_007.png",
+              "Idle/animations/battle_position/south-west/frame_008.png",
+              "Idle/animations/battle_position/south-west/frame_009.png",
+              "Idle/animations/battle_position/south-west/frame_010.png",
+              "Idle/animations/battle_position/south-west/frame_011.png",
+              "Idle/animations/battle_position/south-west/frame_012.png",
+              "Idle/animations/battle_position/south-west/frame_013.png",
+              "Idle/animations/battle_position/south-west/frame_014.png",
+              "Idle/animations/battle_position/south-west/frame_015.png",
+              "Idle/animations/battle_position/south-west/frame_016.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-08-30T23:16:13.461473"
+}

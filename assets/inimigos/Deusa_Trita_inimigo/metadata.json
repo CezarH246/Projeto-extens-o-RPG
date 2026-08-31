@@ -1,0 +1,58 @@
+{
+  "group_id": "4238bc01-a639-43ce-8209-b37b21d3c0a0",
+  "states": [
+    {
+      "character": {
+        "id": "0ed6bcc0-568f-4bf1-9caa-5567f84313ec",
+        "name": "Idle",
+        "prompt": "reproduza essa personagem em 128 x 128 px\n",
+        "size": {
+          "width": 124,
+          "height": 124
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-08-29T04:32:27.882197+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {
+          "An_imposing_battle_stanceshe_is_a_boss": {
+            "south-west": [
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_000.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_001.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_002.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_003.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_004.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_005.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_006.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_007.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_008.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_009.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_010.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_011.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_012.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_013.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_014.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_015.png",
+              "Idle/animations/An_imposing_battle_stanceshe_is_a_boss/south-west/frame_016.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-08-30T23:20:25.824052"
+}
