@@ -1,0 +1,36 @@
+{
+  "group_id": "fd3acd1f-ba14-4a5e-a50c-33c9aeb0239f",
+  "states": [
+    {
+      "character": {
+        "id": "9103fa9d-27c2-49f2-a70e-38de3e010fa2",
+        "name": "Idle",
+        "prompt": "trit\u00e3o guerreiro do mar, recrie o personagem.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-08-30T22:11:14.835353+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-08-30T23:16:45.559578"
+}

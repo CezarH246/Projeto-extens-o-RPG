@@ -1,0 +1,92 @@
+{
+  "group_id": "7fc34897-932f-449c-beb9-7b7a682543eb",
+  "states": [
+    {
+      "character": {
+        "id": "49c1cf75-a804-4793-96e5-0fa8a1d31313",
+        "name": "Idle",
+        "prompt": "recrie exatamente esse personagem em 64 x 64",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-08-29T04:02:47.099741+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {
+          "battle_position": {
+            "south-west": [
+              "Idle/animations/battle_position/south-west/frame_000.png",
+              "Idle/animations/battle_position/south-west/frame_001.png",
+              "Idle/animations/battle_position/south-west/frame_002.png",
+              "Idle/animations/battle_position/south-west/frame_003.png",
+              "Idle/animations/battle_position/south-west/frame_004.png",
+              "Idle/animations/battle_position/south-west/frame_005.png",
+              "Idle/animations/battle_position/south-west/frame_006.png",
+              "Idle/animations/battle_position/south-west/frame_007.png",
+              "Idle/animations/battle_position/south-west/frame_008.png",
+              "Idle/animations/battle_position/south-west/frame_009.png",
+              "Idle/animations/battle_position/south-west/frame_010.png",
+              "Idle/animations/battle_position/south-west/frame_011.png",
+              "Idle/animations/battle_position/south-west/frame_012.png",
+              "Idle/animations/battle_position/south-west/frame_013.png",
+              "Idle/animations/battle_position/south-west/frame_014.png",
+              "Idle/animations/battle_position/south-west/frame_015.png",
+              "Idle/animations/battle_position/south-west/frame_016.png"
+            ]
+          },
+          "Walk": {
+            "north": [
+              "Idle/animations/Walk/north/frame_000.png",
+              "Idle/animations/Walk/north/frame_001.png",
+              "Idle/animations/Walk/north/frame_002.png",
+              "Idle/animations/Walk/north/frame_003.png",
+              "Idle/animations/Walk/north/frame_004.png",
+              "Idle/animations/Walk/north/frame_005.png"
+            ],
+            "south": [
+              "Idle/animations/Walk/south/frame_000.png",
+              "Idle/animations/Walk/south/frame_001.png",
+              "Idle/animations/Walk/south/frame_002.png",
+              "Idle/animations/Walk/south/frame_003.png",
+              "Idle/animations/Walk/south/frame_004.png",
+              "Idle/animations/Walk/south/frame_005.png"
+            ],
+            "west": [
+              "Idle/animations/Walk/west/frame_000.png",
+              "Idle/animations/Walk/west/frame_001.png",
+              "Idle/animations/Walk/west/frame_002.png",
+              "Idle/animations/Walk/west/frame_003.png",
+              "Idle/animations/Walk/west/frame_004.png",
+              "Idle/animations/Walk/west/frame_005.png"
+            ],
+            "east": [
+              "Idle/animations/Walk/east/frame_000.png",
+              "Idle/animations/Walk/east/frame_001.png",
+              "Idle/animations/Walk/east/frame_002.png",
+              "Idle/animations/Walk/east/frame_003.png",
+              "Idle/animations/Walk/east/frame_004.png",
+              "Idle/animations/Walk/east/frame_005.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-08-30T23:17:39.183701"
+}

@@ -1,0 +1,58 @@
+{
+  "group_id": "39e7a38f-4d2e-4904-9c64-5783769cb944",
+  "states": [
+    {
+      "character": {
+        "id": "4fc15eb6-db77-4899-bc10-b73420d37353",
+        "name": "Idle",
+        "prompt": "A full-body pixel art sprite of a powerful male Merfolk warrior charging forward out of breaking ocean waves. The creature has icy blue skin with subtle scale patterns, finned ears, and long vibrant cyan blue hair styled in flowing dreadlock-like crests waving backward. He wears organic pale white chitin armor made of bone and clam shells over his torso, shoulders, and waist, with webbed fin appendages along his forearms and calves. He is dynamically posed, holding a large, ornate bone-carved three-pronged trident with both hands raised diagonally in a combat stance.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-08-30T22:48:42.257928+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {
+          "battle_position": {
+            "south-west": [
+              "Idle/animations/battle_position/south-west/frame_000.png",
+              "Idle/animations/battle_position/south-west/frame_001.png",
+              "Idle/animations/battle_position/south-west/frame_002.png",
+              "Idle/animations/battle_position/south-west/frame_003.png",
+              "Idle/animations/battle_position/south-west/frame_004.png",
+              "Idle/animations/battle_position/south-west/frame_005.png",
+              "Idle/animations/battle_position/south-west/frame_006.png",
+              "Idle/animations/battle_position/south-west/frame_007.png",
+              "Idle/animations/battle_position/south-west/frame_008.png",
+              "Idle/animations/battle_position/south-west/frame_009.png",
+              "Idle/animations/battle_position/south-west/frame_010.png",
+              "Idle/animations/battle_position/south-west/frame_011.png",
+              "Idle/animations/battle_position/south-west/frame_012.png",
+              "Idle/animations/battle_position/south-west/frame_013.png",
+              "Idle/animations/battle_position/south-west/frame_014.png",
+              "Idle/animations/battle_position/south-west/frame_015.png",
+              "Idle/animations/battle_position/south-west/frame_016.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-08-30T23:15:40.801170"
+}
