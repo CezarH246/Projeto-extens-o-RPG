@@ -8,7 +8,7 @@ import time
 # ============================================================
 
 # Tempo entre os caracteres exibidos no terminal.
-VELOCIDADE_TEXTO = 0.007
+VELOCIDADE_TEXTO = 0.01
 
 
 # Função responsável por imprimir o texto lentamente.
