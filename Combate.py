@@ -54,6 +54,9 @@ class Personagem:
         self.velocidade = 1
         self.defesa = 0
 
+        # Armazena o último dano recebido para exibição visual
+        self._ultimo_dano_recebido = 0
+
         # ----------------------------------------------------
         # BARRA DE AÇÃO
         # ----------------------------------------------------
@@ -114,6 +117,9 @@ class Personagem:
             0,
             self.hp - dano_final
         )
+
+        # Armazena o dano recebido para exibição visual
+        self._ultimo_dano_recebido = dano_final
 
         # Retorna o dano realmente recebido.
         return dano_final

@@ -45,6 +45,40 @@ SPRITES_INIMIGOS = {
 LOG_BATALHA: list[str] = []
 
 
+class FloatingDamage:
+    """Animação de número de dano flutuante acima do sprite do inimigo."""
+    def __init__(self, x: float, y: float, dano: int, duracao: float = 1.5):
+        self.x = x
+        self.y = y
+        self.dano = dano
+        self.tempo_decorrido = 0.0
+        self.duracao = duracao
+        self.cor_inicial = (255, 100, 100)  # Vermelho
+        self.cor_final = (255, 200, 100)    # Laranja
+    
+    def atualizar(self, tempo_frame: float) -> bool:
+        """Retorna False quando a animação termina."""
+        self.tempo_decorrido += tempo_frame
+        return self.tempo_decorrido < self.duracao
+    
+    def desenhar(self, tela: pygame.Surface, fonte: pygame.font.Font) -> None:
+        """Desenha o número com transparência decrescente."""
+        progresso = self.tempo_decorrido / self.duracao
+        alpha = 255 * (1 - progresso)  # Desaparece gradualmente
+        y_flutuante = self.y - (progresso * 40)  # Sobe 40 pixels
+        
+        # Interpola entre as cores
+        r = int(self.cor_inicial[0] + (self.cor_final[0] - self.cor_inicial[0]) * progresso)
+        g = int(self.cor_inicial[1] + (self.cor_final[1] - self.cor_inicial[1]) * progresso)
+        b = int(self.cor_inicial[2] + (self.cor_final[2] - self.cor_inicial[2]) * progresso)
+        cor = (r, g, b)
+        
+        texto = fonte.render(f"-{self.dano}", True, cor)
+        texto.set_alpha(int(alpha))
+        rect = texto.get_rect(center=(int(self.x), int(y_flutuante)))
+        tela.blit(texto, rect)
+
+
 def registrar_evento(*args, sep=" ", **_kwargs) -> None:
     """Recebe as mensagens produzidas pelas regras e as mostra na tela."""
     texto = sep.join(str(item) for item in args).strip()
@@ -83,6 +117,7 @@ class SpriteCombatente:
         self.indice_frame = 0
         self.ultimo_frame = 0
         self.imagem = self.carregar(caminho)
+        self.danos_flutuantes: list[FloatingDamage] = []  # Animações de dano
 
     def placeholder(self) -> pygame.Surface:
         imagem = pygame.Surface(self.tamanho, pygame.SRCALPHA)
@@ -116,7 +151,51 @@ class SpriteCombatente:
             self.indice_frame = (self.indice_frame + 1) % len(self.frames)
             self.imagem = self.frames[self.indice_frame]
 
-    def desenhar(self, tela: pygame.Surface, selecionado: bool = False) -> None:
+    def adicionar_dano_flutuante(self, dano: int) -> None:
+        """Adiciona animação de dano flutuante acima do sprite."""
+        self.danos_flutuantes.append(FloatingDamage(self.centro[0], self.centro[1] - 100, dano))
+    
+    def desenhar_barra_hp(self, tela: pygame.Surface) -> None:
+        """Desenha barra de HP, ATB e nome acima do inimigo."""
+        largura_barra = 120
+        altura_barra = 8
+        x_barra = self.centro[0] - largura_barra // 2
+        y_barra = self.centro[1] - 110
+        
+        # ========== BARRA DE HP ==========
+        # Fundo da barra
+        pygame.draw.rect(tela, (25, 27, 39), (x_barra, y_barra, largura_barra, altura_barra), border_radius=3)
+        
+        # Preenchimento da barra (verde para HP)
+        proporcao_hp = max(0.0, min(1.0, self.personagem.hp / self.personagem.hpMax)) if self.personagem.hpMax > 0 else 0
+        preenchimento_hp = int(largura_barra * proporcao_hp)
+        if preenchimento_hp > 0:
+            pygame.draw.rect(tela, (75, 221, 115), (x_barra, y_barra, preenchimento_hp, altura_barra), border_radius=3)
+        
+        # Borda da barra
+        pygame.draw.rect(tela, (238, 238, 242), (x_barra, y_barra, largura_barra, altura_barra), 1, border_radius=3)
+        
+        # ========== BARRA DE ATB ==========
+        y_atb = y_barra + 12  # 12px abaixo da barra de HP
+        
+        # Fundo da barra ATB
+        pygame.draw.rect(tela, (25, 27, 39), (x_barra, y_atb, largura_barra, altura_barra), border_radius=3)
+        
+        # Preenchimento da barra ATB (azul)
+        proporcao_atb = max(0.0, min(1.0, self.personagem.atb_barra / self.personagem.atb_max)) if self.personagem.atb_max > 0 else 0
+        preenchimento_atb = int(largura_barra * proporcao_atb)
+        if preenchimento_atb > 0:
+            pygame.draw.rect(tela, (70, 145, 245), (x_barra, y_atb, preenchimento_atb, altura_barra), border_radius=3)
+        
+        # Borda da barra ATB
+        pygame.draw.rect(tela, (238, 238, 242), (x_barra, y_atb, largura_barra, altura_barra), 1, border_radius=3)
+        
+        # Nome do inimigo em cima
+        fonte_nome = pygame.font.SysFont("arial", 12, bold=True)
+        texto_nome = fonte_nome.render(self.personagem.nome[:18], True, (255, 255, 255))
+        tela.blit(texto_nome, (self.centro[0] - texto_nome.get_width() // 2, y_barra - 18))
+
+    def desenhar(self, tela: pygame.Surface, selecionado: bool = False, fonte_dano: pygame.font.Font | None = None) -> None:
         self.atualizar()
         imagem = self.imagem.copy()
         if not self.personagem.estar_vivo():
@@ -124,6 +203,11 @@ class SpriteCombatente:
 
         rect = imagem.get_rect(center=self.centro)
         tela.blit(imagem, rect)
+        
+        # Desenha a barra de HP acima do sprite (apenas para inimigos)
+        if not isinstance(self.personagem, regras.Heroi):
+            self.desenhar_barra_hp(tela)
+        
         if selecionado:
             pygame.draw.rect(tela, (255, 226, 92), rect.inflate(10, 10), 4, border_radius=8)
 
@@ -139,6 +223,7 @@ class BattleUI:
         self.fonte = pygame.font.SysFont("arial", 20, bold=True)
         self.fonte_pequena = pygame.font.SysFont("arial", 15)
         self.fonte_menor = pygame.font.SysFont("arial", 13)
+        self.fonte_dano = pygame.font.SysFont("arial", 24, bold=True)  # Fonte para números de dano
 
         self.fundo = self.carregar_fundo()
         self.sprites_herois: list[SpriteCombatente] = []
@@ -202,6 +287,10 @@ class BattleUI:
             LOG_BATALHA.append("O grupo foi derrotado.")
 
     def atualizar(self, tempo_frame: float) -> None:
+        # Atualiza danos flutuantes de todos os inimigos
+        for sprite in self.sprites_inimigos:
+            sprite.danos_flutuantes = [d for d in sprite.danos_flutuantes if d.atualizar(tempo_frame)]
+        
         if self.resultado is not None or self.heroi_ativo is not None:
             return
 
@@ -228,6 +317,12 @@ class BattleUI:
         pronto.atacar(alvo)
         pronto.resetar_atb()
         self.mensagem = f"{pronto.nome} atacou {alvo.nome}."
+        
+        # Mostra dano flutuante para o alvo (se for inimigo)
+        sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
+        if sprite_alvo and hasattr(alvo, '_ultimo_dano_recebido'):
+            sprite_alvo.adicionar_dano_flutuante(int(alvo._ultimo_dano_recebido))
+        
         self.verificar_resultado()
 
     def escolher_acao(self, numero: int) -> None:
@@ -271,6 +366,13 @@ class BattleUI:
             if vivos:
                 alvo = vivos[self.indice_alvo % len(vivos)]
                 executou = getattr(self.heroi_ativo, acao)(alvo)
+                
+                # Mostra dano flutuante após ataque
+                if executou and acao in {"atacar", "habilidade_especial", "segunda_habilidade", "ultimate"}:
+                    if hasattr(alvo, '_ultimo_dano_recebido'):
+                        sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
+                        if sprite_alvo:
+                            sprite_alvo.adicionar_dano_flutuante(int(alvo._ultimo_dano_recebido))
 
         if not executou:
             self.acao_pendente = None
@@ -375,7 +477,11 @@ class BattleUI:
                 and sprite.personagem in alvos_vivos
                 and alvos_vivos.index(sprite.personagem) == self.indice_alvo
             )
-            sprite.desenhar(self.tela, selecionado)
+            sprite.desenhar(self.tela, selecionado, self.fonte_dano)
+            
+            # Desenha danos flutuantes
+            for dano in sprite.danos_flutuantes:
+                dano.desenhar(self.tela, self.fonte_dano)
 
         y_log = 78
         for texto_log in LOG_BATALHA:
