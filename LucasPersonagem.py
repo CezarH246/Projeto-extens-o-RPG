@@ -38,7 +38,7 @@ class Lucas(pygame.sprite.Sprite):
         self.direcao_atual = "south"
         self.image = self.imagens_parado[self.direcao_atual]
 
-        self.rect = pygame.Rect(80, 150, 50, 50)
+        self.rect = pygame.Rect(80, 150, 32, 32)
         self.posicao = pygame.Vector2(self.rect.topleft)
 
         # Histórico usado pelo Guilherme, que segue o Lucas.
@@ -55,7 +55,7 @@ class Lucas(pygame.sprite.Sprite):
     def carregar_imagem(self, caminho):
         caminho_imagem = f"{self.pasta_personagem}/{caminho}"
         imagem = pygame.image.load(caminho_imagem).convert_alpha()
-        return pygame.transform.scale(imagem, [50, 50])
+        return pygame.transform.scale(imagem, [32, 32])
 
     def obter_destino(self):
         historico = self.alvo.historico_posicoes

@@ -22,6 +22,7 @@ FPS = 60
 PROJECT_DIR = Path(__file__).resolve().parent
 ASSETS = PROJECT_DIR / "assets"
 FUNDO_BATALHA = ASSETS / "backgrounds" / "docas_batalha.jpg"
+ULTIMATE_CEZAR = ASSETS / "ultimates" / "Cezar_Ultimate" / "Cezar_Ultimate"
 
 SPRITES_HEROIS = {
     "Lucas": ASSETS / "personagens" / "Lucas_Protagonista" / "Idle" / "animations" / "Lucas_Batalha" / "south-east",
@@ -43,6 +44,15 @@ SPRITES_INIMIGOS = {
 }
 
 LOG_BATALHA: list[str] = []
+
+
+def cor_barra_hp(valor: float, maximo: float) -> tuple[int, int, int]:
+    proporcao = 0.0 if maximo <= 0 else max(0.0, min(1.0, valor / maximo))
+    if proporcao <= 0.30:
+        return (220, 65, 65)
+    if proporcao <= 0.60:
+        return (245, 166, 35)
+    return (75, 221, 115)
 
 
 class FloatingDamage:
@@ -77,6 +87,34 @@ class FloatingDamage:
         texto.set_alpha(int(alpha))
         rect = texto.get_rect(center=(int(self.x), int(y_flutuante)))
         tela.blit(texto, rect)
+
+
+class AnimacaoUltimate:
+    def __init__(self, frames: list[pygame.Surface], personagem, origem: tuple[int, int], alvo: tuple[int, int]):
+        self.frames = frames
+        self.personagem = personagem
+        self.origem = pygame.Vector2(origem)
+        self.alvo = pygame.Vector2(alvo)
+        self.indice = 0
+        self.tempo = 0.0
+        self.fim_ataque = 22
+
+    def atualizar(self, tempo_frame: float) -> bool:
+        self.tempo += tempo_frame
+        if self.tempo >= 0.08:
+            self.tempo = 0.0
+            self.indice += 1
+        return self.indice < len(self.frames)
+
+    def desenhar(self, tela: pygame.Surface) -> None:
+        if self.indice <= self.fim_ataque:
+            progresso = self.indice / self.fim_ataque
+            centro = self.origem.lerp(self.alvo, progresso)
+        else:
+            centro = self.alvo
+        imagem = self.frames[self.indice].copy()
+        rect = imagem.get_rect(center=(round(centro.x), round(centro.y)))
+        tela.blit(imagem, rect)
 
 
 def registrar_evento(*args, sep=" ", **_kwargs) -> None:
@@ -170,7 +208,12 @@ class SpriteCombatente:
         proporcao_hp = max(0.0, min(1.0, self.personagem.hp / self.personagem.hpMax)) if self.personagem.hpMax > 0 else 0
         preenchimento_hp = int(largura_barra * proporcao_hp)
         if preenchimento_hp > 0:
-            pygame.draw.rect(tela, (75, 221, 115), (x_barra, y_barra, preenchimento_hp, altura_barra), border_radius=3)
+            pygame.draw.rect(
+                tela,
+                cor_barra_hp(self.personagem.hp, self.personagem.hpMax),
+                (x_barra, y_barra, preenchimento_hp, altura_barra),
+                border_radius=3,
+            )
         
         # Borda da barra
         pygame.draw.rect(tela, (238, 238, 242), (x_barra, y_barra, largura_barra, altura_barra), 1, border_radius=3)
@@ -224,6 +267,7 @@ class BattleUI:
         self.fonte_pequena = pygame.font.SysFont("arial", 15)
         self.fonte_menor = pygame.font.SysFont("arial", 13)
         self.fonte_dano = pygame.font.SysFont("arial", 24, bold=True)  # Fonte para números de dano
+        self.animacao_ultimate = None
 
         self.fundo = self.carregar_fundo()
         self.sprites_herois: list[SpriteCombatente] = []
@@ -250,6 +294,16 @@ class BattleUI:
             fundo = pygame.Surface((LARGURA, ALTURA))
             fundo.fill((39, 73, 90))
             return fundo
+
+    def carregar_animacao_ultimate(self) -> list[pygame.Surface]:
+        frames = []
+        for arquivo in sorted(ULTIMATE_CEZAR.glob("frame_*.gif")):
+            try:
+                imagem = pygame.image.load(arquivo).convert_alpha()
+                frames.append(pygame.transform.smoothscale(imagem, (180, 180)))
+            except pygame.error:
+                continue
+        return frames
 
     def criar_sprites(self) -> None:
         posicoes_herois = [(220, 280), (170, 455), (390, 430)]
@@ -290,6 +344,10 @@ class BattleUI:
         # Atualiza danos flutuantes de todos os inimigos
         for sprite in self.sprites_inimigos:
             sprite.danos_flutuantes = [d for d in sprite.danos_flutuantes if d.atualizar(tempo_frame)]
+
+        if self.animacao_ultimate is not None:
+            if not self.animacao_ultimate.atualizar(tempo_frame):
+                self.animacao_ultimate = None
         
         if self.resultado is not None or self.heroi_ativo is not None:
             return
@@ -373,6 +431,17 @@ class BattleUI:
                         sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
                         if sprite_alvo:
                             sprite_alvo.adicionar_dano_flutuante(int(alvo._ultimo_dano_recebido))
+                    if acao == "ultimate" and self.heroi_ativo.nome == "Cezar":
+                        sprite_heroi = next((s for s in self.sprites_herois if s.personagem is self.heroi_ativo), None)
+                        sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
+                        frames = self.carregar_animacao_ultimate()
+                        if frames and sprite_heroi and sprite_alvo:
+                            self.animacao_ultimate = AnimacaoUltimate(
+                                frames,
+                                self.heroi_ativo,
+                                sprite_heroi.centro,
+                                sprite_alvo.centro,
+                            )
 
         if not executou:
             self.acao_pendente = None
@@ -434,7 +503,7 @@ class BattleUI:
             cor = (255, 230, 135) if heroi is self.heroi_ativo else (255, 255, 255)
             texto = self.fonte_pequena.render(f"{heroi.nome}  Nv.{heroi.level}", True, cor)
             self.tela.blit(texto, (x, ALTURA - 153))
-            self.desenhar_barra(x, ALTURA - 126, 190, heroi.hp, heroi.hpMax, (75, 221, 115))
+            self.desenhar_barra(x, ALTURA - 126, 190, heroi.hp, heroi.hpMax, cor_barra_hp(heroi.hp, heroi.hpMax))
             self.desenhar_barra(x, ALTURA - 101, 190, heroi.PA, heroi.PAMax, (239, 191, 53))
             self.desenhar_barra(x, ALTURA - 76, 190, heroi.atb_barra, heroi.atb_max, (70, 145, 245))
             detalhes = self.fonte_menor.render(
@@ -470,7 +539,8 @@ class BattleUI:
 
         alvos_vivos = self.inimigos_vivos()
         for sprite in self.sprites_herois:
-            sprite.desenhar(self.tela)
+            if self.animacao_ultimate is None or sprite.personagem is not self.animacao_ultimate.personagem:
+                sprite.desenhar(self.tela)
         for sprite in self.sprites_inimigos:
             selecionado = (
                 self.acao_pendente is not None
@@ -482,6 +552,9 @@ class BattleUI:
             # Desenha danos flutuantes
             for dano in sprite.danos_flutuantes:
                 dano.desenhar(self.tela, self.fonte_dano)
+
+        if self.animacao_ultimate is not None:
+            self.animacao_ultimate.desenhar(self.tela)
 
         y_log = 78
         for texto_log in LOG_BATALHA:

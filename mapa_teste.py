@@ -34,31 +34,43 @@ from batalha_ui import criar_batalha
 # CONFIGURAÇÃO DO MAPA
 # ============================================================================
 
-LARGURA_MAPA = 840
+LARGURA_MAPA = 720
 ALTURA_MAPA = 480
 FPS = 60
+MAPA_INICIAL = (
+    BASE_DIR
+    / "mapas"
+    / "Mapa_teste"
+    / "tilesets"
+    / "Pixel Art Top Down - Basic v1.2.3"
+    / "Scene Overview.png"
+)
+MAPA_CAMINHO = BASE_DIR / "assets" / "mapa_teste" / "mapateste.jpeg"
 
-# Áreas sólidas aproximadas da imagem de mapa fornecida.
-# Cada item possui: x, y, largura, altura.
-# Pressione F3 dentro do jogo para mostrar os limites laranja e ajustá-los.
-COLISOES_TERRENO = [
-    # Casa do canto superior esquerdo.
-    (0, 0, 280, 145),
-    # Construção, muros e escada do canto superior direito.
-    (585, 0, 255, 133),
-    (646, 113, 96, 43),
-    # Fileira de caixotes e caixas centrais.
-    (338, 255, 170, 35),
-    (340, 306, 162, 33),
-    # Barris do lado inferior esquerdo.
-    (228, 374, 104, 45),
-    # Arbustos e árvores da área inferior.
-    (451, 337, 250, 34),
-    (397, 390, 75, 90),
-    (500, 390, 75, 90),
-    (606, 390, 75, 90),
-    (712, 390, 75, 90),
+# Paredes, arvores e pilares do mapa. Caminhos, escadas e objetos decorativos
+# permanecem livres para o grupo atravessar.
+COLISOES_TERRENO = []
+COLISOES_CAMINHO = [
+    pygame.Rect(0, 0, 245, 120),
+    pygame.Rect(290, 255, 150, 35),
+    pygame.Rect(185, 365, 110, 60),
+    pygame.Rect(350, 390, 370, 90),
 ]
+
+MAPA_COLISAO = None
+MAPA_ATUAL = "mapateste"
+ESCADAS = [
+    pygame.Rect(365, 78, 75, 82),
+    pygame.Rect(190, 250, 70, 55),
+    pygame.Rect(545, 300, 65, 80),
+    pygame.Rect(315, 315, 55, 70),
+    pygame.Rect(455, 500, 60, 70),
+    pygame.Rect(430, 450, 100, 120),
+    pygame.Rect(175, 520, 60, 70),
+    pygame.Rect(545, 570, 65, 80),
+]
+ESCADA_CAMINHO = pygame.Rect(590, 75, 90, 65)
+CHEGADA_CAMINHO = pygame.Rect(0, 360, 120, 120)
 
 
 # ============================================================================
@@ -67,26 +79,49 @@ COLISOES_TERRENO = [
 
 
 def carregar_mapa() -> pygame.Surface | None:
-    """Carrega a imagem do mapa na pasta assets/mapa_teste ou subpastas."""
+    """Carrega o mapa novo que recebe o grupo ao fim do caminho."""
+    global MAPA_COLISAO
     candidatos = [
-        BASE_DIR / "assets" / "mapa_teste" / "mapateste.jpeg",
-        BASE_DIR / "assets" / "mapa_teste" / "mapa_teste.jpeg",
-        BASE_DIR / "assets" / "mapa_teste" / "mapa_teste.jpg",
-        BASE_DIR / "assets" / "mapateste.jpeg",
-        BASE_DIR / "mapateste.jpeg",
+        MAPA_INICIAL,
     ]
 
     for caminho in candidatos:
         if caminho.exists():
             try:
                 imagem = pygame.image.load(caminho).convert()
-                return pygame.transform.smoothscale(imagem, (LARGURA_MAPA, ALTURA_MAPA))
+                imagem = pygame.transform.smoothscale(imagem, (900, 600))
+                MAPA_COLISAO = imagem.subsurface(pygame.Rect(90, 60, LARGURA_MAPA, ALTURA_MAPA)).copy()
+                return MAPA_COLISAO
             except pygame.error:
                 continue
     return None
 
+
+def carregar_mapa_caminho() -> pygame.Surface | None:
+    global MAPA_ATUAL
+    global MAPA_COLISAO
+    MAPA_ATUAL = "mapateste"
+    try:
+        imagem = pygame.image.load(MAPA_CAMINHO).convert()
+        MAPA_COLISAO = pygame.transform.smoothscale(imagem, (LARGURA_MAPA, ALTURA_MAPA))
+        return MAPA_COLISAO
+    except pygame.error:
+        return None
+
 def desenhar_mapa_provisorio(tela: pygame.Surface) -> None:
     """Mantém o jogo funcional caso a imagem de mapa não seja encontrada."""
+    if getattr(Jogo, "mapa_atual", "Casa_teste") == "Casa_teste":
+        tela.fill((92, 72, 56))
+        pygame.draw.rect(tela, (184, 163, 125), (32, 32, 776, 416))
+        pygame.draw.rect(tela, (117, 96, 73), (32, 32, 776, 416), 8)
+        pygame.draw.rect(tela, (72, 55, 44), (646, 100, 96, 56))
+        pygame.draw.rect(tela, (213, 177, 79), (650, 104, 88, 48), 4)
+        for x in range(90, 780, 64):
+            pygame.draw.line(tela, (169, 145, 108), (x, 40), (x, 440), 1)
+        for y in range(40, 440, 64):
+            pygame.draw.line(tela, (169, 145, 108), (40, y), (800, y), 1)
+        return
+
     tela.fill((96, 115, 38))
 
     # Caminhos de pedra aproximados do mapa de referência.
@@ -109,14 +144,42 @@ def desenhar_mapa_provisorio(tela: pygame.Surface) -> None:
 
 def retangulo_colisao(sprite: pygame.sprite.Sprite) -> pygame.Rect:
     """A colisão usa uma área menor que o sprite, para um movimento natural."""
-    return sprite.rect.inflate(-18, -16)
+    return sprite.rect.inflate(-8, -8)
 
 
 def colide_com_terreno(rect: pygame.Rect) -> bool:
     limites_mapa = pygame.Rect(0, 0, LARGURA_MAPA, ALTURA_MAPA)
     if not limites_mapa.contains(rect):
         return True
-    return any(rect.colliderect(obstaculo) for obstaculo in COLISOES_TERRENO)
+    if MAPA_ATUAL == "mapateste":
+        if ESCADA_CAMINHO.colliderect(rect):
+            return False
+        return any(rect.colliderect(obstaculo) for obstaculo in COLISOES_CAMINHO)
+    if MAPA_COLISAO is None:
+        return any(rect.colliderect(obstaculo) for obstaculo in COLISOES_TERRENO)
+
+    if any(escada.colliderect(rect) for escada in ESCADAS):
+        return False
+
+    pontos_borda = []
+    for linha in range(5):
+        y = rect.top + round(rect.height * linha / 4)
+        for coluna in range(5):
+            x = rect.left + round(rect.width * coluna / 4)
+            pontos_borda.append((x, y))
+
+    for ponto in pontos_borda:
+        vermelho, verde, azul, _ = MAPA_COLISAO.get_at(ponto)
+        fundo_cinza = max(vermelho, verde, azul) < 90 and max(vermelho, verde, azul) - min(vermelho, verde, azul) < 12
+        if fundo_cinza:
+            return True
+
+    for ponto in (rect.center, rect.topleft, rect.topright, rect.bottomleft, rect.bottomright):
+        vermelho, verde, azul, _ = MAPA_COLISAO.get_at(ponto)
+        pedra_escura = 90 <= min(vermelho, verde, azul) <= 119 and max(vermelho, verde, azul) - min(vermelho, verde, azul) < 38
+        if pedra_escura:
+            return True
+    return False
 
 
 def mover_com_colisao(sprite: pygame.sprite.Sprite, dx: float, dy: float) -> bool:
@@ -144,6 +207,23 @@ def mover_com_colisao(sprite: pygame.sprite.Sprite, dx: float, dy: float) -> boo
             movimentou = True
 
     return movimentou
+
+
+def personagem_atras_de_oclusor(sprite: pygame.sprite.Sprite) -> bool:
+    if MAPA_COLISAO is None or not isinstance(sprite, (Cezar, Lucas, Guilherme)):
+        return False
+
+    area = sprite.rect.inflate(-4, -4)
+    for linha in range(3):
+        y = max(0, min(MAPA_COLISAO.get_height() - 1, area.top + round(area.height * linha / 2)))
+        for coluna in range(3):
+            x = max(0, min(MAPA_COLISAO.get_width() - 1, area.left + round(area.width * coluna / 2)))
+            vermelho, verde, azul, _ = MAPA_COLISAO.get_at((x, y))
+            vegetacao = verde > vermelho + 5 and verde > azul + 20 and verde < 125
+            pilar = 90 <= min(vermelho, verde, azul) <= 135 and max(vermelho, verde, azul) - min(vermelho, verde, azul) < 12
+            if vegetacao or pilar:
+                return True
+    return False
 
 
 def atualizar_animacao(sprite: pygame.sprite.Sprite, direcao: pygame.Vector2, tempo_frame: float) -> None:
@@ -189,13 +269,14 @@ class Jogo:
         self.fonte = pygame.font.SysFont(None, 23)
         self.fonte_auxiliar = pygame.font.SysFont(None, 18)
 
-        self.mapa_imagem = carregar_mapa()
+        self.mapa_imagem = carregar_mapa_caminho()
         self.rodando = True
         self.modo = "mapa"
         self.mostrar_colisoes = False
         self.batalha = None
         self.inimigo_em_batalha = None
         self.mensagem = "WASD: mover | Encoste no inimigo para lutar | F3: colisões"
+        self.mapa_atual = "mapateste"
 
         self.grupo_herois = pygame.sprite.Group()
         self.grupo_inimigos = pygame.sprite.Group()
@@ -210,8 +291,7 @@ class Jogo:
         self.lucas = Lucas(self.cezar)
         self.guilherme = Guilherme(self.lucas)
 
-        # Posições livres, fora do prédio superior esquerdo.
-        posicoes = [(170, 180), (135, 180), (100, 180)]
+        posicoes = [(250, 150), (285, 150), (320, 150)]
         for personagem, posicao in zip((self.cezar, self.lucas, self.guilherme), posicoes):
             personagem.posicao = pygame.Vector2(posicao)
             personagem.rect.topleft = posicao
@@ -219,14 +299,52 @@ class Jogo:
 
         self.grupo_herois.add(self.cezar, self.lucas, self.guilherme)
 
-        # Inimigos caminham, respeitam as colisões de terreno e mudam de direção quando bloqueados.
-        inimigo_horizontal = InimigoPeixe(420, 155, eixo="horizontal")
-        inimigo_vertical = InimigoPeixe(670, 180, eixo="vertical")
-        inimigo_horizontal.quantidade_combate = 3
-        inimigo_vertical.quantidade_combate = 3
-        self.grupo_inimigos.add(inimigo_horizontal, inimigo_vertical)
-
         self.grupo_objetos.add(self.grupo_herois, self.grupo_inimigos)
+
+    def criar_inimigos_casa(self) -> None:
+        inimigos = [
+            InimigoPeixe(420, 155, eixo="horizontal"),
+            InimigoPeixe(670, 180, eixo="vertical"),
+        ]
+        for inimigo in inimigos:
+            inimigo.quantidade_combate = 3
+            self.grupo_inimigos.add(inimigo)
+
+    def criar_inimigos_mapa_teste(self) -> None:
+        inimigos = [
+            InimigoPeixe(375, 100, eixo="horizontal"),
+            InimigoPeixe(120, 250, eixo="vertical"),
+            InimigoPeixe(550, 300, eixo="horizontal"),
+            InimigoPeixe(550, 400, eixo="vertical"),
+        ]
+        for inimigo in inimigos:
+            inimigo.quantidade_combate = 3
+            self.grupo_inimigos.add(inimigo)
+        self.grupo_objetos.add(self.grupo_inimigos)
+
+    def trocar_para_mapa_teste(self) -> None:
+        global MAPA_ATUAL
+        MAPA_ATUAL = "Mapa_teste"
+        self.mapa_atual = "Mapa_teste"
+        self.mapa_imagem = carregar_mapa()
+        self.grupo_inimigos.empty()
+        for personagem, posicao in zip(
+            (self.cezar, self.lucas, self.guilherme),
+            ((250, 150), (220, 150), (280, 150)),
+        ):
+            personagem.posicao = pygame.Vector2(posicao)
+            personagem.rect.topleft = posicao
+            personagem.historico_posicoes = [pygame.Vector2(posicao)]
+        self.criar_inimigos_mapa_teste()
+        self.mensagem = "Mapa_teste | WASD: mover | Encoste no inimigo para lutar"
+
+    def verificar_fim_do_caminho(self) -> bool:
+        if self.mapa_atual != "mapateste":
+            return False
+        if retangulo_colisao(self.cezar).colliderect(CHEGADA_CAMINHO):
+            self.trocar_para_mapa_teste()
+            return True
+        return False
 
     def atualizar_lider(self, tempo_frame: float) -> None:
         teclas = pygame.key.get_pressed()
@@ -332,8 +450,11 @@ class Jogo:
         for inimigo in self.grupo_inimigos:
             self.atualizar_inimigo(inimigo, tempo_frame)
 
+        if self.verificar_fim_do_caminho():
+            return
+
         inimigo = self.encontrar_colisao_com_inimigo()
-        if inimigo is not None:
+        if self.mapa_atual == "Mapa_teste" and inimigo is not None:
             self.abrir_batalha(inimigo)
 
     def desenhar_mapa(self) -> None:
@@ -342,7 +463,12 @@ class Jogo:
         else:
             self.tela.blit(self.mapa_imagem, (0, 0))
 
-        self.grupo_objetos.draw(self.tela)
+        for objeto in sorted(self.grupo_objetos, key=lambda item: item.rect.bottom):
+            imagem = objeto.image
+            if personagem_atras_de_oclusor(objeto):
+                imagem = objeto.image.copy()
+                imagem.set_alpha(145)
+            self.tela.blit(imagem, objeto.rect)
 
         caixa = pygame.Rect(7, 7, 625, 30)
         pygame.draw.rect(self.tela, (5, 17, 34), caixa, border_radius=5)

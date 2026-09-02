@@ -554,8 +554,8 @@ class Heroi(Personagem):
 
     def ultimate(self, alvo):
 
-        # Ultimate só libera no nível 10.
-        if self.level < 10:
+        # Durante esta etapa, somente o Cezar pode usar a Ultimate.
+        if self.nome != "Cezar":
 
             print(
                 f"{self.nome} ainda não "
@@ -638,7 +638,7 @@ class Heroi(Personagem):
 
             # O Ladino precisa realizar pelo menos
             # 5 ações.
-            if self.acoes_realizadas < 5:
+            if self.nome != "Cezar" and self.acoes_realizadas < 5:
 
                 print(
                     f"🔥 O Ladino precisa realizar "

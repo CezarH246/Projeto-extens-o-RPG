@@ -33,11 +33,11 @@ class InimigoPeixe(pygame.sprite.Sprite):
         self.direcao_atual = "east" if eixo == "horizontal" else "south"
         self.image = self.imagens_caminhada[self.direcao_atual][0]
 
-        self.rect = pygame.Rect(x, y, 50, 50)
+        self.rect = pygame.Rect(x, y, 32, 32)
         self.posicao = pygame.Vector2(self.rect.topleft)
 
         self.velocidade = 45
-        self.limites = limites or pygame.Rect(0, 0, 840, 480)
+        self.limites = limites or pygame.Rect(0, 0, 720, 720)
 
         self.quadro_animacao = 0
         self.tempo_animacao = 0
@@ -46,7 +46,7 @@ class InimigoPeixe(pygame.sprite.Sprite):
     def carregar_imagem(self, caminho):
         caminho_imagem = f"{self.pasta_inimigo}/{caminho}"
         imagem = pygame.image.load(caminho_imagem).convert_alpha()
-        return pygame.transform.scale(imagem, [50, 50])
+        return pygame.transform.scale(imagem, [32, 32])
 
     def retangulo_colisao(self):
         return self.rect.inflate(-18, -18)

@@ -36,7 +36,7 @@ class Cezar(pygame.sprite.Sprite):
         self.image = self.imagens_parado[self.direcao_atual]
 
         # O rect guarda a posição e o tamanho usados pelo Pygame para desenhar.
-        self.rect = pygame.Rect(80, 80, 50, 50)
+        self.rect = pygame.Rect(80, 80, 32, 32)
 
         # Vector2 permite guardar posições com casas decimais durante o movimento.
         self.posicao = pygame.Vector2(self.rect.topleft)
@@ -56,7 +56,7 @@ class Cezar(pygame.sprite.Sprite):
         # Centraliza o carregamento e o redimensionamento de todas as imagens.
         caminho_imagem = f"personagens/Cezar_O_Ladino/{caminho}"
         imagem = pygame.image.load(caminho_imagem).convert_alpha()
-        return pygame.transform.scale(imagem, [50, 50])
+        return pygame.transform.scale(imagem, [32, 32])
 
     def update(self, tempo_frame):
         # Este método é chamado uma vez por frame pelo grupo de sprites.
