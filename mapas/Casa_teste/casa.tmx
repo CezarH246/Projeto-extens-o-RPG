@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="12" height="8" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="1">
+ <tileset firstgid="1" name="doors2-_4" tilewidth="32" tileheight="32" tilecount="6" columns="2">
+  <image source="../../../tiles/Epic RPG World - Village(interiors) V1.3/Epic RPG World - Village(interiors) V1.3/assets/windows_and_doors_sprites/no_sunlight/doors2-_4.png" width="64" height="96"/>
+ </tileset>
+ <tileset firstgid="7" name="windows1-_8" tilewidth="32" tileheight="32" tilecount="4" columns="2">
+  <image source="../../../tiles/Epic RPG World - Village(interiors) V1.3/Epic RPG World - Village(interiors) V1.3/assets/windows_and_doors_sprites/no_sunlight/windows1-_8.png" width="64" height="64"/>
+ </tileset>
+ <tileset firstgid="11" name="Interiors_tilesets" tilewidth="32" tileheight="32" tilecount="3392" columns="64">
+  <image source="../../../tiles/Epic RPG World - Village(interiors) V1.3/Epic RPG World - Village(interiors) V1.3/assets/Interiors_tilesets.png" width="2048" height="1696"/>
+ </tileset>
+ <tileset firstgid="3403" name="furniture_and_props" tilewidth="32" tileheight="32" tilecount="1677" columns="43">
+  <image source="../../../tiles/Epic RPG World - Village(interiors) V1.3/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props.png" width="1376" height="1248"/>
+ </tileset>
+ <layer id="1" name="Camada de Blocos 1" width="12" height="8">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,
+0,1519,1519,1519,1519,1519,1519,1519,1519,1519,1519,0,
+0,1519,1519,1519,1519,1519,1519,1519,1519,1519,1519,0,
+0,1519,1519,1519,1519,1519,1519,1519,1519,1519,1519,0,
+0,1519,1519,1519,1519,1519,1519,1519,1519,1519,1519,0,
+0,1519,1519,1519,1519,1519,1519,1519,1519,1519,1519,0,
+0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="3" name="Camada de Blocos 3" width="12" height="8">
+  <data encoding="csv">
+159,160,160,160,161,162,163,164,164,164,164,166,
+223,225,225,225,225,225,225,225,225,225,225,230,
+159,225,225,225,225,225,225,225,225,225,225,166,
+287,0,0,0,0,0,0,0,0,0,0,294,
+223,0,0,0,0,0,0,0,0,0,0,230,
+287,0,0,0,0,0,0,0,0,0,0,230,
+223,0,0,0,0,0,0,0,0,0,0,230,
+607,608,608,609,610,611,612,613,612,608,608,614
+</data>
+ </layer>
+ <layer id="2" name="Camada de Blocos 2" width="12" height="8">
+  <data encoding="csv">
+0,0,0,0,0,1,2,0,0,0,0,0,
+0,0,7,8,0,3,4,0,7,8,0,0,
+0,0,9,10,0,5,6,0,9,10,0,0,
+0,0,0,0,2538,2539,2540,2541,0,0,0,0,
+0,0,0,0,2602,2604,2604,2605,0,0,0,0,
+0,0,0,0,2602,2603,2603,2605,0,0,0,0,
+0,0,0,0,2602,2604,2604,2605,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="4" name="Camada de Blocos 4" width="12" height="8">
+  <data encoding="csv">
+0,3403,3404,3405,0,0,0,0,0,0,0,0,
+0,3446,3447,3448,0,0,0,0,0,0,0,0,
+0,3489,3490,3491,0,0,0,0,0,0,0,0,
+0,3532,3533,3534,0,0,0,0,0,4738,4739,0,
+0,3721,3722,3723,0,0,0,0,0,4785,4786,0,
+0,3764,3765,3766,0,0,0,0,0,4828,4829,0,
+0,3807,3808,3809,0,0,0,0,0,4871,4872,0,
+0,0,0,0,0,0,0,0,0,0,3403,3404
+</data>
+ </layer>
+</map>
