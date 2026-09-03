@@ -24,6 +24,13 @@ ASSETS = PROJECT_DIR / "assets"
 FUNDO_BATALHA = ASSETS / "backgrounds" / "docas_batalha.jpg"
 ULTIMATE_CEZAR = ASSETS / "ultimates" / "Cezar_Ultimate" / "Cezar_Ultimate"
 
+#CRIAR LISTA DE ATQUES BASICOS
+#CRIAR LISTA DE ATQUES ESPECIAIS
+# LISTA DE ULTIMATES
+ULTIMATES = {
+    "Cezar": ULTIMATE_CEZAR,
+}
+
 SPRITES_HEROIS = {
     "Lucas": ASSETS / "personagens" / "Lucas_Protagonista" / "Idle" / "animations" / "Lucas_Batalha" / "south-east",
     "Guilherme": ASSETS / "personagens" / "Guilherme_Protagonista" / "Idle" / "animations" / "Guilherme_Batalha" / "south-east",
@@ -142,6 +149,11 @@ def resolver_sprite_inimigo(inimigo) -> Path | None:
 
     nome_sem_nivel = inimigo.nome.split(" Lv.")[0]
     return SPRITES_INIMIGOS.get(normalizar_nome(nome_sem_nivel))
+
+
+def tamanho_com_escala(tamanho_base: tuple[int, int], personagem) -> tuple[int, int]:
+    escala = max(0.01, float(getattr(personagem, "escala", 1.0)))
+    return tuple(max(1, round(dimensao * escala)) for dimensao in tamanho_base)
 
 
 class SpriteCombatente:
@@ -295,12 +307,17 @@ class BattleUI:
             fundo.fill((39, 73, 90))
             return fundo
 
-    def carregar_animacao_ultimate(self) -> list[pygame.Surface]:
+    def carregar_animacao_ultimate(self, personagem) -> list[pygame.Surface]:
         frames = []
-        for arquivo in sorted(ULTIMATE_CEZAR.glob("frame_*.gif")):
+        caminho = ULTIMATES.get(personagem.nome)
+        if caminho is None:
+            return frames
+
+        tamanho = tamanho_com_escala((180, 180), personagem)
+        for arquivo in sorted(caminho.glob("frame_*.png")):
             try:
                 imagem = pygame.image.load(arquivo).convert_alpha()
-                frames.append(pygame.transform.smoothscale(imagem, (180, 180)))
+                frames.append(pygame.transform.smoothscale(imagem, tamanho))
             except pygame.error:
                 continue
         return frames
@@ -311,11 +328,13 @@ class BattleUI:
 
         for indice, heroi in enumerate(self.herois[:3]):
             caminho = SPRITES_HEROIS.get(heroi.nome)
-            self.sprites_herois.append(SpriteCombatente(heroi, posicoes_herois[indice], caminho, (180, 180)))
+            tamanho = tamanho_com_escala((180, 180), heroi)
+            self.sprites_herois.append(SpriteCombatente(heroi, posicoes_herois[indice], caminho, tamanho))
 
         for indice, inimigo in enumerate(self.inimigos[:3]):
             caminho = resolver_sprite_inimigo(inimigo)
-            self.sprites_inimigos.append(SpriteCombatente(inimigo, posicoes_inimigos[indice], caminho, (175, 175)))
+            tamanho = tamanho_com_escala((175, 175), inimigo)
+            self.sprites_inimigos.append(SpriteCombatente(inimigo, posicoes_inimigos[indice], caminho, tamanho))
 
     def inimigos_vivos(self) -> list:
         return [inimigo for inimigo in self.inimigos if inimigo.estar_vivo()]
@@ -434,7 +453,7 @@ class BattleUI:
                     if acao == "ultimate" and self.heroi_ativo.nome == "Cezar":
                         sprite_heroi = next((s for s in self.sprites_herois if s.personagem is self.heroi_ativo), None)
                         sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
-                        frames = self.carregar_animacao_ultimate()
+                        frames = self.carregar_animacao_ultimate(self.heroi_ativo)
                         if frames and sprite_heroi and sprite_alvo:
                             self.animacao_ultimate = AnimacaoUltimate(
                                 frames,

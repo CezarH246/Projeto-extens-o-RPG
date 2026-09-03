@@ -1015,7 +1015,7 @@ def criar_herois():
             "Cezar",
             "Ladino",
             5,
-            escala=ESCALAS.get("Cezar", 1.0)
+            escala=ESCALAS.get("Cezar", 0.5)
         )
     ]
 

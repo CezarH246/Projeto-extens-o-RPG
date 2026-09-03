@@ -3,6 +3,14 @@ import sys
 import time
 
 
+# Escala visual individual dos personagens usados na batalha.
+ESCALAS = {
+    "Lucas": 1.5,
+    "Guilherme": 1.0,
+    "Cezar": 2.5,
+}
+
+
 # ============================================================
 # CONFIGURAÇÕES
 # ============================================================
@@ -38,10 +46,11 @@ class Personagem:
     # CONSTRUTOR
     # --------------------------------------------------------
 
-    def __init__(self, nome, level=1):
+    def __init__(self, nome, level=1, escala=1.0):
 
         # Nome do personagem.
         self.nome = nome
+        self.escala = float(escala)
 
         # O nível fica limitado entre 1 e 10.
         self.level = max(1, min(level, 10))
@@ -158,10 +167,10 @@ class Heroi(Personagem):
     # CONSTRUTOR
     # --------------------------------------------------------
 
-    def __init__(self, nome, ClasseRPG, Level=1):
+    def __init__(self, nome, ClasseRPG, Level=1, escala=1.0):
 
         # Inicializa a classe pai.
-        super().__init__(nome, Level)
+        super().__init__(nome, Level, escala)
 
         # Classe do personagem.
         self.ClasseRPG = ClasseRPG
@@ -807,12 +816,14 @@ class Inimigo(Personagem):
         nome,
         Level=1,
         tipo="Normal",
-        tipo_inimigo="Soldado"
+        tipo_inimigo="Soldado",
+        escala=1.0
     ):
 
         super().__init__(
             nome,
-            Level
+            Level,
+            escala
         )
 
         # Categoria do inimigo:
@@ -986,19 +997,22 @@ def criar_herois():
         Heroi(
             "Lucas",
             "Berserk",
-            5
+            5,
+            escala=ESCALAS.get("Lucas", 1.0)
         ),
 
         Heroi(
             "Guilherme",
             "Mago",
-            5
+            5,
+            escala=ESCALAS.get("Guilherme", 1.0)
         ),
 
         Heroi(
             "Cezar",
             "Ladino",
-            5
+            5,
+            escala=ESCALAS.get("Cezar", 1.0)
         )
     ]
 
