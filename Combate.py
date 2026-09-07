@@ -6,7 +6,7 @@ import time
 # Escala visual individual dos personagens usados na batalha.
 ESCALAS = {
     "Lucas": 1.5,
-    "Guilherme": 1.0,
+    "Guilherme": 2.5,
     "Cezar": 2.5,
 }
 
@@ -563,8 +563,8 @@ class Heroi(Personagem):
 
     def ultimate(self, alvo):
 
-        # Durante esta etapa, somente o Cezar pode usar a Ultimate.
-        if self.nome != "Cezar":
+        # Cezar e Guilherme já possuem Ultimate implementada.
+        if self.nome not in {"Cezar", "Guilherme"}:
 
             print(
                 f"{self.nome} ainda não "

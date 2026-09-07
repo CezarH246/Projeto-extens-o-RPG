@@ -22,8 +22,13 @@ FPS = 60
 PROJECT_DIR = Path(__file__).resolve().parent
 ASSETS = PROJECT_DIR / "assets"
 FUNDO_BATALHA = ASSETS / "backgrounds" / "docas_batalha.jpg"
+
 ULTIMATE_CEZAR = ASSETS / "ultimates" / "Cezar_Ultimate" / "Cezar_Ultimate"
+ULTIMATE_GUILHERME = ASSETS / "ultimates" / "Guilherme_Ultimate" 
+
 ATAQUE_BASICO_CEZAR = ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations" / "Ataque_Basico"
+ATAQUE_BASICO_GUILHERME = ASSETS / "personagens" / "Guilherme_Protagonista" / "Idle" / "animations" / "Ataque_Basico"
+
 DASH_CEZAR = ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations" / "Dash_Combate"
 
 ATAQUE_INIMIGO = ASSETS / "inimigos" / "Ataque_inimigo" 
@@ -44,7 +49,8 @@ ATAQUES_INIMIGOS = {
 }
 #CRIAR LISTA DE ATQUES BASICOS
 ATAQUES_BASICOS = {
-    "Cezar": ATAQUE_BASICO_CEZAR,
+    "Cezar": ATAQUE_BASICO_CEZAR, 
+    "Guilherme": ATAQUE_BASICO_GUILHERME,
 }
 
 #CRIAR LISTA DE DASH
@@ -56,6 +62,7 @@ DASHES = {
 # LISTA DE ULTIMATES
 ULTIMATES = {
     "Cezar": ULTIMATE_CEZAR,
+    "Guilherme": ULTIMATE_GUILHERME,
 }
 
 SPRITES_HEROIS = {
