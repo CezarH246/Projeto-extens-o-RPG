@@ -23,8 +23,35 @@ PROJECT_DIR = Path(__file__).resolve().parent
 ASSETS = PROJECT_DIR / "assets"
 FUNDO_BATALHA = ASSETS / "backgrounds" / "docas_batalha.jpg"
 ULTIMATE_CEZAR = ASSETS / "ultimates" / "Cezar_Ultimate" / "Cezar_Ultimate"
+ATAQUE_BASICO_CEZAR = ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations" / "Ataque_Basico"
+DASH_CEZAR = ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations" / "Dash_Combate"
 
+ATAQUE_INIMIGO = ASSETS / "inimigos" / "Ataque_inimigo" 
+
+
+#CRIAR LISTA DE ATAQUES DE INIMIGOS
+ATAQUES_INIMIGOS = {
+    "cantor_dos_rios": ATAQUE_INIMIGO,
+    "trita_das_nevoas": ATAQUE_INIMIGO,
+    "biomante_bentico": ATAQUE_INIMIGO,
+    "seguidor_de_harkbal": ATAQUE_INIMIGO,
+    "mestre_do_tridente_perolado": ATAQUE_INIMIGO,
+    "elite_da_raiz_profunda": ATAQUE_INIMIGO,
+    "mergulhadora_da_caverna_trita": ATAQUE_INIMIGO,
+    "mergulhadora_celeste": ATAQUE_INIMIGO,
+    "nicanzil_condutora_da_corrente": ATAQUE_INIMIGO,
+    "boss": ATAQUE_INIMIGO,
+}
 #CRIAR LISTA DE ATQUES BASICOS
+ATAQUES_BASICOS = {
+    "Cezar": ATAQUE_BASICO_CEZAR,
+}
+
+#CRIAR LISTA DE DASH
+DASHES = {
+    "Cezar": DASH_CEZAR,
+}
+
 #CRIAR LISTA DE ATQUES ESPECIAIS
 # LISTA DE ULTIMATES
 ULTIMATES = {
@@ -97,7 +124,7 @@ class FloatingDamage:
 
 
 class AnimacaoUltimate:
-    def __init__(self, frames: list[pygame.Surface], personagem, origem: tuple[int, int], alvo: tuple[int, int]):
+    def __init__(self, frames: list[pygame.Surface], personagem, origem: tuple[int, int], alvo: tuple[int, int], velocidade_animacao: float = 0.08):
         self.frames = frames
         self.personagem = personagem
         self.origem = pygame.Vector2(origem)
@@ -105,10 +132,11 @@ class AnimacaoUltimate:
         self.indice = 0
         self.tempo = 0.0
         self.fim_ataque = 22
+        self.velocidade_animacao = velocidade_animacao
 
     def atualizar(self, tempo_frame: float) -> bool:
         self.tempo += tempo_frame
-        if self.tempo >= 0.08:
+        if self.tempo >= self.velocidade_animacao:
             self.tempo = 0.0
             self.indice += 1
         return self.indice < len(self.frames)
@@ -122,6 +150,17 @@ class AnimacaoUltimate:
         imagem = self.frames[self.indice].copy()
         rect = imagem.get_rect(center=(round(centro.x), round(centro.y)))
         tela.blit(imagem, rect)
+
+
+class AnimacaoAtaque(AnimacaoUltimate):
+    """Mesma lógica da animação de ultimate, mas para o ataque básico."""
+    pass
+
+
+class AnimacaoDash(AnimacaoUltimate):
+    """Animação curta de deslocamento do personagem antes do ataque."""
+    def __init__(self, frames: list[pygame.Surface], personagem, origem: tuple[int, int], alvo: tuple[int, int], velocidade_animacao: float = 0.04):
+        super().__init__(frames, personagem, origem, alvo, velocidade_animacao=velocidade_animacao)
 
 
 def registrar_evento(*args, sep=" ", **_kwargs) -> None:
@@ -162,6 +201,7 @@ class SpriteCombatente:
     def __init__(self, personagem, centro: tuple[int, int], caminho: Path | None, tamanho: tuple[int, int]):
         self.personagem = personagem
         self.centro = centro
+        self.centro_inicial = centro
         self.tamanho = tamanho
         self.frames: list[pygame.Surface] = []
         self.indice_frame = 0
@@ -279,7 +319,12 @@ class BattleUI:
         self.fonte_pequena = pygame.font.SysFont("arial", 15)
         self.fonte_menor = pygame.font.SysFont("arial", 13)
         self.fonte_dano = pygame.font.SysFont("arial", 24, bold=True)  # Fonte para números de dano
+        self.animacao_dash = None
+        self.animacao_ataque = None
+        self.animacao_ataque_inimigo = None
         self.animacao_ultimate = None
+        self.animacao_apos_dash = None
+        self.posicao_final_dash = None
 
         self.fundo = self.carregar_fundo()
         self.sprites_herois: list[SpriteCombatente] = []
@@ -298,6 +343,11 @@ class BattleUI:
         LOG_BATALHA.append("Um grupo de inimigos apareceu.")
         regras.print = registrar_evento
 
+    def restaurar_posicao_inicial_heroi(self, heroi):
+        sprite_heroi = next((s for s in self.sprites_herois if s.personagem is heroi), None)
+        if sprite_heroi is not None:
+            sprite_heroi.centro = sprite_heroi.centro_inicial
+
     def carregar_fundo(self) -> pygame.Surface:
         try:
             imagem = pygame.image.load(FUNDO_BATALHA).convert()
@@ -306,6 +356,52 @@ class BattleUI:
             fundo = pygame.Surface((LARGURA, ALTURA))
             fundo.fill((39, 73, 90))
             return fundo
+
+    def carregar_animacao_dash(self, personagem) -> list[pygame.Surface]:
+        frames = []
+        caminho = DASHES.get(personagem.nome)
+        if caminho is None:
+            return frames
+
+        tamanho = tamanho_com_escala((180, 180), personagem)
+        for arquivo in sorted(caminho.glob("frame_*.png")):
+            try:
+                imagem = pygame.image.load(arquivo).convert_alpha()
+                frames.append(pygame.transform.smoothscale(imagem, tamanho))
+            except pygame.error:
+                continue
+        return frames
+
+    def carregar_animacao_ataque(self, personagem) -> list[pygame.Surface]:
+        frames = []
+        caminho = ATAQUES_BASICOS.get(personagem.nome)
+        if caminho is None:
+            return frames
+
+        tamanho = tamanho_com_escala((180, 180), personagem)
+        for arquivo in sorted(caminho.glob("frame_*.png")):
+            try:
+                imagem = pygame.image.load(arquivo).convert_alpha()
+                frames.append(pygame.transform.smoothscale(imagem, tamanho))
+            except pygame.error:
+                continue
+        return frames
+
+    def carregar_animacao_ataque_inimigo(self, inimigo) -> list[pygame.Surface]:
+        frames = []
+        nome_sem_nivel = inimigo.nome.split(" Lv.")[0]
+        caminho = ATAQUES_INIMIGOS.get(normalizar_nome(nome_sem_nivel))
+        if caminho is None:
+            return frames
+
+        tamanho = tamanho_com_escala((250, 250), inimigo)
+        for arquivo in sorted(caminho.glob("frame_*.png")):
+            try:
+                imagem = pygame.image.load(arquivo).convert_alpha()
+                frames.append(pygame.transform.smoothscale(imagem, tamanho))
+            except pygame.error:
+                continue
+        return frames
 
     def carregar_animacao_ultimate(self, personagem) -> list[pygame.Surface]:
         frames = []
@@ -329,7 +425,8 @@ class BattleUI:
         for indice, heroi in enumerate(self.herois[:3]):
             caminho = SPRITES_HEROIS.get(heroi.nome)
             tamanho = tamanho_com_escala((180, 180), heroi)
-            self.sprites_herois.append(SpriteCombatente(heroi, posicoes_herois[indice], caminho, tamanho))
+            sprite = SpriteCombatente(heroi, posicoes_herois[indice], caminho, tamanho)
+            self.sprites_herois.append(sprite)
 
         for indice, inimigo in enumerate(self.inimigos[:3]):
             caminho = resolver_sprite_inimigo(inimigo)
@@ -364,9 +461,54 @@ class BattleUI:
         for sprite in self.sprites_inimigos:
             sprite.danos_flutuantes = [d for d in sprite.danos_flutuantes if d.atualizar(tempo_frame)]
 
+        if self.animacao_dash is not None:
+            if not self.animacao_dash.atualizar(tempo_frame):
+                self.animacao_dash = None
+                if self.animacao_apos_dash is not None:
+                    tipo, heroi, alvo, posicao_final = self.animacao_apos_dash
+                    sprite_heroi = next((s for s in self.sprites_herois if s.personagem is heroi), None)
+                    sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
+
+                    if sprite_heroi is not None and posicao_final is not None:
+                        sprite_heroi.centro = (int(posicao_final.x), int(posicao_final.y))
+                        self.posicao_final_dash = posicao_final
+
+                    if tipo == "atacar":
+                        frames = self.carregar_animacao_ataque(heroi)
+                        if frames and sprite_heroi and sprite_alvo:
+                            self.animacao_ataque = AnimacaoAtaque(
+                                frames,
+                                heroi,
+                                (int(posicao_final.x), int(posicao_final.y)),
+                                sprite_alvo.centro,
+                            )
+                    elif tipo == "ultimate":
+                        frames = self.carregar_animacao_ultimate(heroi)
+                        if frames and sprite_heroi and sprite_alvo:
+                            self.animacao_ultimate = AnimacaoUltimate(
+                                frames,
+                                heroi,
+                                (int(posicao_final.x), int(posicao_final.y)),
+                                sprite_alvo.centro,
+                            )
+                    self.animacao_apos_dash = None
+                    self.posicao_final_dash = None
+
+        if self.animacao_ataque is not None:
+            if not self.animacao_ataque.atualizar(tempo_frame):
+                animacao_finalizada = self.animacao_ataque
+                self.animacao_ataque = None
+                self.restaurar_posicao_inicial_heroi(animacao_finalizada.personagem)
+
+        if self.animacao_ataque_inimigo is not None:
+            if not self.animacao_ataque_inimigo.atualizar(tempo_frame):
+                self.animacao_ataque_inimigo = None
+
         if self.animacao_ultimate is not None:
             if not self.animacao_ultimate.atualizar(tempo_frame):
+                animacao_finalizada = self.animacao_ultimate
                 self.animacao_ultimate = None
+                self.restaurar_posicao_inicial_heroi(animacao_finalizada.personagem)
         
         if self.resultado is not None or self.heroi_ativo is not None:
             return
@@ -391,15 +533,28 @@ class BattleUI:
             return
 
         alvo = random.choice(self.herois_vivos())
+        sprite_inimigo = next((s for s in self.sprites_inimigos if s.personagem is pronto), None)
+        sprite_alvo = next((s for s in self.sprites_herois if s.personagem is alvo), None)
+
+        if sprite_inimigo and sprite_alvo:
+            frames = self.carregar_animacao_ataque_inimigo(pronto)
+            if frames:
+                centro_efeito = (sprite_alvo.centro[0], max(0, sprite_alvo.centro[1] + 20))
+                self.animacao_ataque_inimigo = AnimacaoAtaque(
+                    frames,
+                    pronto,
+                    centro_efeito,
+                    centro_efeito,
+                )
+
         pronto.atacar(alvo)
         pronto.resetar_atb()
         self.mensagem = f"{pronto.nome} atacou {alvo.nome}."
-        
+
         # Mostra dano flutuante para o alvo (se for inimigo)
-        sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
         if sprite_alvo and hasattr(alvo, '_ultimo_dano_recebido'):
             sprite_alvo.adicionar_dano_flutuante(int(alvo._ultimo_dano_recebido))
-        
+
         self.verificar_resultado()
 
     def escolher_acao(self, numero: int) -> None:
@@ -450,9 +605,38 @@ class BattleUI:
                         sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
                         if sprite_alvo:
                             sprite_alvo.adicionar_dano_flutuante(int(alvo._ultimo_dano_recebido))
-                    if acao == "ultimate" and self.heroi_ativo.nome == "Cezar":
-                        sprite_heroi = next((s for s in self.sprites_herois if s.personagem is self.heroi_ativo), None)
-                        sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
+
+                    sprite_heroi = next((s for s in self.sprites_herois if s.personagem is self.heroi_ativo), None)
+                    sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
+
+                    dash_frames = self.carregar_animacao_dash(self.heroi_ativo)
+                    if dash_frames and sprite_heroi and sprite_alvo:
+                        origem_dash = pygame.Vector2(sprite_heroi.centro)
+                        alvo_dash = pygame.Vector2(sprite_alvo.centro)
+                        vetor = alvo_dash - origem_dash
+                        if vetor.length_squared() > 0:
+                            # Quanto maior o número, mais rápido e mais longo será o deslocamento do dash.
+                            DISTANCIA_DASH = 200
+                            vetor = vetor.normalize() * DISTANCIA_DASH
+                            alvo_dash = alvo_dash - vetor
+                        self.animacao_dash = AnimacaoDash(
+                            dash_frames,
+                            self.heroi_ativo,
+                            origem_dash,
+                            alvo_dash,
+                            velocidade_animacao=0.04,
+                        )
+                        self.animacao_apos_dash = (acao, self.heroi_ativo, alvo, alvo_dash.copy())
+                    elif acao == "atacar":
+                        frames = self.carregar_animacao_ataque(self.heroi_ativo)
+                        if frames and sprite_heroi and sprite_alvo:
+                            self.animacao_ataque = AnimacaoAtaque(
+                                frames,
+                                self.heroi_ativo,
+                                sprite_heroi.centro,
+                                sprite_alvo.centro,
+                            )
+                    elif acao == "ultimate":
                         frames = self.carregar_animacao_ultimate(self.heroi_ativo)
                         if frames and sprite_heroi and sprite_alvo:
                             self.animacao_ultimate = AnimacaoUltimate(
@@ -557,8 +741,14 @@ class BattleUI:
         self.tela.blit(titulo, titulo.get_rect(center=(LARGURA // 2, 38)))
 
         alvos_vivos = self.inimigos_vivos()
+        personagens_em_animacao = {
+            anim.personagem
+            for anim in (self.animacao_dash, self.animacao_ataque, self.animacao_ultimate)
+            if anim is not None
+        }
+
         for sprite in self.sprites_herois:
-            if self.animacao_ultimate is None or sprite.personagem is not self.animacao_ultimate.personagem:
+            if sprite.personagem not in personagens_em_animacao:
                 sprite.desenhar(self.tela)
         for sprite in self.sprites_inimigos:
             selecionado = (
@@ -571,6 +761,15 @@ class BattleUI:
             # Desenha danos flutuantes
             for dano in sprite.danos_flutuantes:
                 dano.desenhar(self.tela, self.fonte_dano)
+
+        if self.animacao_dash is not None:
+            self.animacao_dash.desenhar(self.tela)
+
+        if self.animacao_ataque is not None:
+            self.animacao_ataque.desenhar(self.tela)
+
+        if self.animacao_ataque_inimigo is not None:
+            self.animacao_ataque_inimigo.desenhar(self.tela)
 
         if self.animacao_ultimate is not None:
             self.animacao_ultimate.desenhar(self.tela)
