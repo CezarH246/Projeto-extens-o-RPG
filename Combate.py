@@ -18,6 +18,9 @@ ESCALAS = {
 # Tempo entre os caracteres exibidos no terminal.
 VELOCIDADE_TEXTO = 0.01
 
+# Ativa o uso das Ultimates sem os requisitos durante os testes.
+TESTE_ULTIMATES_SEM_RESTRICAO = True
+
 
 # Função responsável por imprimir o texto lentamente.
 def imprimir_lento(*args, sep=" ", end="\n"):
@@ -564,7 +567,7 @@ class Heroi(Personagem):
     def ultimate(self, alvo):
 
         # Cezar e Guilherme já possuem Ultimate implementada.
-        if self.nome not in {"Cezar", "Guilherme"}:
+        if not TESTE_ULTIMATES_SEM_RESTRICAO and self.nome not in {"Cezar", "Guilherme"}:
 
             print(
                 f"{self.nome} ainda não "
@@ -584,7 +587,7 @@ class Heroi(Personagem):
 
             # O Mago precisa ter gasto pelo menos 60 PA
             # desde a última Ultimate.
-            if self.pa_gasto_ultimate < 60:
+            if not TESTE_ULTIMATES_SEM_RESTRICAO and self.pa_gasto_ultimate < 60:
 
                 print(
                     f"🔥 O Mago precisa gastar "
@@ -615,7 +618,7 @@ class Heroi(Personagem):
 
             # O Berserk precisa ter levado pelo menos
             # 50 de dano.
-            if self.dano_recebido_ultimate < 50:
+            if not TESTE_ULTIMATES_SEM_RESTRICAO and self.dano_recebido_ultimate < 50:
 
                 print(
                     f"🔥 O Berserk precisa levar "
@@ -647,7 +650,7 @@ class Heroi(Personagem):
 
             # O Ladino precisa realizar pelo menos
             # 5 ações.
-            if self.nome != "Cezar" and self.acoes_realizadas < 5:
+            if not TESTE_ULTIMATES_SEM_RESTRICAO and self.nome != "Cezar" and self.acoes_realizadas < 5:
 
                 print(
                     f"🔥 O Ladino precisa realizar "
@@ -678,7 +681,7 @@ class Heroi(Personagem):
         elif self.ClasseRPG == "Arqueiro":
 
             # Arqueiro precisa de PA cheio.
-            if self.PA < 100:
+            if not TESTE_ULTIMATES_SEM_RESTRICAO and self.PA < 100:
 
                 print(
                     "🏹 O Arqueiro precisa estar "
@@ -697,7 +700,7 @@ class Heroi(Personagem):
         elif self.ClasseRPG == "Paladino":
 
             # Paladino precisa de PA cheio.
-            if self.PA < 100:
+            if not TESTE_ULTIMATES_SEM_RESTRICAO and self.PA < 100:
 
                 print(
                     "🛡️ O Paladino precisa estar "

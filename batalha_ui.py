@@ -14,6 +14,7 @@ from pathlib import Path
 
 import pygame
 import Combate as regras
+from PIL import Image
 
 LARGURA = 1280
 ALTURA = 720
@@ -24,12 +25,16 @@ ASSETS = PROJECT_DIR / "assets"
 FUNDO_BATALHA = ASSETS / "backgrounds" / "docas_batalha.jpg"
 
 ULTIMATE_CEZAR = ASSETS / "ultimates" / "Cezar_Ultimate" / "Cezar_Ultimate"
-ULTIMATE_GUILHERME = ASSETS / "ultimates" / "Guilherme_Ultimate" 
+ULTIMATE_GUILHERME = ASSETS / "ultimates" / "Guilherme_Ultimate" / "pixellab-O-mago--que-inicialmente-mant--1788880617530"
+ULTIMATE_GUILHERME_ATAQUE = ASSETS / "ultimates" / "Guilherme_Ultimate" / "pixellab-The-black-hole-slowly-rotates--1788882096725"
 
 ATAQUE_BASICO_CEZAR = ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations" / "Ataque_Basico"
 ATAQUE_BASICO_GUILHERME = ASSETS / "personagens" / "Guilherme_Protagonista" / "Idle" / "animations" / "Ataque_Basico"
 
 DASH_CEZAR = ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations" / "Dash_Combate"
+
+ANIMACAO_MAGO_HABILIDADE = ASSETS / "efeitos" / "Idle_custom-Animate_the_character_performing_a_magical_firebal_south.gif"
+BOLA_FOGO_MAGO = ASSETS / "efeitos" / "Idle_custom-Create_only_the_fireball_attack_particle_effect._D_south.gif"
 
 ATAQUE_INIMIGO = ASSETS / "inimigos" / "Ataque_inimigo" 
 
@@ -168,6 +173,60 @@ class AnimacaoDash(AnimacaoUltimate):
     """Animação curta de deslocamento do personagem antes do ataque."""
     def __init__(self, frames: list[pygame.Surface], personagem, origem: tuple[int, int], alvo: tuple[int, int], velocidade_animacao: float = 0.04):
         super().__init__(frames, personagem, origem, alvo, velocidade_animacao=velocidade_animacao)
+
+
+class AnimacaoHabilidadeMago:
+    """Mostra o Mago conjurando e lança a bola de fogo até o alvo."""
+    def __init__(self, frames_mago, frames_bola, personagem, origem, alvo):
+        self.frames_mago = frames_mago
+        self.frames_bola = frames_bola
+        self.personagem = personagem
+        self.origem = pygame.Vector2(origem)
+        self.alvo = pygame.Vector2(alvo)
+        self.indice = 0
+        self.tempo = 0.0
+        self.velocidade_animacao = 0.07
+
+    @property
+    def duracao_mago(self) -> int:
+        return len(self.frames_mago)
+
+    @property
+    def personagem_oculto(self) -> bool:
+        return self.indice < self.duracao_mago
+
+    def atualizar(self, tempo_frame: float) -> bool:
+        self.tempo += tempo_frame
+        while self.tempo >= self.velocidade_animacao:
+            self.tempo -= self.velocidade_animacao
+            self.indice += 1
+        return self.indice < self.duracao_mago + len(self.frames_bola)
+
+    def desenhar(self, tela: pygame.Surface) -> None:
+        if self.indice < self.duracao_mago:
+            imagem = self.frames_mago[self.indice]
+            centro = self.origem
+        else:
+            indice_bola = min(self.indice - self.duracao_mago, len(self.frames_bola) - 1)
+            imagem = self.frames_bola[indice_bola]
+            progresso = indice_bola / max(1, len(self.frames_bola) - 1)
+            centro = self.origem.lerp(self.alvo, progresso)
+
+        tela.blit(imagem, imagem.get_rect(center=(round(centro.x), round(centro.y))))
+
+
+class AnimacaoUltimateMago(AnimacaoHabilidadeMago):
+    """Mostra a conjuração do Mago e o buraco negro diretamente no alvo."""
+    def desenhar(self, tela: pygame.Surface) -> None:
+        if self.indice < self.duracao_mago:
+            imagem = self.frames_mago[self.indice]
+            centro = self.origem
+        else:
+            indice_ataque = min(self.indice - self.duracao_mago, len(self.frames_bola) - 1)
+            imagem = self.frames_bola[indice_ataque]
+            centro = self.alvo
+
+        tela.blit(imagem, imagem.get_rect(center=(round(centro.x), round(centro.y))))
 
 
 def registrar_evento(*args, sep=" ", **_kwargs) -> None:
@@ -330,6 +389,7 @@ class BattleUI:
         self.animacao_ataque = None
         self.animacao_ataque_inimigo = None
         self.animacao_ultimate = None
+        self.animacao_habilidade_mago = None
         self.animacao_apos_dash = None
         self.posicao_final_dash = None
 
@@ -425,6 +485,41 @@ class BattleUI:
                 continue
         return frames
 
+    def carregar_frames_gif(self, caminho: Path, tamanho: tuple[int, int]) -> list[pygame.Surface]:
+        frames = []
+        try:
+            with Image.open(caminho) as gif:
+                for indice in range(getattr(gif, "n_frames", 1)):
+                    gif.seek(indice)
+                    quadro = gif.convert("RGBA")
+                    dados = quadro.tobytes()
+                    imagem = pygame.image.fromstring(dados, quadro.size, "RGBA").convert_alpha()
+                    frames.append(pygame.transform.smoothscale(imagem, tamanho))
+        except (OSError, ValueError, pygame.error):
+            return []
+        return frames
+
+    def carregar_animacao_habilidade_mago(self, personagem) -> tuple[list[pygame.Surface], list[pygame.Surface]]:
+        frames_mago = self.carregar_frames_gif(ANIMACAO_MAGO_HABILIDADE, (120, 120))
+        frames_bola = self.carregar_frames_gif(BOLA_FOGO_MAGO, (96, 96))
+        return frames_mago, frames_bola
+
+    def carregar_animacao_ultimate_mago(self, personagem) -> tuple[list[pygame.Surface], list[pygame.Surface]]:
+        tamanho_mago = tamanho_com_escala((180, 180), personagem)
+        frames_mago = self.carregar_frames_pasta(ULTIMATE_GUILHERME, tamanho_mago)
+        frames_buraco_negro = self.carregar_frames_pasta(ULTIMATE_GUILHERME_ATAQUE, (300, 300))
+        return frames_mago, frames_buraco_negro
+
+    def carregar_frames_pasta(self, caminho: Path, tamanho: tuple[int, int]) -> list[pygame.Surface]:
+        frames = []
+        for arquivo in sorted(caminho.glob("frame_*.png")):
+            try:
+                imagem = pygame.image.load(arquivo).convert_alpha()
+                frames.append(pygame.transform.smoothscale(imagem, tamanho))
+            except pygame.error:
+                continue
+        return frames
+
     def criar_sprites(self) -> None:
         posicoes_herois = [(220, 280), (170, 455), (390, 430)]
         posicoes_inimigos = [(1060, 270), (970, 445), (835, 360)]
@@ -511,11 +606,19 @@ class BattleUI:
             if not self.animacao_ataque_inimigo.atualizar(tempo_frame):
                 self.animacao_ataque_inimigo = None
 
-        if self.animacao_ultimate is not None:
+        if self.animacao_ultimate is not None and not isinstance(self.animacao_ultimate, AnimacaoUltimateMago):
             if not self.animacao_ultimate.atualizar(tempo_frame):
                 animacao_finalizada = self.animacao_ultimate
                 self.animacao_ultimate = None
                 self.restaurar_posicao_inicial_heroi(animacao_finalizada.personagem)
+
+        if isinstance(self.animacao_ultimate, AnimacaoUltimateMago):
+            if not self.animacao_ultimate.atualizar(tempo_frame):
+                self.animacao_ultimate = None
+
+        if self.animacao_habilidade_mago is not None:
+            if not self.animacao_habilidade_mago.atualizar(tempo_frame):
+                self.animacao_habilidade_mago = None
         
         if self.resultado is not None or self.heroi_ativo is not None:
             return
@@ -644,10 +747,31 @@ class BattleUI:
                                 sprite_alvo.centro,
                             )
                     elif acao == "ultimate":
-                        frames = self.carregar_animacao_ultimate(self.heroi_ativo)
-                        if frames and sprite_heroi and sprite_alvo:
-                            self.animacao_ultimate = AnimacaoUltimate(
-                                frames,
+                        if self.heroi_ativo.nome == "Guilherme":
+                            frames_mago, frames_buraco_negro = self.carregar_animacao_ultimate_mago(self.heroi_ativo)
+                            if frames_mago and frames_buraco_negro and sprite_heroi and sprite_alvo:
+                                self.animacao_ultimate = AnimacaoUltimateMago(
+                                    frames_mago,
+                                    frames_buraco_negro,
+                                    self.heroi_ativo,
+                                    sprite_heroi.centro,
+                                    sprite_alvo.centro,
+                                )
+                        else:
+                            frames = self.carregar_animacao_ultimate(self.heroi_ativo)
+                            if frames and sprite_heroi and sprite_alvo:
+                                self.animacao_ultimate = AnimacaoUltimate(
+                                    frames,
+                                    self.heroi_ativo,
+                                    sprite_heroi.centro,
+                                    sprite_alvo.centro,
+                                )
+                    elif acao == "habilidade_especial" and self.heroi_ativo.ClasseRPG == "Mago":
+                        frames_mago, frames_bola = self.carregar_animacao_habilidade_mago(self.heroi_ativo)
+                        if frames_mago and frames_bola and sprite_heroi and sprite_alvo:
+                            self.animacao_habilidade_mago = AnimacaoHabilidadeMago(
+                                frames_mago,
+                                frames_bola,
                                 self.heroi_ativo,
                                 sprite_heroi.centro,
                                 sprite_alvo.centro,
@@ -750,8 +874,13 @@ class BattleUI:
         alvos_vivos = self.inimigos_vivos()
         personagens_em_animacao = {
             anim.personagem
-            for anim in (self.animacao_dash, self.animacao_ataque, self.animacao_ultimate)
+            for anim in (self.animacao_dash, self.animacao_ataque, self.animacao_ultimate, self.animacao_habilidade_mago)
             if anim is not None
+            and not (
+                anim in (self.animacao_habilidade_mago, self.animacao_ultimate)
+                and isinstance(anim, AnimacaoHabilidadeMago)
+                and not anim.personagem_oculto
+            )
         }
 
         for sprite in self.sprites_herois:
@@ -780,6 +909,9 @@ class BattleUI:
 
         if self.animacao_ultimate is not None:
             self.animacao_ultimate.desenhar(self.tela)
+
+        if self.animacao_habilidade_mago is not None:
+            self.animacao_habilidade_mago.desenhar(self.tela)
 
         y_log = 78
         for texto_log in LOG_BATALHA:

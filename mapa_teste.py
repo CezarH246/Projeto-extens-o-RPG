@@ -47,32 +47,19 @@ MAPA_INICIAL = (
 )
 MAPA_CAMINHO = BASE_DIR / "assets" / "mapa_teste" / "mapateste.jpeg"
 
-# Paredes, arvores e pilares do mapa. Caminhos, escadas e objetos decorativos
-# permanecem livres para o grupo atravessar.
+# Somente as construcoes, caixas e barris bloqueiam o movimento.
+# Caminhos, escada e arvores permanecem livres para o grupo atravessar.
 COLISOES_TERRENO = []
-COLISOES_CAMINHO = [
+COLISOES_MAPA = [
     pygame.Rect(0, 0, 245, 120),
+    pygame.Rect(535, 0, 185, 145),
     pygame.Rect(290, 255, 150, 35),
+    pygame.Rect(290, 305, 150, 35),
     pygame.Rect(185, 365, 110, 60),
-    pygame.Rect(350, 390, 370, 90),
 ]
 
 MAPA_COLISAO = None
 MAPA_ATUAL = "mapateste"
-ESCADAS = [
-    pygame.Rect(365, 78, 75, 82),
-    pygame.Rect(190, 250, 70, 55),
-    pygame.Rect(545, 300, 65, 80),
-    pygame.Rect(315, 315, 55, 70),
-    pygame.Rect(455, 500, 60, 70),
-    pygame.Rect(430, 450, 100, 120),
-    pygame.Rect(175, 520, 60, 70),
-    pygame.Rect(545, 570, 65, 80),
-]
-ESCADA_CAMINHO = pygame.Rect(590, 75, 90, 65)
-CHEGADA_CAMINHO = pygame.Rect(0, 360, 120, 120)
-
-
 # ============================================================================
 # FUNÇÕES DE MAPA E COLISÃO
 # ============================================================================
@@ -151,35 +138,7 @@ def colide_com_terreno(rect: pygame.Rect) -> bool:
     limites_mapa = pygame.Rect(0, 0, LARGURA_MAPA, ALTURA_MAPA)
     if not limites_mapa.contains(rect):
         return True
-    if MAPA_ATUAL == "mapateste":
-        if ESCADA_CAMINHO.colliderect(rect):
-            return False
-        return any(rect.colliderect(obstaculo) for obstaculo in COLISOES_CAMINHO)
-    if MAPA_COLISAO is None:
-        return any(rect.colliderect(obstaculo) for obstaculo in COLISOES_TERRENO)
-
-    if any(escada.colliderect(rect) for escada in ESCADAS):
-        return False
-
-    pontos_borda = []
-    for linha in range(5):
-        y = rect.top + round(rect.height * linha / 4)
-        for coluna in range(5):
-            x = rect.left + round(rect.width * coluna / 4)
-            pontos_borda.append((x, y))
-
-    for ponto in pontos_borda:
-        vermelho, verde, azul, _ = MAPA_COLISAO.get_at(ponto)
-        fundo_cinza = max(vermelho, verde, azul) < 90 and max(vermelho, verde, azul) - min(vermelho, verde, azul) < 12
-        if fundo_cinza:
-            return True
-
-    for ponto in (rect.center, rect.topleft, rect.topright, rect.bottomleft, rect.bottomright):
-        vermelho, verde, azul, _ = MAPA_COLISAO.get_at(ponto)
-        pedra_escura = 90 <= min(vermelho, verde, azul) <= 119 and max(vermelho, verde, azul) - min(vermelho, verde, azul) < 38
-        if pedra_escura:
-            return True
-    return False
+    return any(rect.colliderect(obstaculo) for obstaculo in COLISOES_MAPA)
 
 
 def mover_com_colisao(sprite: pygame.sprite.Sprite, dx: float, dy: float) -> bool:
@@ -210,19 +169,6 @@ def mover_com_colisao(sprite: pygame.sprite.Sprite, dx: float, dy: float) -> boo
 
 
 def personagem_atras_de_oclusor(sprite: pygame.sprite.Sprite) -> bool:
-    if MAPA_COLISAO is None or not isinstance(sprite, (Cezar, Lucas, Guilherme)):
-        return False
-
-    area = sprite.rect.inflate(-4, -4)
-    for linha in range(3):
-        y = max(0, min(MAPA_COLISAO.get_height() - 1, area.top + round(area.height * linha / 2)))
-        for coluna in range(3):
-            x = max(0, min(MAPA_COLISAO.get_width() - 1, area.left + round(area.width * coluna / 2)))
-            vermelho, verde, azul, _ = MAPA_COLISAO.get_at((x, y))
-            vegetacao = verde > vermelho + 5 and verde > azul + 20 and verde < 125
-            pilar = 90 <= min(vermelho, verde, azul) <= 135 and max(vermelho, verde, azul) - min(vermelho, verde, azul) < 12
-            if vegetacao or pilar:
-                return True
     return False
 
 
@@ -282,6 +228,7 @@ class Jogo:
         self.grupo_inimigos = pygame.sprite.Group()
         self.grupo_objetos = pygame.sprite.Group()
         self.criar_personagens()
+        self.criar_inimigos_mapa_teste()
 
         # Estes mesmos objetos são enviados à batalha e preservam nível, HP, PA, XP e poções.
         self.herois_combate = criar_herois()
@@ -321,30 +268,6 @@ class Jogo:
             inimigo.quantidade_combate = 3
             self.grupo_inimigos.add(inimigo)
         self.grupo_objetos.add(self.grupo_inimigos)
-
-    def trocar_para_mapa_teste(self) -> None:
-        global MAPA_ATUAL
-        MAPA_ATUAL = "Mapa_teste"
-        self.mapa_atual = "Mapa_teste"
-        self.mapa_imagem = carregar_mapa()
-        self.grupo_inimigos.empty()
-        for personagem, posicao in zip(
-            (self.cezar, self.lucas, self.guilherme),
-            ((250, 150), (220, 150), (280, 150)),
-        ):
-            personagem.posicao = pygame.Vector2(posicao)
-            personagem.rect.topleft = posicao
-            personagem.historico_posicoes = [pygame.Vector2(posicao)]
-        self.criar_inimigos_mapa_teste()
-        self.mensagem = "Mapa_teste | WASD: mover | Encoste no inimigo para lutar"
-
-    def verificar_fim_do_caminho(self) -> bool:
-        if self.mapa_atual != "mapateste":
-            return False
-        if retangulo_colisao(self.cezar).colliderect(CHEGADA_CAMINHO):
-            self.trocar_para_mapa_teste()
-            return True
-        return False
 
     def atualizar_lider(self, tempo_frame: float) -> None:
         teclas = pygame.key.get_pressed()
@@ -450,11 +373,8 @@ class Jogo:
         for inimigo in self.grupo_inimigos:
             self.atualizar_inimigo(inimigo, tempo_frame)
 
-        if self.verificar_fim_do_caminho():
-            return
-
         inimigo = self.encontrar_colisao_com_inimigo()
-        if self.mapa_atual == "Mapa_teste" and inimigo is not None:
+        if inimigo is not None:
             self.abrir_batalha(inimigo)
 
     def desenhar_mapa(self) -> None:
@@ -476,7 +396,7 @@ class Jogo:
         self.tela.blit(texto, (14, 13))
 
         if self.mostrar_colisoes:
-            for obstaculo in COLISOES_TERRENO:
+            for obstaculo in COLISOES_MAPA:
                 pygame.draw.rect(self.tela, (255, 120, 0), obstaculo, 2)
             for objeto in self.grupo_objetos:
                 pygame.draw.rect(self.tela, (255, 0, 255), retangulo_colisao(objeto), 1)
