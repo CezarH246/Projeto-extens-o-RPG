@@ -3,6 +3,45 @@ import sys
 import time
 
 
+# =====================================================================
+# RESUMO DAS REGRAS DE COMBATE (arquitetura das classes)
+# =====================================================================
+# O combate é em turnos com barra ATB (Active Time Battle):
+#   - Cada combatente enche sozinho a barra `atb_barra` com o passar do
+#     tempo (`carregar_atb`). Quando ela atinge `atb_max`, é o turno dele.
+#   - `velocidade` controla o ritmo em que a barra enche. Mortos não carregam.
+#   - Após agir, a barra é zerada (`resetar_atb`) e começa a encher de novo.
+#
+# HIERARQUIA (classe pai -> filha):
+#   1. `Personagem`  -> classe base, comum a TODOS os combatentes.
+#      Fornece: nome, level, HP/HPmax, ataque, velocidade, defesa, barra ATB,
+#      `receber_dano()` (aplica defesa e guarda o último dano),
+#      `carregar_atb()`, `resetar_atb()` e `estar_vivo()`.
+#
+#   2. `Heroi(Personagem)`  -> herda tudo acima e ADICIONA:
+#      - Classe RPG (Berserk, Mago, Arqueiro, Ladino, Paladino), que define
+#        os atributos via `CalcularAtributosPorLevel()`.
+#      - XP/nível (level up em `dar_xp`), PA (pontos de ação), poções de PA.
+#      - Contadores para liberar a Ultimate: `pa_gasto_ultimate`,
+#        `dano_recebido_ultimate` e `acoes_realizadas`.
+#      - Ações: `atacar()`, `habilidade_especial()`, `segunda_habilidade()`,
+#        `ultimate()`, `usar_pocao_pa()`.
+#      SOBRESCREVE `receber_dano()` para acumular o dano sofrido (usado na
+#      Ultimate do Berserk) e `mostrar_status()`.
+#
+#   3. `Inimigo(Personagem)`  -> herda a base e ADICIONA:
+#      - `tipo` (Normal/Elite/Boss) e `tipo_inimigo` (Xama/Soldado/Batedor),
+#        que multiplicam seu HP, ataque e velocidade (Elite/Boss mais fortes).
+#      - `XpDrop` (XP entregue ao morrer), `chanceDropPocao` (30% fixo) e um
+#        `atacar()` mais simples, sem gastar recursos.
+#
+# Convenção importante: todas as ações dos heróis retornam `True` se foram
+# executadas e `False` caso não possam acontecer (alvo morto, PA insuficiente,
+# requisito da Ultimate não cumprido etc.). Isso permite o menu de batalha
+# mostrar a mensagem certa e voltar a pedir a escolha do jogador.
+# =====================================================================
+
+
 # Escala visual individual dos personagens usados na batalha.
 ESCALAS = {
     "Lucas": 1.5,
@@ -163,6 +202,11 @@ class Personagem:
 # ============================================================
 # CLASSE HEROI
 # ============================================================
+# Herda Personagem (HP, ATQ, DEF, VEL, ATB) e representa o jogador.
+# O `super().__init__` reusa o construtor da base; a diferença é que os
+# atributos de combate são recalculados pela CLASSE RPG + nível em
+# `CalcularAtributosPorLevel`, e o herói ainda gerencia XP, PA, poções e
+# os contadores que liberam a Ultimate.
 
 class Heroi(Personagem):
 
@@ -811,6 +855,11 @@ class Heroi(Personagem):
 # ============================================================
 # CLASSE INIMIGO
 # ============================================================
+# Herda Personagem e representa quem o jogador enfrenta.
+# Diferente do herói, não usa XP/PA: os atributos são gerados a partir de
+# `tipo` (Normal/Elite/Boss) e `tipo_inimigo` (Xama/Soldado/Batedor), e o
+# inimigo apenas ataca e recebe dano. Ao morrer entrega `XpDrop` (XP) e, com
+# 30% de chance, uma poção de PA.
 
 class Inimigo(Personagem):
 
@@ -958,6 +1007,45 @@ class Inimigo(Personagem):
         )
 
         return True
+
+
+# ============================================================
+# REGRA COMPARTILHADA: ULTIMATE PRONTA?
+# ============================================================
+# Toda a interface (menu de batalha, sprite do personagem etc.) precisa saber
+# no mesmo momento o que a classe Heroi.ultimate() exige para liberar o golpe.
+# Para não duplicar a regra em vários lugares, ela fica centralizada aqui:
+#   - Com TESTE_ULTIMATES_SEM_RESTRICAO, a Ultimate está sempre pronta.
+#   - Mago: gastou 60+ de PA desde a última Ultimate.
+#   - Berserk: levou 50+ de dano desde a última Ultimate.
+#   - Ladino: realizou 5+ ações (Cezar fica liberado sozinho).
+#   - Arqueiro/Paladino: PA cheio (100).
+
+def ultimate_disponivel(heroi):
+    """Retorna True quando o herói pode usar a Ultimate no momento atual."""
+
+    if not getattr(heroi, "ClasseRPG", None):
+        return False
+
+    if TESTE_ULTIMATES_SEM_RESTRICAO:
+        return True
+
+    if heroi.nome not in {"Cezar", "Guilherme"}:
+        return False
+
+    if heroi.ClasseRPG == "Mago":
+        return heroi.pa_gasto_ultimate >= 60
+
+    if heroi.ClasseRPG == "Berserk":
+        return heroi.dano_recebido_ultimate >= 50
+
+    if heroi.ClasseRPG == "Ladino":
+        return heroi.nome == "Cezar" or heroi.acoes_realizadas >= 5
+
+    if heroi.ClasseRPG in ("Arqueiro", "Paladino"):
+        return heroi.PA >= 100
+
+    return False
 
 
 # ============================================================
