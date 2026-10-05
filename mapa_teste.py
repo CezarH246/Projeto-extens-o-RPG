@@ -23,7 +23,7 @@ os.chdir(BASE_DIR)
 from CezarPersonagem import Cezar
 from LucasPersonagem import Lucas
 from GuilhermePersonagem import Guilherme
-from InimigoPersonagem import InimigoPeixe
+from InimigoPersonagem import InimigoPeixe, ReiTritaoMapa
 from Combate import criar_herois
 from batalha_ui import ALTURA as ALTURA_COMBATE
 from batalha_ui import LARGURA as LARGURA_COMBATE
@@ -221,6 +221,8 @@ class Jogo:
         self.mostrar_colisoes = False
         self.batalha = None
         self.inimigo_em_batalha = None
+        self.rei_tritao_spawnado = False
+        self.rei_tritao_derrotado = False
         self.mensagem = "WASD: mover | Encoste no inimigo para lutar | F3: colisões"
         self.mapa_atual = "mapateste"
 
@@ -311,6 +313,9 @@ class Jogo:
         atualizar_animacao(seguidor, direcao if movimentou else pygame.Vector2(), tempo_frame)
 
     def atualizar_inimigo(self, inimigo: InimigoPeixe, tempo_frame: float) -> None:
+        if getattr(inimigo, "eh_rei_tritao", False):
+            inimigo.atualizar_idle(tempo_frame)
+            return
         direcao = pygame.Vector2(inimigo.sentido, 0) if inimigo.eixo == "horizontal" else pygame.Vector2(0, inimigo.sentido)
         movimentou = mover_com_colisao(
             inimigo,
@@ -337,14 +342,22 @@ class Jogo:
         self.inimigo_em_batalha = inimigo
         self.tela = pygame.display.set_mode((LARGURA_COMBATE, ALTURA_COMBATE))
         pygame.display.set_caption("RPG Saga dos Falidos - Batalha")
-        self.batalha = criar_batalha(self.tela, self.herois_combate, inimigo.quantidade_combate)
+        self.batalha = criar_batalha(
+            self.tela, self.herois_combate, inimigo.quantidade_combate,
+            rei_tritao=getattr(inimigo, "eh_rei_tritao", False),
+        )
         self.modo = "combate"
 
     def fechar_batalha(self) -> None:
         """Volta ao mapa após o fim do combate. Em vitória, remove o inimigo tocado."""
         if self.batalha.resultado is True and self.inimigo_em_batalha is not None:
+            era_rei_tritao = getattr(self.inimigo_em_batalha, "eh_rei_tritao", False)
             self.inimigo_em_batalha.kill()
-            self.mensagem = "Vitória! O inimigo foi removido e as recompensas foram aplicadas."
+            if era_rei_tritao:
+                self.rei_tritao_derrotado = True
+                self.mensagem = "O REI TRITÃO FOI DERROTADO! Vitória no mapa teste!"
+            else:
+                self.mensagem = "Vitória! O inimigo foi removido e as recompensas foram aplicadas."
         else:
             self.mensagem = "O grupo retornou ao mapa após a batalha."
 
@@ -372,6 +385,14 @@ class Jogo:
 
         for inimigo in self.grupo_inimigos:
             self.atualizar_inimigo(inimigo, tempo_frame)
+
+        # Depois de exterminar todos os inimigos comuns, o primeiro boss aparece.
+        if not self.grupo_inimigos and not self.rei_tritao_spawnado and not self.rei_tritao_derrotado:
+            rei = ReiTritaoMapa(590, 235)
+            self.grupo_inimigos.add(rei)
+            self.grupo_objetos.add(rei)
+            self.rei_tritao_spawnado = True
+            self.mensagem = "A água estremece... REI TRITÃO surgiu! Prepare-se para o boss!"
 
         inimigo = self.encontrar_colisao_com_inimigo()
         if inimigo is not None:

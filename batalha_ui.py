@@ -25,8 +25,7 @@ ASSETS = PROJECT_DIR / "assets"
 FUNDO_BATALHA = ASSETS / "backgrounds" / "docas_batalha.jpg"
 
 ULTIMATE_CEZAR = ASSETS / "ultimates" / "Cezar_Ultimate" / "Cezar_Ultimate"
-ULTIMATE_CEZAR_INICIO = ULTIMATE_CEZAR / "inicio.gif"
-ULTIMATE_CEZAR_FIM = ULTIMATE_CEZAR / "fim.gif"
+ULTIMATE_CEZAR_GIF = ULTIMATE_CEZAR / "Cezar_ultimate.gif"
 ULTIMATE_CEZAR_ATAQUE = ASSETS / "ultimates" / "Cezar_Ultimate" / "Efeito_ult"
 EFEITO_CEZAR = [
     ULTIMATE_CEZAR_ATAQUE / "inicio.gif",
@@ -36,6 +35,9 @@ EFEITO_CEZAR = [
 ]
 ULTIMATE_GUILHERME = ASSETS / "ultimates" / "Guilherme_Ultimate" / "pixellab-O-mago--que-inicialmente-mant--1788880617530"
 ULTIMATE_GUILHERME_ATAQUE = ASSETS / "ultimates" / "Guilherme_Ultimate" / "pixellab-The-black-hole-slowly-rotates--1788882096725"
+GUILHERME_ULTIMATE_PRONTA = ASSETS / "personagens" / "Guilherme_Protagonista" / "Ultimate_Pronta" / "guilherme_ultimate_pronta.gif"
+ENTIDADE_COSMICA_GUILHERME = ASSETS / "efeitos" / "Entidade_Cosmica" / "entidade_cosmica.gif"
+REI_TRITAO_IDLE = ASSETS / "inimigos" / "Rei_Tritao" / "rei_tritao_idle.gif"
 
 ATAQUE_BASICO_CEZAR = ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations" / "Ataque_Basico"
 ATAQUE_BASICO_GUILHERME = ASSETS / "personagens" / "Guilherme_Protagonista" / "Idle" / "animations" / "Ataque_Basico"
@@ -92,7 +94,7 @@ ANIMACOES_HEROIS = {
     ),
     "Guilherme": (
         ASSETS / "personagens" / "Guilherme_Protagonista" / "Idle" / "animations" / "Guilherme_Batalha" / "south-east",
-        ASSETS / "personagens" / "Guilherme_Protagonista" / "Idle" / "animations" / "Guilherme_Batalha" / "south-east",
+        GUILHERME_ULTIMATE_PRONTA,
     ),
     "Cezar": (
         ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations" / "Cezar_Posicao_de_combate" / "east",
@@ -274,14 +276,11 @@ class AnimacaoUltimateMago(AnimacaoHabilidadeMago):
 
 
 class AnimacaoUltimateCezar:
-    """Ultimate do Cezar: personagem avança (inicio.gif), o efeito de arco
-    venenoso aparece no inimigo ao se aproximar e o golpe final (fim.gif)
-    é executado. O efeito segue tocando até a animação toda terminar."""
+    """Ultimate do Cezar: o personagem avança até perto do inimigo enquanto
+    toca o gif completo. Sem efeito sobreposto no alvo."""
 
-    def __init__(self, frames_aproximacao, frames_ataque, frames_efeito, personagem, origem, alvo, velocidade_animacao: float = 0.06):
-        self.frames_aproximacao = frames_aproximacao
-        self.frames_ataque = frames_ataque
-        self.frames_efeito = frames_efeito
+    def __init__(self, frames, personagem, origem, alvo, velocidade_animacao: float = 0.06):
+        self.frames = frames
         self.personagem = personagem
         self.origem = pygame.Vector2(origem)
         self.alvo = pygame.Vector2(alvo)
@@ -290,7 +289,7 @@ class AnimacaoUltimateCezar:
         self.tempo = 0.0
 
         # O personagem NÃO atravessa o inimigo: ele para alguns pixels antes
-        # do alvo (ponto de contato), enquanto o efeito continua no inimigo.
+        # do alvo (ponto de contato).
         distancia_parada = 55
         vetor = self.alvo - self.origem
         if vetor.length_squared() > 0 and vetor.length() > distancia_parada:
@@ -298,47 +297,18 @@ class AnimacaoUltimateCezar:
         else:
             self.ponto_contato = self.origem
 
-    @property
-    def duracao_aproximacao(self) -> int:
-        return len(self.frames_aproximacao)
-
-    @property
-    def duracao_total(self) -> int:
-        return self.duracao_aproximacao + len(self.frames_efeito)
-
-    @property
-    def em_aproximacao(self) -> bool:
-        return self.indice < self.duracao_aproximacao
-
-    @property
-    def efeito_visivel(self) -> bool:
-        return self.indice >= self.duracao_aproximacao
-
     def atualizar(self, tempo_frame: float) -> bool:
         self.tempo += tempo_frame
         while self.tempo >= self.velocidade_animacao:
             self.tempo -= self.velocidade_animacao
             self.indice += 1
-        return self.indice < self.duracao_total
+        return self.indice < len(self.frames)
 
     def desenhar(self, tela: pygame.Surface) -> None:
-        if self.em_aproximacao:
-            progresso = self.indice / max(1, self.duracao_aproximacao - 1)
-            # O personagem avança até o ponto de contato (perto do inimigo).
-            centro = self.origem.lerp(self.ponto_contato, progresso)
-            imagem = self.frames_aproximacao[self.indice]
-        else:
-            # Golpe final: o personagem fica no ponto de contato, sem entrar
-            # no inimigo, enquanto o efeito toca sobre o centro do alvo.
-            centro = self.ponto_contato
-            indice_efeito = self.indice - self.duracao_aproximacao
-            if self.frames_efeito:
-                efeito = self.frames_efeito[min(indice_efeito, len(self.frames_efeito) - 1)]
-                tela.blit(efeito, efeito.get_rect(center=(round(self.alvo.x), round(self.alvo.y))))
-            if self.frames_ataque:
-                indice_ataque = min(indice_efeito, len(self.frames_ataque) - 1)
-                imagem = self.frames_ataque[indice_ataque]
-
+        progresso = self.indice / max(1, len(self.frames) - 1)
+        # O personagem avança até o ponto de contato (perto do inimigo).
+        centro = self.origem.lerp(self.ponto_contato, progresso)
+        imagem = self.frames[min(self.indice, len(self.frames) - 1)]
         tela.blit(imagem, imagem.get_rect(center=(round(centro.x), round(centro.y))))
 
 
@@ -362,6 +332,8 @@ def normalizar_nome(texto: str) -> str:
 
 
 def resolver_sprite_inimigo(inimigo) -> Path | None:
+    if normalizar_nome(inimigo.nome.split(" Lv.")[0]) == "rei_tritao":
+        return REI_TRITAO_IDLE
     if inimigo.tipo == "Boss":
         return SPRITES_INIMIGOS["boss"]
 
@@ -542,6 +514,7 @@ class BattleUI:
         self.fundo = self.carregar_fundo()
         self.sprites_herois: list[SpriteCombatente] = []
         self.sprites_inimigos: list[SpriteCombatente] = []
+        self.efeito_cosmico_guilherme = None
         self.criar_sprites()
 
         self.heroi_ativo = None
@@ -656,13 +629,54 @@ class BattleUI:
         frames_buraco_negro = self.carregar_frames_pasta(ULTIMATE_GUILHERME_ATAQUE, (300, 300))
         return frames_mago, frames_buraco_negro
 
-    def carregar_animacao_ultimate_cezar(self, personagem) -> tuple[list[pygame.Surface], list[pygame.Surface]]:
-        """Carrega inicio.gif (aproximação) e fim.gif (golpe) da ultimate do Cezar."""
-        # O personagem é desenhado um pouco menor que o sprite padrão de batalha.
-        tamanho = tamanho_com_escala((160, 160), personagem)
-        frames_aproximacao = self.carregar_frames_gif(ULTIMATE_CEZAR_INICIO, tamanho)
-        frames_ataque = self.carregar_frames_gif(ULTIMATE_CEZAR_FIM, tamanho)
-        return frames_aproximacao, frames_ataque
+    def carregar_animacao_ultimate_cezar(self, personagem) -> list[pygame.Surface]:
+        """Carrega a ultimate do Cezar com o personagem maior e o efeito menor.
+
+        O gif mistura os dois no mesmo quadro: os frames do personagem são
+        recortados na silhueta e ampliados, enquanto os frames do flash de
+        efeito (conteúdo ocupando quase todo o quadro de 400x400) são
+        renderizados menores."""
+        tamanho_personagem = tamanho_com_escala((88, 88), personagem)
+        tamanho_efeito = tamanho_com_escala((110, 110), personagem)
+        largura_personagem, altura_personagem = tamanho_personagem
+        frames = []
+        try:
+            with Image.open(ULTIMATE_CEZAR_GIF) as gif:
+                for indice in range(getattr(gif, "n_frames", 1)):
+                    gif.seek(indice)
+                    quadro = gif.convert("RGBA")
+                    bbox = quadro.getbbox()
+                    if bbox is None:
+                        continue
+                    largura = bbox[2] - bbox[0]
+                    altura = bbox[3] - bbox[1]
+                    # Frame do flash de efeito: mantém o quadro inteiro menor.
+                    if largura > 300 or altura > 300:
+                        dados = quadro.tobytes()
+                        imagem = pygame.image.fromstring(dados, quadro.size, "RGBA").convert_alpha()
+                        frames.append(pygame.transform.smoothscale(imagem, tamanho_efeito))
+                        continue
+                    # Frame do personagem: corta o fundo ocioso e amplia.
+                    recorte = quadro.crop(bbox)
+                    dados = recorte.tobytes()
+                    imagem = pygame.image.fromstring(dados, recorte.size, "RGBA").convert_alpha()
+                    escala = min(
+                        largura_personagem / max(1, largura),
+                        altura_personagem / max(1, altura),
+                    )
+                    escalado = pygame.transform.smoothscale(
+                        imagem,
+                        (max(1, round(largura * escala)), max(1, round(altura * escala))),
+                    )
+                    quadro_final = pygame.Surface(tamanho_personagem, pygame.SRCALPHA)
+                    quadro_final.blit(
+                        escalado,
+                        escalado.get_rect(center=(largura_personagem // 2, altura_personagem // 2)),
+                    )
+                    frames.append(quadro_final)
+        except (OSError, ValueError, pygame.error):
+            return []
+        return frames
 
     def carregar_animacao_efeito_cezar(self) -> list[pygame.Surface]:
         """Concatena inicio/meio/meio2/fim.gif do efeito que aparece no inimigo."""
@@ -690,6 +704,8 @@ class BattleUI:
             tamanho = tamanho_com_escala((180, 180), heroi)
             sprite = SpriteCombatente(heroi, posicoes_herois[indice], caminho, tamanho, caminho_ultimate)
             self.sprites_herois.append(sprite)
+            if heroi.nome == "Guilherme":
+                self.efeito_cosmico_guilherme = SpriteCombatente(heroi, posicoes_herois[indice], ENTIDADE_COSMICA_GUILHERME, tamanho_com_escala((300, 300), heroi))
 
         for indice, inimigo in enumerate(self.inimigos[:3]):
             caminho = resolver_sprite_inimigo(inimigo)
@@ -747,13 +763,10 @@ class BattleUI:
                             )
                     elif tipo == "ultimate":
                         if heroi.nome == "Cezar":
-                            frames_aproximacao, frames_ataque = self.carregar_animacao_ultimate_cezar(heroi)
-                            frames_efeito = self.carregar_animacao_efeito_cezar()
-                            if frames_aproximacao and frames_ataque and frames_efeito and sprite_heroi and sprite_alvo:
+                            frames = self.carregar_animacao_ultimate_cezar(heroi)
+                            if frames and sprite_heroi and sprite_alvo:
                                 self.animacao_ultimate = AnimacaoUltimateCezar(
-                                    frames_aproximacao,
-                                    frames_ataque,
-                                    frames_efeito,
+                                    frames,
                                     heroi,
                                     (int(posicao_final.x), int(posicao_final.y)),
                                     sprite_alvo.centro,
@@ -944,13 +957,10 @@ class BattleUI:
                                     sprite_alvo.centro,
                                 )
                         elif self.heroi_ativo.nome == "Cezar":
-                            frames_aproximacao, frames_ataque = self.carregar_animacao_ultimate_cezar(self.heroi_ativo)
-                            frames_efeito = self.carregar_animacao_efeito_cezar()
-                            if frames_aproximacao and frames_ataque and frames_efeito and sprite_heroi and sprite_alvo:
+                            frames = self.carregar_animacao_ultimate_cezar(self.heroi_ativo)
+                            if frames and sprite_heroi and sprite_alvo:
                                 self.animacao_ultimate = AnimacaoUltimateCezar(
-                                    frames_aproximacao,
-                                    frames_ataque,
-                                    frames_efeito,
+                                    frames,
                                     self.heroi_ativo,
                                     sprite_heroi.centro,
                                     sprite_alvo.centro,
@@ -1081,6 +1091,11 @@ class BattleUI:
             )
         }
 
+        # A entidade cósmica fica atrás do mago enquanto a Ultimate estiver pronta.
+        if self.efeito_cosmico_guilherme is not None and regras.ultimate_disponivel(self.efeito_cosmico_guilherme.personagem):
+            if self.efeito_cosmico_guilherme.personagem not in personagens_em_animacao:
+                self.efeito_cosmico_guilherme.desenhar(self.tela)
+
         for sprite in self.sprites_herois:
             if sprite.personagem not in personagens_em_animacao:
                 sprite.desenhar(self.tela)
@@ -1134,10 +1149,13 @@ class BattleUI:
             self.tela.blit(instrucao, instrucao.get_rect(center=(LARGURA // 2, 355)))
 
 
-def criar_batalha(tela: pygame.Surface, herois: list, quantidade_inimigos: int = 3) -> BattleUI:
-    """Cria a tela que mapa_teste.py abre após uma colisão com inimigo."""
+def criar_batalha(tela: pygame.Surface, herois: list, quantidade_inimigos: int = 3, rei_tritao: bool = False) -> BattleUI:
+    """Cria a batalha comum ou o confronto especial contra o Rei Tritão."""
     nivel_grupo = max(heroi.level for heroi in herois)
-    inimigos = regras.criar_cenario_batalha(nivel_grupo, quantidade=quantidade_inimigos)
+    if rei_tritao:
+        inimigos = [regras.criar_rei_tritao(nivel_grupo)]
+    else:
+        inimigos = regras.criar_cenario_batalha(nivel_grupo, quantidade=quantidade_inimigos)
     return BattleUI(tela, herois, inimigos)
 
 

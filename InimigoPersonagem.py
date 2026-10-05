@@ -1,4 +1,8 @@
 import pygame
+from pathlib import Path
+from PIL import Image
+
+BASE_DIR = Path(__file__).resolve().parent
 
 #========================================================
 # Inimigo no mapa — anda só no eixo horizontal ou vertical
@@ -80,3 +84,43 @@ class InimigoPeixe(pygame.sprite.Sprite):
             self.tempo_animacao -= self.velocidade_animacao
             self.quadro_animacao = (self.quadro_animacao + 1) % self.quadros_caminhada
         self.image = self.imagens_caminhada[self.direcao_atual][self.quadro_animacao]
+
+
+class ReiTritaoMapa(pygame.sprite.Sprite):
+    """Rei Tritão parado no mapa, usando sua animação idle especial."""
+    def __init__(self, x, y, *groups):
+        super().__init__(*groups)
+        self.eh_rei_tritao = True
+        self.quantidade_combate = 1
+        self.eixo = "horizontal"
+        self.sentido = 0
+        self.velocidade = 0
+        self.direcao_atual = "west"
+        self.posicao = pygame.Vector2(x, y)
+        self.frames = self._carregar_gif(BASE_DIR / "assets" / "inimigos" / "Rei_Tritao" / "rei_tritao_idle.gif")
+        self.quadro_animacao = 0
+        self.tempo_animacao = 0.0
+        self.velocidade_animacao = 0.10
+        self.image = self.frames[0]
+        self.rect = self.image.get_rect(center=(x, y))
+        self.posicao = pygame.Vector2(self.rect.topleft)
+
+    def _carregar_gif(self, caminho):
+        frames = []
+        with Image.open(caminho) as gif:
+            for i in range(getattr(gif, "n_frames", 1)):
+                gif.seek(i)
+                dados = gif.convert("RGBA").tobytes()
+                img = pygame.image.fromstring(dados, gif.size, "RGBA").convert_alpha()
+                frames.append(pygame.transform.smoothscale(img, (72, 72)))
+        return frames
+
+    def retangulo_colisao(self):
+        return self.rect.inflate(-30, -30)
+
+    def atualizar_idle(self, tempo_frame):
+        self.tempo_animacao += tempo_frame
+        if self.tempo_animacao >= self.velocidade_animacao:
+            self.tempo_animacao -= self.velocidade_animacao
+            self.quadro_animacao = (self.quadro_animacao + 1) % len(self.frames)
+            self.image = self.frames[self.quadro_animacao]

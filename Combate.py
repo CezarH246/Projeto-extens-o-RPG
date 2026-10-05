@@ -1169,6 +1169,19 @@ def criar_inimigo_boss(level=1):
     return criar_inimigo(level, "Boss")
 
 
+def criar_rei_tritao(level=1):
+    """Boss especial que aparece após limpar todos os inimigos do mapa teste."""
+    rei = Inimigo("Rei Tritão", level, "Boss", "Soldado", escala=1.35)
+    # Mais forte que um Boss comum para marcar o primeiro confronto especial.
+    rei.hpMax = int(rei.hpMax * 1.75)
+    rei.hp = rei.hpMax
+    rei.ataque = int(rei.ataque * 1.45)
+    rei.defesa = int(rei.defesa * 1.35)
+    rei.velocidade *= 1.10
+    rei.XpDrop = int(rei.XpDrop * 2)
+    return rei
+
+
 def criar_inimigo_xama(level=1, tipo="Normal"):
 
     return criar_inimigo(level, tipo, "Xama")
