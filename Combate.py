@@ -43,10 +43,14 @@ import time
 
 
 # Escala visual individual dos personagens usados na batalha.
+# O valor multiplica o tamanho padrão do corpo (125 px em batalha_ui.py), que é
+# medido pelo desenho visível do sprite, sem a margem transparente do arquivo.
+# 1.0 = tamanho padrão da maioria dos combatentes, acima disso o personagem
+# aparece maior na tela.
 ESCALAS = {
     "Lucas": 1.5,
-    "Guilherme": 2.5,
-    "Cezar": 2.5,
+    "Guilherme": 1.0,
+    "Cezar": 1.0,
 }
 
 
@@ -90,6 +94,7 @@ class Personagem:
 
     def __init__(self, nome, level=1, escala=1.0):
 
+        # combate (atributos e barras) junto dos métodos que o atualizam.
         # Nome do personagem.
         self.nome = nome
         self.escala = float(escala)
@@ -148,7 +153,8 @@ class Personagem:
     # --------------------------------------------------------
 
     def estar_vivo(self):
-
+        # Consulta o HP por um método, sem repetir essa regra em cada sistema.
+        # Pilar: Encapsulamento — o estado do objeto é consultado por seu comportamento.
         return self.hp > 0
 
     # --------------------------------------------------------
@@ -157,6 +163,8 @@ class Personagem:
 
     def receber_dano(self, dano):
 
+        # Subtrai a defesa do ataque, mas garante pelo menos 1 de dano.
+        # Pilar: Encapsulamento — concentra a alteração de HP nesta operação.
         # A defesa reduz o dano recebido.
         dano_final = max(
             1,
@@ -172,7 +180,7 @@ class Personagem:
         # Armazena o dano recebido para exibição visual
         self._ultimo_dano_recebido = dano_final
 
-        # Retorna o dano realmente recebido.
+        # Devolve o valor aplicado para que o atacante possa informar o resultado.
         return dano_final
 
     # --------------------------------------------------------
@@ -181,6 +189,8 @@ class Personagem:
 
     def carregar_atb(self, multiplicador_tempo):
 
+        # Só combatentes vivos avançam a barra, limitada ao valor necessário
+        # para agir. Pilar: Encapsulamento — atualiza a ATB dentro do objeto.
         # Personagem morto não carrega a barra.
         if self.estar_vivo():
 
@@ -195,7 +205,8 @@ class Personagem:
     # --------------------------------------------------------
 
     def resetar_atb(self):
-
+        # Zera a barra depois do turno para iniciar a próxima contagem.
+        # Pilar: Encapsulamento — o objeto controla a própria prontidão.
         self.atb_barra = 0.0
 
 
@@ -209,6 +220,8 @@ class Personagem:
 # os contadores que liberam a Ultimate.
 
 class Heroi(Personagem):
+    # Pilar: Herança — reutiliza HP, defesa e ATB de Personagem e acrescenta
+    # os recursos e regras exclusivos do jogador.
 
     # --------------------------------------------------------
     # CONSTRUTOR
@@ -268,6 +281,8 @@ class Heroi(Personagem):
 
     def CalcularAtributosPorLevel(self):
 
+        # A classe escolhida define os atributos iniciais e os ganhos por nível.
+        # Pilar: Encapsulamento — o cálculo dos atributos do herói fica na classe.
         # ----------------------------------------------------
         # BERSERK
         # ----------------------------------------------------
@@ -337,6 +352,9 @@ class Heroi(Personagem):
 
     def receber_dano(self, dano):
 
+        # Estende o recebimento de dano da classe base para registrar progresso
+        # da Ultimate. Pilar: Polimorfismo — esta versão substitui a herdada e
+        # é chamada quando um alvo Heroi recebe dano.
         # Guarda o HP antes do ataque.
         hp_antes = self.hp
 
@@ -357,6 +375,9 @@ class Heroi(Personagem):
 
     def mostrar_status(self):
 
+        # Monta o status com os recursos próprios do herói, incluindo PA.
+        # Pilar: Polimorfismo — substitui a versão de Personagem para apresentar
+        # os dados adicionais desta subclasse.
         # Barra de HP.
         barra_hp = int(
             (self.hp / self.hpMax) * 20
@@ -402,9 +423,13 @@ class Heroi(Personagem):
 
     def atacar(self, alvo):
 
+        # Impede gastar o turno contra um alvo inexistente ou derrotado.
         if not alvo or not alvo.estar_vivo():
             return False
 
+        # Sorteia o dano e delega ao próprio alvo a aplicação da defesa/HP.
+        # Pilar: Polimorfismo — alvo.receber_dano usa a implementação adequada
+        # ao tipo real do alvo (Heroi ou Inimigo).
         # Ataque base + dano aleatório.
         dano = (
             self.ataque
@@ -431,6 +456,7 @@ class Heroi(Personagem):
 
     def habilidade_especial(self, alvo):
 
+        # Valida alvo e PA antes de alterar qualquer recurso.
         if not alvo or not alvo.estar_vivo():
             return False
 
@@ -445,7 +471,8 @@ class Heroi(Personagem):
 
             return False
 
-        # Define habilidade de acordo com a classe.
+        # Seleciona nome e dano de acordo com a classe RPG do objeto.
+        # Pilar: Encapsulamento — a regra da habilidade e seu custo ficam no herói.
         if self.ClasseRPG == "Berserk":
 
             nome_skill = "Golpe Glamoroso"
@@ -491,7 +518,7 @@ class Heroi(Personagem):
                 + random.randint(10, 20)
             )
 
-        # Gasta PA.
+        # Cobra o custo e atualiza os contadores usados para liberar a Ultimate.
         self.PA -= custo
 
         # Registra o PA gasto.
@@ -500,7 +527,8 @@ class Heroi(Personagem):
         # Registra ação.
         self.acoes_realizadas += 1
 
-        # Aplica dano.
+        # Aplica o dano através do método do alvo, que calcula sua defesa.
+        # Pilar: Polimorfismo — a implementação depende da classe concreta do alvo.
         dano_causado = alvo.receber_dano(dano)
 
         print(
@@ -517,7 +545,8 @@ class Heroi(Personagem):
 
     def segunda_habilidade(self, alvo):
 
-        # Só libera no nível 5.
+        # Bloqueia a habilidade até o nível 5, sem consumir recursos.
+        # Pilar: Encapsulamento — a classe Heroi valida sua própria regra de uso.
         if self.level < 5:
 
             print(
@@ -527,11 +556,13 @@ class Heroi(Personagem):
 
             return False
 
+        # Exige um alvo válido e vivo antes de cobrar PA ou causar dano.
         if not alvo or not alvo.estar_vivo():
             return False
 
         custo = 40
 
+        # Confere o recurso necessário antes de executar a habilidade.
         if self.PA < custo:
 
             print(
@@ -540,6 +571,7 @@ class Heroi(Personagem):
 
             return False
 
+        # Cada classe recebe seu nome de habilidade e faixa de dano próprios.
         if self.ClasseRPG == "Berserk":
 
             nome_skill = "Investida Fabulosa"
@@ -585,7 +617,7 @@ class Heroi(Personagem):
                 + random.randint(20, 35)
             )
 
-        # Gasta PA.
+        # Cobra PA, atualiza os contadores da Ultimate e aplica o dano no alvo.
         self.PA -= custo
 
         # Guarda o PA gasto para a Ultimate.
@@ -610,6 +642,9 @@ class Heroi(Personagem):
 
     def ultimate(self, alvo):
 
+        # Confere se a Ultimate está implementada para este herói e se o alvo
+        # pode recebê-la antes de alterar o estado da batalha.
+        # Pilar: Encapsulamento — os requisitos de uso são verificados no herói.
         # Cezar e Guilherme já possuem Ultimate implementada.
         if not TESTE_ULTIMATES_SEM_RESTRICAO and self.nome not in {"Cezar", "Guilherme"}:
 
@@ -627,6 +662,8 @@ class Heroi(Personagem):
         # MAGO
         # ====================================================
 
+        # A classe define os requisitos e a fórmula de dano da Ultimate.
+        # Pilar: Encapsulamento — cada herói aplica as regras do seu próprio golpe.
         if self.ClasseRPG == "Mago":
 
             # O Mago precisa ter gasto pelo menos 60 PA
@@ -767,7 +804,8 @@ class Heroi(Personagem):
         # EXECUTAR ULTIMATE
         # ====================================================
 
-        # A Ultimate consome todo o PA.
+        # Executa a Ultimate: consome PA, aplica dano e limpa os contadores para
+        # iniciar o próximo ciclo de carregamento.
         self.PA = 0
 
         # Aplica o dano.
@@ -790,8 +828,7 @@ class Heroi(Personagem):
         # RESET DAS CONDIÇÕES DA ULTIMATE
         # ----------------------------------------------------
 
-        # Depois de usar a Ultimate,
-        # começamos a contabilizar novamente.
+        # Zera os requisitos acumulados para a próxima Ultimate.
         self.pa_gasto_ultimate = 0
         self.dano_recebido_ultimate = 0
         self.acoes_realizadas = 0
@@ -804,6 +841,8 @@ class Heroi(Personagem):
 
     def usar_pocao_pa(self):
 
+        # Evita consumir uma poção sem estoque ou quando o PA já está cheio.
+        # Pilar: Encapsulamento — o herói valida e altera seus próprios recursos.
         if self.pocoesPA <= 0:
 
             print(
@@ -824,7 +863,7 @@ class Heroi(Personagem):
 
         recuperacao = 50
 
-        # Recupera no máximo até 100.
+        # Recupera até 50 PA sem ultrapassar o máximo e consome uma poção.
         self.PA = min(
             self.PAMax,
             self.PA + recuperacao
@@ -862,6 +901,8 @@ class Heroi(Personagem):
 # 30% de chance, uma poção de PA.
 
 class Inimigo(Personagem):
+    # Pilar: Herança — compartilha os dados e comportamentos de Personagem,
+    # acrescentando categoria, tipo, recompensa e ataque próprios do inimigo.
 
     def __init__(
         self,
@@ -891,6 +932,8 @@ class Inimigo(Personagem):
         # ATRIBUTOS
         # ----------------------------------------------------
 
+        # A categoria aumenta os atributos gerais; o tipo ajusta HP, ataque e
+        # velocidade. Pilar: Encapsulamento — os atributos são definidos pelo objeto.
         multiplicador = 1
 
         if self.tipo == "Elite":
@@ -943,8 +986,7 @@ class Inimigo(Personagem):
         # XP
         # ----------------------------------------------------
 
-        # A quantidade de XP será calculada
-        # de acordo com nível + tipo.
+        # Calcula a recompensa no próprio inimigo com base no nível e categoria.
         self.XpDrop = self.calcular_xp_drop()
 
         # ----------------------------------------------------
@@ -962,6 +1004,8 @@ class Inimigo(Personagem):
 
     def calcular_xp_drop(self):
 
+        # Define a recompensa do inimigo: nível multiplicado pelo valor da categoria.
+        # Pilar: Encapsulamento — a regra de XP pertence ao objeto que a concede.
         # XP base aumenta conforme o nível.
         xp_base = 50 * self.level
 
@@ -990,9 +1034,13 @@ class Inimigo(Personagem):
 
     def atacar(self, alvo):
 
+        # Não executa ataque se o alvo não existir ou já estiver derrotado.
         if not alvo or not alvo.estar_vivo():
             return False
 
+        # Calcula dano aleatório e delega a aplicação ao alvo.
+        # Pilar: Polimorfismo — receber_dano aplica a versão correspondente
+        # à classe concreta do alvo.
         dano = (
             self.ataque
             + random.randint(0, 5)
@@ -1024,6 +1072,8 @@ class Inimigo(Personagem):
 def ultimate_disponivel(heroi):
     """Retorna True quando o herói pode usar a Ultimate no momento atual."""
 
+    # Centraliza a regra consultada pelo combate e pela interface; assim ambos
+    # usam os mesmos requisitos em vez de manter cópias divergentes.
     if not getattr(heroi, "ClasseRPG", None):
         return False
 
@@ -1171,12 +1221,14 @@ def criar_inimigo_boss(level=1):
 
 def criar_rei_tritao(level=1):
     """Boss especial que aparece após limpar todos os inimigos do mapa teste."""
-    rei = Inimigo("Rei Tritão", level, "Boss", "Soldado", escala=1.35)
+    # Escala bem maior que a dos heróis: o Rei Tritão precisa dominar a tela
+    # no combate, já que encara o grupo sozinho.
+    rei = Inimigo("Rei Tritão", level, "Boss", "Soldado", escala=1.95)
     # Mais forte que um Boss comum para marcar o primeiro confronto especial.
-    rei.hpMax = int(rei.hpMax * 1.75)
+    rei.hpMax = int(rei.hpMax * 2.10)
     rei.hp = rei.hpMax
-    rei.ataque = int(rei.ataque * 1.45)
-    rei.defesa = int(rei.defesa * 1.35)
+    rei.ataque = int(rei.ataque * 1.60)
+    rei.defesa = int(rei.defesa * 1.45)
     rei.velocidade *= 1.10
     rei.XpDrop = int(rei.XpDrop * 2)
     return rei
@@ -1240,6 +1292,8 @@ def mostrar_status_herois(herois):
 
 def dar_xp(inimigo, herois):
 
+    # Reparte a recompensa entre os heróis vivos; personagens derrotados ficam
+    # fora do cálculo para não receber XP.
     # XP definido pelo nível e tipo do inimigo.
     xp = inimigo.XpDrop
 
@@ -1269,6 +1323,8 @@ def dar_xp(inimigo, herois):
 
     for heroi in herois_vivos:
 
+        # Atualiza a experiência individual de cada objeto herói.
+        # Pilar: Encapsulamento — o progresso pertence ao estado de cada herói.
         heroi.Xp += xp_por_heroi
 
         print(
@@ -1295,6 +1351,7 @@ def dar_xp(inimigo, herois):
             )
 
             # Recalcula os atributos.
+            # Recalcula os atributos usando a classe RPG do próprio herói.
             heroi.CalcularAtributosPorLevel()
 
             print(
@@ -1312,6 +1369,7 @@ def dar_xp(inimigo, herois):
 
 def verificar_drop_pocao(inimigo, herois):
 
+    # Sorteia se o inimigo deixa poção; se sim, entrega a um herói ainda vivo.
     # REGRA FIXA:
     #
     # Sempre 30%.
@@ -1331,6 +1389,8 @@ def verificar_drop_pocao(inimigo, herois):
                 herois_vivos
             )
 
+            # A poção é adicionada ao inventário daquele objeto herói.
+            # Pilar: Encapsulamento — cada herói mantém seu próprio estoque.
             heroi.pocoesPA += 1
 
             print("\n🧪 ===============================")
@@ -1417,6 +1477,7 @@ def abrir_bau(heroi):
 
 def escolher_inimigo(inimigos):
 
+    # Oferece apenas alvos válidos, evitando selecionar inimigos derrotados.
     inimigos_vivos = [
         inimigo
         for inimigo in inimigos
@@ -1464,6 +1525,8 @@ def escolher_inimigo(inimigos):
 
 def turno_jogador(heroi, inimigos):
 
+    # Mantém a escolha ativa até uma ação válida ser executada; os métodos do
+    # herói verificam custos, requisitos e efeitos da ação.
     while True:
 
         print("\n")
@@ -1539,6 +1602,8 @@ def turno_jogador(heroi, inimigos):
         # ATAQUE
         # ----------------------------------------------------
 
+        # Encaminha a escolha ao comportamento do objeto Heroi, que valida e
+        # executa o ataque. Pilar: Encapsulamento — regras ficam na classe.
         if escolha == "1":
 
             alvo = escolher_inimigo(inimigos)
@@ -1605,7 +1670,8 @@ def turno_jogador(heroi, inimigos):
                 f"para defender."
             )
 
-            # Aumenta a defesa.
+            # A defesa e o contador de ações são atualizados no herói que agiu.
+            # Pilar: Encapsulamento — o estado alterado é o do objeto herói.
             heroi.defesa += 5
 
             # Conta como uma ação.
@@ -1699,6 +1765,8 @@ def batalha(herois=None):
     )
 
     # Todos os combatentes.
+    # Junta as duas equipes numa coleção para aplicar as regras comuns de ATB.
+    # Pilar: Abstração — ambos são tratados como Personagem pelos métodos comuns.
     combatentes = herois + inimigos
 
     # Tempo do sistema de ATB.
@@ -1716,6 +1784,7 @@ def batalha(herois=None):
         # VERIFICAR VITÓRIA
         # ----------------------------------------------------
 
+        # A batalha termina em vitória quando nenhum inimigo continua vivo.
         inimigos_vivos = [
             inimigo
             for inimigo in inimigos
@@ -1756,6 +1825,7 @@ def batalha(herois=None):
         # VERIFICAR DERROTA
         # ----------------------------------------------------
 
+        # A batalha termina em derrota quando não resta herói vivo.
         if not any(
             heroi.estar_vivo()
             for heroi in herois
@@ -1778,6 +1848,8 @@ def batalha(herois=None):
         # CARREGAR ATB
         # ----------------------------------------------------
 
+        # Cada objeto atualiza sua própria ATB usando o comportamento herdado.
+        # Pilar: Herança — Heroi e Inimigo reutilizam carregar_atb de Personagem.
         for personagem in combatentes:
 
             personagem.carregar_atb(
@@ -1797,6 +1869,7 @@ def batalha(herois=None):
         # PROCURAR QUEM ESTÁ PRONTO
         # ----------------------------------------------------
 
+        # Seleciona o primeiro combatente vivo cuja barra chegou ao limite.
         personagem_pronto = next(
 
             (
@@ -1822,6 +1895,7 @@ def batalha(herois=None):
         # TURNO DO HERÓI
         # ====================================================
 
+        # O tipo concreto determina qual fluxo executa o turno.
         if isinstance(
             personagem_pronto,
             Heroi
@@ -1857,6 +1931,7 @@ def batalha(herois=None):
                     f"{personagem_pronto.nome}"
                 )
 
+                # O inimigo escolhe um alvo vivo e executa seu método de ataque.
                 personagem_pronto.atacar(
                     alvo
                 )
@@ -1869,6 +1944,8 @@ def batalha(herois=None):
         # RESET DA ATB
         # ----------------------------------------------------
 
+        # Consome a prontidão do combatente e reinicia seu ciclo de ATB.
+        # Pilar: Herança — ambos usam a operação comum definida em Personagem.
         personagem_pronto.resetar_atb()
 
         # ----------------------------------------------------

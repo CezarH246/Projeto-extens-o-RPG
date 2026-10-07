@@ -37,17 +37,57 @@ ULTIMATE_GUILHERME = ASSETS / "ultimates" / "Guilherme_Ultimate" / "pixellab-O-m
 ULTIMATE_GUILHERME_ATAQUE = ASSETS / "ultimates" / "Guilherme_Ultimate" / "pixellab-The-black-hole-slowly-rotates--1788882096725"
 GUILHERME_ULTIMATE_PRONTA = ASSETS / "personagens" / "Guilherme_Protagonista" / "Ultimate_Pronta" / "guilherme_ultimate_pronta.gif"
 ENTIDADE_COSMICA_GUILHERME = ASSETS / "efeitos" / "Entidade_Cosmica" / "entidade_cosmica.gif"
+ENTIDADE_MAIOR_CEZAR = ASSETS / "efeitos" / "Entidade_maior" / "Idle_custom-The_giant_serpent_remains_in_a_south-east.gif"
 REI_TRITAO_IDLE = ASSETS / "inimigos" / "Rei_Tritao" / "rei_tritao_idle.gif"
 
-ATAQUE_BASICO_CEZAR = ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations" / "Ataque_Basico"
+CEZAR_ANIMACOES = ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations"
+
+ATAQUE_BASICO_CEZAR = CEZAR_ANIMACOES / "Ataque_Basico"
 ATAQUE_BASICO_GUILHERME = ASSETS / "personagens" / "Guilherme_Protagonista" / "Idle" / "animations" / "Ataque_Basico"
 
-DASH_CEZAR = ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations" / "Dash_Combate"
+DASH_CEZAR = CEZAR_ANIMACOES / "Dash_Combate"
+
+# Habilidade especial do Cezar: ele conjura a magia e o projétil sai dela.
+MAGIA_CEZAR = CEZAR_ANIMACOES / "Cezar_Magia"
+PROJETIL_CEZAR_GIF = CEZAR_ANIMACOES / "Cezar_Projetil" / "gif_Projetil_Cezar.gif"
+
+# Segunda habilidade do Cezar.
+ESPECIAL_CEZAR = CEZAR_ANIMACOES / "Cezar_Especial"
+
+# Efeito do Cezar enquanto a Ultimate estiver pronta.
+ULTIMATE_PRONTA_CEZAR = CEZAR_ANIMACOES / "UltimateOn_Cezar"
 
 ANIMACAO_MAGO_HABILIDADE = ASSETS / "efeitos" / "Idle_custom-Animate_the_character_performing_a_magical_firebal_south.gif"
 BOLA_FOGO_MAGO = ASSETS / "efeitos" / "Idle_custom-Create_only_the_fireball_attack_particle_effect._D_south.gif"
 
 ATAQUE_INIMIGO = ASSETS / "inimigos" / "Ataque_inimigo" 
+
+
+# ============================================================
+# TAMANHOS VISUAIS
+# ============================================================
+# Cada arquivo de animação tem uma margem transparente maior ou menor, por isso
+# o tamanho do personagem é medido pelo desenho visível (a margem é descartada)
+# e não pela caixa do arquivo. Assim todos os combatentes ocupam a mesma altura
+# de tela e a "escala" do personagem vira um multiplicador desse tamanho padrão.
+TAMANHO_CORPO_BASE = 125          # altura do corpo de um combatente de escala 1.0
+TAMANHO_ATAQUE = 125              # ataque básico: o mesmo tamanho do corpo
+TAMANHO_DASH = 140                # investida do ladino, levemente maior
+TAMANHO_ULTIMATE = 175            # conjuração da ultimate, maior que o corpo
+TAMANHO_ENTIDADE_COSMICA = 220    # entidade atrás do mago: bem maior que o corpo do herói
+TAMANHO_ENTIDADE_MAIOR = 150      # serpente atrás do Cezar: maior que o corpo, mas discreta
+TAMANHO_PROJETIL = 96             # projétil lançado pela habilidade especial
+TAMANHO_ULTIMATE_CEZAR = (220, 220)      # personagem ampliado da ultimate do Cezar
+TAMANHO_ULTIMATE_CEZAR_EFEITO = (275, 275)  # efeito do golpe da ultimate do Cezar
+
+
+# ============================================================
+# POSIÇÕES NO CAMPO DE BATALHA
+# ============================================================
+# Arena: os heróis ficam à esquerda e os inimigos à direita. O confronto contra o
+# Rei Tritão é uma luta de chefe contra o grupo inteiro, então o boss entra sozinho
+# no meio do campo, entre os dois lados, para ocupar o centro da tela.
+POSICAO_BOSS_CENTRAL = (LARGURA // 2, 330)
 
 
 #CRIAR LISTA DE ATAQUES DE INIMIGOS
@@ -75,10 +115,29 @@ DASHES = {
 }
 
 #CRIAR LISTA DE ATQUES ESPECIAIS
+#Habilidade especial (tecla 2): conjuração + projétil que sai da magia.
+HABILIDADES_ESPECIAIS = {
+    "Cezar": (MAGIA_CEZAR, PROJETIL_CEZAR_GIF),
+}
+
+# Segunda habilidade (tecla 3): animação própria do personagem.
+SEGUNDAS_HABILIDADES = {
+    "Cezar": ESPECIAL_CEZAR,
+}
+
 # LISTA DE ULTIMATES
 ULTIMATES = {
     "Cezar": ULTIMATE_CEZAR,
     "Guilherme": ULTIMATE_GUILHERME,
+}
+
+# Efeito que fica atrás do herói enquanto a Ultimate estiver pronta.
+# Cada entrada define o arquivo, o tamanho base e o deslocamento do centro.
+ENTIDADES_ATRAS = {
+    "Guilherme": (ENTIDADE_COSMICA_GUILHERME, TAMANHO_ENTIDADE_COSMICA, (-48, -18)),
+    # A serpente fica menor e mais acima: o corpo do Cezar cobre só a base
+    # dela, deixando o resto visível atrás/por cima dos ombros dele.
+    "Cezar": (ENTIDADE_MAIOR_CEZAR, TAMANHO_ENTIDADE_MAIOR, (-48, -80)),
 }
 
 # Cada herói pode ter até duas animações de batalha:
@@ -98,7 +157,7 @@ ANIMACOES_HEROIS = {
     ),
     "Cezar": (
         ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations" / "Cezar_Posicao_de_combate" / "east",
-        ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations" / "Cezar_Posicao_de_combate" / "east",
+        ULTIMATE_PRONTA_CEZAR,
     ),
 }
 
@@ -331,8 +390,13 @@ def normalizar_nome(texto: str) -> str:
     return texto
 
 
+def eh_rei_tritao(inimigo) -> bool:
+    """Diz se o inimigo é o Rei Tritão, o boss do confronto especial."""
+    return normalizar_nome(inimigo.nome.split(" Lv.")[0]) == "rei_tritao"
+
+
 def resolver_sprite_inimigo(inimigo) -> Path | None:
-    if normalizar_nome(inimigo.nome.split(" Lv.")[0]) == "rei_tritao":
+    if eh_rei_tritao(inimigo):
         return REI_TRITAO_IDLE
     if inimigo.tipo == "Boss":
         return SPRITES_INIMIGOS["boss"]
@@ -344,6 +408,63 @@ def resolver_sprite_inimigo(inimigo) -> Path | None:
 def tamanho_com_escala(tamanho_base: tuple[int, int], personagem) -> tuple[int, int]:
     escala = max(0.01, float(getattr(personagem, "escala", 1.0)))
     return tuple(max(1, round(dimensao * escala)) for dimensao in tamanho_base)
+
+
+def tamanho_corpo(personagem, tamanho_base: int = TAMANHO_CORPO_BASE) -> tuple[int, int]:
+    """Tamanho do corpo do combatente, já contando a escala individual dele."""
+    return tamanho_com_escala((tamanho_base, tamanho_base), personagem)
+
+
+def mediana(valores: list[int]) -> int:
+    ordenados = sorted(valores)
+    return ordenados[len(ordenados) // 2]
+
+
+def ajustar_quadros_ao_conteudo(quadros: list[pygame.Surface], tamanho: tuple[int, int]) -> list[pygame.Surface]:
+    """Redimensiona os quadros para que o desenho visível ocupe a caixa `tamanho`.
+
+    Cada arquivo de animação tem uma margem transparente maior ou menor, por isso
+    a margem é descartada e a escala vem da altura do desenho visível: assim o
+    personagem fica com o mesmo corpo em todas as animações dele, sem depender da
+    largura da pose. O corte usa a união do conteúdo de todos os quadros, então
+    nenhum frame é cortado e o movimento da animação é preservado.
+    """
+    altura_alvo = tamanho[1]
+    limites = [quadro.get_bounding_rect() for quadro in quadros]
+    visiveis = [limite for limite in limites if limite.width > 0 and limite.height > 0]
+    if not visiveis:
+        return [pygame.transform.smoothscale(quadro, tamanho) for quadro in quadros]
+
+    x0 = min(limite.left for limite in visiveis)
+    y0 = min(limite.top for limite in visiveis)
+    largura = max(limite.right for limite in visiveis) - x0
+    altura = max(limite.bottom for limite in visiveis) - y0
+    escala = altura_alvo / mediana([limite.height for limite in visiveis])
+    destino_tamanho = (max(1, round(largura * escala)), max(1, round(altura * escala)))
+
+    ajustados = []
+    for quadro in quadros:
+        destino = pygame.Surface(destino_tamanho, pygame.SRCALPHA)
+        escalado = pygame.transform.smoothscale(
+            quadro,
+            (max(1, round(quadro.get_width() * escala)), max(1, round(quadro.get_height() * escala))),
+        )
+        recorte = pygame.Rect(round(x0 * escala), round(y0 * escala), *destino_tamanho).clip(escalado.get_rect())
+        if recorte.width > 0 and recorte.height > 0:
+            destino.blit(escalado.subsurface(recorte), (0, 0))
+        ajustados.append(destino)
+    return ajustados
+
+
+def carregar_quadros_gif(caminho: Path) -> list[pygame.Surface]:
+    """Lê todos os quadros de um gif, sem alterar o tamanho."""
+    quadros = []
+    with Image.open(caminho) as gif:
+        for indice in range(getattr(gif, "n_frames", 1)):
+            gif.seek(indice)
+            dados = gif.convert("RGBA").tobytes()
+            quadros.append(pygame.image.fromstring(dados, gif.size, "RGBA").convert_alpha())
+    return quadros
 
 
 class SpriteCombatente:
@@ -375,27 +496,28 @@ class SpriteCombatente:
         return imagem
 
     def _carregar_frames(self, caminho: Path | None) -> list[pygame.Surface]:
-        """Carrega os frames de spritesheet em pasta, de um PNG único ou de um gif."""
+        """Carrega os frames de spritesheet em pasta, de um PNG único ou de um gif.
+
+        O tamanho enviado é o corpo visível do personagem: a margem transparente
+        do arquivo é descartada para que a mesma escala sirva para todas as
+        animações dele."""
         try:
             if caminho is not None and caminho.is_file() and caminho.suffix.lower() == ".gif":
-                frames = []
-                with Image.open(caminho) as gif:
-                    for indice in range(getattr(gif, "n_frames", 1)):
-                        gif.seek(indice)
-                        dados = gif.convert("RGBA").tobytes()
-                        imagem = pygame.image.fromstring(dados, gif.size, "RGBA").convert_alpha()
-                        frames.append(pygame.transform.smoothscale(imagem, self.tamanho))
-                return frames
+                return ajustar_quadros_ao_conteudo(carregar_quadros_gif(caminho), self.tamanho)
 
             if caminho is not None and caminho.is_dir():
                 arquivos = sorted(caminho.glob("frame_*.png"))[:16]
-                return [
-                    pygame.transform.smoothscale(pygame.image.load(arquivo).convert_alpha(), self.tamanho)
-                    for arquivo in arquivos
-                ]
+                quadros = []
+                for arquivo in arquivos:
+                    try:
+                        quadros.append(pygame.image.load(arquivo).convert_alpha())
+                    except pygame.error:
+                        continue
+                return ajustar_quadros_ao_conteudo(quadros, self.tamanho)
 
             if caminho is not None and caminho.is_file():
-                return [pygame.transform.smoothscale(pygame.image.load(caminho).convert_alpha(), self.tamanho)]
+                imagem = pygame.image.load(caminho).convert_alpha()
+                return ajustar_quadros_ao_conteudo([imagem], self.tamanho)
         except (OSError, ValueError, pygame.error):
             pass
         return []
@@ -427,14 +549,21 @@ class SpriteCombatente:
 
     def adicionar_dano_flutuante(self, dano: int) -> None:
         """Adiciona animação de dano flutuante acima do sprite."""
-        self.danos_flutuantes.append(FloatingDamage(self.centro[0], self.centro[1] - 100, dano))
+        self.danos_flutuantes.append(FloatingDamage(self.centro[0], self.centro[1] - self.imagem.get_height() // 2 - 10, dano))
     
     def desenhar_barra_hp(self, tela: pygame.Surface) -> None:
         """Desenha barra de HP, ATB e nome acima do inimigo."""
-        largura_barra = 120
+        # A barra acompanha o tamanho do desenho: inimigos pequenos mantêm a
+        # posição de sempre, enquanto um boss grande tem a barra bem acima dele
+        # (e mais larga, para caber o nome) em vez de sobre o próprio corpo.
+        escala = max(1.0, min(1.5, float(getattr(self.personagem, "escala", 1.0))))
+        largura_barra = int(120 * escala)
         altura_barra = 8
         x_barra = self.centro[0] - largura_barra // 2
-        y_barra = self.centro[1] - 110
+        y_barra = min(
+            self.centro[1] - 110,
+            self.centro[1] - self.imagem.get_height() // 2 - 18,
+        )
         
         # ========== BARRA DE HP ==========
         # Fundo da barra
@@ -494,8 +623,12 @@ class SpriteCombatente:
 class BattleUI:
     """Tela de batalha visual que utiliza objetos Heroi e Inimigo de Combate.py."""
 
+    # Pilar: Encapsulamento — a instância reúne o estado do combate (turno,
+    # alvos e resultado) e os métodos que controlam as regras da batalha.
     def __init__(self, tela: pygame.Surface, herois: list, inimigos: list):
         self.tela = tela
+        # Mantém referências aos modelos do combate; a interface consulta e
+        # solicita alterações a esses objetos em vez de duplicar suas regras.
         self.herois = herois
         self.inimigos = inimigos
         self.fonte_titulo = pygame.font.SysFont("arial", 36, bold=True)
@@ -514,7 +647,7 @@ class BattleUI:
         self.fundo = self.carregar_fundo()
         self.sprites_herois: list[SpriteCombatente] = []
         self.sprites_inimigos: list[SpriteCombatente] = []
-        self.efeito_cosmico_guilherme = None
+        self.entidades_atras: list[SpriteCombatente] = []
         self.criar_sprites()
 
         self.heroi_ativo = None
@@ -544,89 +677,91 @@ class BattleUI:
             return fundo
 
     def carregar_animacao_dash(self, personagem) -> list[pygame.Surface]:
-        frames = []
         caminho = DASHES.get(personagem.nome)
         if caminho is None:
-            return frames
+            return []
 
-        tamanho = tamanho_com_escala((180, 180), personagem)
-        for arquivo in sorted(caminho.glob("frame_*.png")):
-            try:
-                imagem = pygame.image.load(arquivo).convert_alpha()
-                frames.append(pygame.transform.smoothscale(imagem, tamanho))
-            except pygame.error:
-                continue
-        return frames
+        tamanho = tamanho_corpo(personagem, TAMANHO_DASH)
+        return self.carregar_frames_pasta(caminho, tamanho)
 
     def carregar_animacao_ataque(self, personagem) -> list[pygame.Surface]:
-        frames = []
         caminho = ATAQUES_BASICOS.get(personagem.nome)
         if caminho is None:
-            return frames
+            return []
 
-        tamanho = tamanho_com_escala((180, 180), personagem)
-        for arquivo in sorted(caminho.glob("frame_*.png")):
-            try:
-                imagem = pygame.image.load(arquivo).convert_alpha()
-                frames.append(pygame.transform.smoothscale(imagem, tamanho))
-            except pygame.error:
-                continue
-        return frames
+        tamanho = tamanho_corpo(personagem, TAMANHO_ATAQUE)
+        return self.carregar_frames_pasta(caminho, tamanho)
 
-    def carregar_animacao_ataque_inimigo(self, inimigo) -> list[pygame.Surface]:
-        frames = []
-        nome_sem_nivel = inimigo.nome.split(" Lv.")[0]
-        caminho = ATAQUES_INIMIGOS.get(normalizar_nome(nome_sem_nivel))
+    def carregar_animacao_ataque_inimigo(self, personagem) -> list[pygame.Surface]:
+        caminho = ATAQUES_INIMIGOS.get(normalizar_nome(personagem.nome.split(" Lv.")[0]))
         if caminho is None:
-            return frames
+            return []
 
-        tamanho = tamanho_com_escala((250, 250), inimigo)
-        for arquivo in sorted(caminho.glob("frame_*.png")):
-            try:
-                imagem = pygame.image.load(arquivo).convert_alpha()
-                frames.append(pygame.transform.smoothscale(imagem, tamanho))
-            except pygame.error:
-                continue
-        return frames
+        # O efeito de ataque acompanha o tamanho do combatente, mas com um teto:
+        # um boss muito grande não deve gerar um golpe cobrindo a tela inteira.
+        escala_ataque = min(1.35, float(getattr(personagem, "escala", 1.0)))
+        tamanho = (int(250 * escala_ataque), int(250 * escala_ataque))
+        return self.carregar_frames_pasta(caminho, tamanho, ajustar_ao_conteudo=False)
 
     def carregar_animacao_ultimate(self, personagem) -> list[pygame.Surface]:
-        frames = []
         caminho = ULTIMATES.get(personagem.nome)
         if caminho is None:
-            return frames
+            return []
 
-        tamanho = tamanho_com_escala((180, 180), personagem)
-        for arquivo in sorted(caminho.glob("frame_*.png")):
-            try:
-                imagem = pygame.image.load(arquivo).convert_alpha()
-                frames.append(pygame.transform.smoothscale(imagem, tamanho))
-            except pygame.error:
-                continue
-        return frames
+        tamanho = tamanho_corpo(personagem, TAMANHO_ULTIMATE)
+        return self.carregar_frames_pasta(caminho, tamanho)
 
-    def carregar_frames_gif(self, caminho: Path, tamanho: tuple[int, int]) -> list[pygame.Surface]:
-        frames = []
+    def carregar_frames_gif(
+        self,
+        caminho: Path,
+        tamanho: tuple[int, int],
+        ajustar_ao_conteudo: bool = False,
+    ) -> list[pygame.Surface]:
         try:
-            with Image.open(caminho) as gif:
-                for indice in range(getattr(gif, "n_frames", 1)):
-                    gif.seek(indice)
-                    quadro = gif.convert("RGBA")
-                    dados = quadro.tobytes()
-                    imagem = pygame.image.fromstring(dados, quadro.size, "RGBA").convert_alpha()
-                    frames.append(pygame.transform.smoothscale(imagem, tamanho))
+            quadros = carregar_quadros_gif(caminho)
         except (OSError, ValueError, pygame.error):
             return []
-        return frames
+        if ajustar_ao_conteudo:
+            return ajustar_quadros_ao_conteudo(quadros, tamanho)
+        return [pygame.transform.smoothscale(quadro, tamanho) for quadro in quadros]
 
     def carregar_animacao_habilidade_mago(self, personagem) -> tuple[list[pygame.Surface], list[pygame.Surface]]:
-        frames_mago = self.carregar_frames_gif(ANIMACAO_MAGO_HABILIDADE, (120, 120))
+        frames_mago = self.carregar_frames_gif(
+            ANIMACAO_MAGO_HABILIDADE,
+            tamanho_corpo(personagem),
+            ajustar_ao_conteudo=True,
+        )
         frames_bola = self.carregar_frames_gif(BOLA_FOGO_MAGO, (96, 96))
         return frames_mago, frames_bola
 
+    def carregar_animacao_habilidade_especial(self, personagem) -> tuple[list[pygame.Surface], list[pygame.Surface]]:
+        """Habilidade especial (tecla 2): conjuração + projétil de cada herói.
+
+        O Cezar conjura a magia (Cezar_Magia) e o projétil sai dela
+        (Cezar_Projetil). Para os demais, usa a conjuração do Mago."""
+        caminho = HABILIDADES_ESPECIAIS.get(personagem.nome)
+        if caminho is None:
+            return self.carregar_animacao_habilidade_mago(personagem)
+
+        pasta_conjuracao, gif_projetil = caminho
+        frames_conjuracao = self.carregar_frames_pasta(pasta_conjuracao, tamanho_corpo(personagem))
+        frames_projetil = self.carregar_frames_gif(
+            gif_projetil,
+            tamanho_com_escala((TAMANHO_PROJETIL, TAMANHO_PROJETIL), personagem),
+        )
+        return frames_conjuracao, frames_projetil
+
+    def carregar_animacao_segunda_habilidade(self, personagem) -> list[pygame.Surface]:
+        """Segunda habilidade (tecla 3): animação própria do personagem."""
+        caminho = SEGUNDAS_HABILIDADES.get(personagem.nome)
+        if caminho is None:
+            return []
+        return self.carregar_frames_pasta(caminho, tamanho_corpo(personagem, TAMANHO_ATAQUE))
+
     def carregar_animacao_ultimate_mago(self, personagem) -> tuple[list[pygame.Surface], list[pygame.Surface]]:
-        tamanho_mago = tamanho_com_escala((180, 180), personagem)
+        tamanho_mago = tamanho_corpo(personagem, TAMANHO_ULTIMATE)
         frames_mago = self.carregar_frames_pasta(ULTIMATE_GUILHERME, tamanho_mago)
-        frames_buraco_negro = self.carregar_frames_pasta(ULTIMATE_GUILHERME_ATAQUE, (300, 300))
+        frames_buraco_negro = self.carregar_frames_pasta(ULTIMATE_GUILHERME_ATAQUE, (300, 300), ajustar_ao_conteudo=False)
         return frames_mago, frames_buraco_negro
 
     def carregar_animacao_ultimate_cezar(self, personagem) -> list[pygame.Surface]:
@@ -636,8 +771,8 @@ class BattleUI:
         recortados na silhueta e ampliados, enquanto os frames do flash de
         efeito (conteúdo ocupando quase todo o quadro de 400x400) são
         renderizados menores."""
-        tamanho_personagem = tamanho_com_escala((88, 88), personagem)
-        tamanho_efeito = tamanho_com_escala((110, 110), personagem)
+        tamanho_personagem = TAMANHO_ULTIMATE_CEZAR
+        tamanho_efeito = TAMANHO_ULTIMATE_CEZAR_EFEITO
         largura_personagem, altura_personagem = tamanho_personagem
         frames = []
         try:
@@ -685,15 +820,26 @@ class BattleUI:
             frames.extend(self.carregar_frames_gif(caminho, (300, 300)))
         return frames
 
-    def carregar_frames_pasta(self, caminho: Path, tamanho: tuple[int, int]) -> list[pygame.Surface]:
-        frames = []
+    def carregar_frames_pasta(
+        self,
+        caminho: Path,
+        tamanho: tuple[int, int],
+        ajustar_ao_conteudo: bool = True,
+    ) -> list[pygame.Surface]:
+        """Carrega `frame_*.png` de uma pasta, no tamanho pedido.
+
+        Por padrão o desenho visível é que ocupa a caixa `tamanho`; efeitos que
+        devem manter o enquadramento original passam `ajustar_ao_conteudo=False`.
+        """
+        quadros = []
         for arquivo in sorted(caminho.glob("frame_*.png")):
             try:
-                imagem = pygame.image.load(arquivo).convert_alpha()
-                frames.append(pygame.transform.smoothscale(imagem, tamanho))
+                quadros.append(pygame.image.load(arquivo).convert_alpha())
             except pygame.error:
                 continue
-        return frames
+        if ajustar_ao_conteudo:
+            return ajustar_quadros_ao_conteudo(quadros, tamanho)
+        return [pygame.transform.smoothscale(quadro, tamanho) for quadro in quadros]
 
     def criar_sprites(self) -> None:
         posicoes_herois = [(220, 280), (170, 455), (390, 430)]
@@ -701,16 +847,91 @@ class BattleUI:
 
         for indice, heroi in enumerate(self.herois[:3]):
             caminho, caminho_ultimate = ANIMACOES_HEROIS.get(heroi.nome, (None, None))
-            tamanho = tamanho_com_escala((180, 180), heroi)
+            tamanho = tamanho_corpo(heroi)
             sprite = SpriteCombatente(heroi, posicoes_herois[indice], caminho, tamanho, caminho_ultimate)
             self.sprites_herois.append(sprite)
-            if heroi.nome == "Guilherme":
-                self.efeito_cosmico_guilherme = SpriteCombatente(heroi, posicoes_herois[indice], ENTIDADE_COSMICA_GUILHERME, tamanho_com_escala((300, 300), heroi))
+
+            # Efeito que fica atrás do herói (Guilherme/entidade cósmica e
+            # Cezar/serpente) enquanto a Ultimate dele estiver pronta.
+            entidade = ENTIDADES_ATRAS.get(heroi.nome)
+            if entidade is not None:
+                caminho_entidade, tamanho_entidade, deslocamento = entidade
+                self.entidades_atras.append(
+                    SpriteCombatente(
+                        heroi,
+                        (posicoes_herois[indice][0] + deslocamento[0], posicoes_herois[indice][1] + deslocamento[1]),
+                        caminho_entidade,
+                        tamanho_corpo(heroi, tamanho_entidade),
+                    )
+                )
 
         for indice, inimigo in enumerate(self.inimigos[:3]):
             caminho = resolver_sprite_inimigo(inimigo)
-            tamanho = tamanho_com_escala((175, 175), inimigo)
-            self.sprites_inimigos.append(SpriteCombatente(inimigo, posicoes_inimigos[indice], caminho, tamanho))
+            tamanho = tamanho_corpo(inimigo)
+            # O Rei Tritão luta sozinho: em vez da coluna de inimigos, ele
+            # entra no centro do campo, de frente para o grupo de heróis.
+            posicao = POSICAO_BOSS_CENTRAL if eh_rei_tritao(inimigo) else posicoes_inimigos[indice]
+            self.sprites_inimigos.append(SpriteCombatente(inimigo, posicao, caminho, tamanho))
+
+    def iniciar_animacao_acao(
+        self,
+        acao: str,
+        heroi,
+        origem: tuple[int, int] | pygame.Vector2,
+        sprite_heroi: SpriteCombatente | None,
+        sprite_alvo: SpriteCombatente | None,
+    ) -> None:
+        """Cria a animação visual da ação, saindo de `origem` até o alvo.
+
+        Concentra o deslocamento/troca de animação que acontece depois do dash
+        (ou direto, quando o herói não possui dash) para ataque, habilidades
+        especiais, segunda habilidade e ultimate."""
+        if sprite_heroi is None or sprite_alvo is None:
+            return
+
+        if acao == "atacar":
+            frames = self.carregar_animacao_ataque(heroi)
+            if frames:
+                self.animacao_ataque = AnimacaoAtaque(frames, heroi, origem, sprite_alvo.centro)
+            return
+
+        if acao == "habilidade_especial":
+            frames_conjuracao, frames_projetil = self.carregar_animacao_habilidade_especial(heroi)
+            if frames_conjuracao and frames_projetil:
+                self.animacao_habilidade_mago = AnimacaoHabilidadeMago(
+                    frames_conjuracao,
+                    frames_projetil,
+                    heroi,
+                    origem,
+                    sprite_alvo.centro,
+                )
+            return
+
+        if acao == "segunda_habilidade":
+            frames = self.carregar_animacao_segunda_habilidade(heroi)
+            if frames:
+                self.animacao_ataque = AnimacaoAtaque(frames, heroi, origem, sprite_alvo.centro)
+            return
+
+        if acao == "ultimate":
+            if heroi.nome == "Guilherme":
+                frames_mago, frames_buraco_negro = self.carregar_animacao_ultimate_mago(heroi)
+                if frames_mago and frames_buraco_negro:
+                    self.animacao_ultimate = AnimacaoUltimateMago(
+                        frames_mago,
+                        frames_buraco_negro,
+                        heroi,
+                        origem,
+                        sprite_alvo.centro,
+                    )
+            elif heroi.nome == "Cezar":
+                frames = self.carregar_animacao_ultimate_cezar(heroi)
+                if frames:
+                    self.animacao_ultimate = AnimacaoUltimateCezar(frames, heroi, origem, sprite_alvo.centro)
+            else:
+                frames = self.carregar_animacao_ultimate(heroi)
+                if frames:
+                    self.animacao_ultimate = AnimacaoUltimate(frames, heroi, origem, sprite_alvo.centro)
 
     def inimigos_vivos(self) -> list:
         return [inimigo for inimigo in self.inimigos if inimigo.estar_vivo()]
@@ -719,6 +940,8 @@ class BattleUI:
         return [heroi for heroi in self.herois if heroi.estar_vivo()]
 
     def verificar_resultado(self) -> None:
+        # Vitória ocorre quando todos os inimigos foram derrotados. As
+        # recompensas são aplicadas uma única vez para evitar duplicação.
         if not self.inimigos_vivos():
             if not self.recompensas_aplicadas:
                 for inimigo in self.inimigos:
@@ -730,6 +953,7 @@ class BattleUI:
             self.mensagem = "Vitória! Pressione ENTER para retornar ao mapa."
             LOG_BATALHA.append("Vitória! O inimigo do mapa será removido.")
 
+        # Derrota ocorre quando não resta nenhum herói vivo.
         elif not self.herois_vivos():
             self.resultado = False
             self.mensagem = "Derrota. Pressione ENTER para retornar ao mapa."
@@ -752,34 +976,14 @@ class BattleUI:
                         sprite_heroi.centro = (int(posicao_final.x), int(posicao_final.y))
                         self.posicao_final_dash = posicao_final
 
-                    if tipo == "atacar":
-                        frames = self.carregar_animacao_ataque(heroi)
-                        if frames and sprite_heroi and sprite_alvo:
-                            self.animacao_ataque = AnimacaoAtaque(
-                                frames,
-                                heroi,
-                                (int(posicao_final.x), int(posicao_final.y)),
-                                sprite_alvo.centro,
-                            )
-                    elif tipo == "ultimate":
-                        if heroi.nome == "Cezar":
-                            frames = self.carregar_animacao_ultimate_cezar(heroi)
-                            if frames and sprite_heroi and sprite_alvo:
-                                self.animacao_ultimate = AnimacaoUltimateCezar(
-                                    frames,
-                                    heroi,
-                                    (int(posicao_final.x), int(posicao_final.y)),
-                                    sprite_alvo.centro,
-                                )
-                        else:
-                            frames = self.carregar_animacao_ultimate(heroi)
-                            if frames and sprite_heroi and sprite_alvo:
-                                self.animacao_ultimate = AnimacaoUltimate(
-                                    frames,
-                                    heroi,
-                                    (int(posicao_final.x), int(posicao_final.y)),
-                                    sprite_alvo.centro,
-                                )
+                    if posicao_final is not None:
+                        self.iniciar_animacao_acao(
+                            tipo,
+                            heroi,
+                            (int(posicao_final.x), int(posicao_final.y)),
+                            sprite_heroi,
+                            sprite_alvo,
+                        )
                     self.animacao_apos_dash = None
                     self.posicao_final_dash = None
 
@@ -805,7 +1009,11 @@ class BattleUI:
 
         if self.animacao_habilidade_mago is not None:
             if not self.animacao_habilidade_mago.atualizar(tempo_frame):
+                animacao_finalizada = self.animacao_habilidade_mago
                 self.animacao_habilidade_mago = None
+                # O Cezar avança no dash antes de conjurar; ao terminar, ele
+                # volta para a posição inicial do campo de batalha.
+                self.restaurar_posicao_inicial_heroi(animacao_finalizada.personagem)
         
         if self.resultado is not None or self.heroi_ativo is not None:
             return
@@ -822,9 +1030,12 @@ class BattleUI:
         if animacoes_ativas:
             return
 
+        # Cada modelo Personagem avança sua própria ATB; Heroi e Inimigo
+        # compartilham esse comportamento herdado da classe base.
         for combatente in self.herois + self.inimigos:
             combatente.carregar_atb(tempo_frame * 3.0)
 
+        # Escolhe o primeiro combatente vivo que alcançou o limite da barra.
         pronto = next(
             (
                 combatente for combatente in self.herois + self.inimigos
@@ -835,12 +1046,15 @@ class BattleUI:
         if pronto is None:
             return
 
+        # O tipo do modelo define se o turno aguarda comando do jogador ou se
+        # é resolvido automaticamente como turno de inimigo.
         if isinstance(pronto, regras.Heroi):
             self.heroi_ativo = pronto
             self.mensagem = f"Turno de {pronto.nome}. Use as teclas 1 a 6."
             LOG_BATALHA.append(f"Turno de {pronto.nome}.")
             return
 
+        # Inimigos só podem escolher entre heróis que ainda estão vivos.
         alvo = random.choice(self.herois_vivos())
         sprite_inimigo = next((s for s in self.sprites_inimigos if s.personagem is pronto), None)
         sprite_alvo = next((s for s in self.sprites_herois if s.personagem is alvo), None)
@@ -856,7 +1070,9 @@ class BattleUI:
                     centro_efeito,
                 )
 
+        # Delega o ataque ao modelo do inimigo, que aplica as regras de dano.
         pronto.atacar(alvo)
+        # Reinicia a ATB após a ação para começar o próximo ciclo do combatente.
         pronto.resetar_atb()
         self.mensagem = f"{pronto.nome} atacou {alvo.nome}."
 
@@ -867,9 +1083,12 @@ class BattleUI:
         self.verificar_resultado()
 
     def escolher_acao(self, numero: int) -> None:
+        # Sem um herói no turno, uma tecla não pode iniciar uma ação de combate.
         if self.heroi_ativo is None:
             return
 
+        # Traduz a tecla em uma operação do modelo; os custos e efeitos
+        # continuam sendo validados pelos métodos do herói.
         acoes = {
             1: ("Ataque normal", "atacar"),
             2: ("Habilidade especial", "habilidade_especial"),
@@ -891,21 +1110,29 @@ class BattleUI:
         self.mensagem = f"{nome}: use ESQUERDA/DIREITA para o alvo e ENTER para confirmar."
 
     def executar_acao(self, acao: str) -> None:
+        # Somente o herói cujo ATB liberou o turno pode executar a ação.
         if self.heroi_ativo is None:
             return
 
         executou = False
         if acao == "defender":
+            # Defender altera atributos e contador pertencentes a este herói.
+            # Pilar: Encapsulamento — o estado do personagem fica no objeto.
             self.heroi_ativo.defesa += 5
             self.heroi_ativo.acoes_realizadas += 1
             LOG_BATALHA.append(f"{self.heroi_ativo.nome} se prepara para defender (+5 DEF).")
             executou = True
         elif acao == "usar_pocao_pa":
+            # A regra de estoque e recuperação é delegada ao método do herói.
             executou = self.heroi_ativo.usar_pocao_pa()
         else:
+            # Ataques precisam de um alvo vivo; o modelo recebe a ação e aplica
+            # a implementação correspondente ao método solicitado.
             vivos = self.inimigos_vivos()
             if vivos:
                 alvo = vivos[self.indice_alvo % len(vivos)]
+                # Pilar: Polimorfismo — a ação é enviada ao objeto Heroi ativo
+                # pelo nome do método, que executa seu comportamento específico.
                 executou = getattr(self.heroi_ativo, acao)(alvo)
                 
                 # Mostra dano flutuante após ataque
@@ -918,7 +1145,11 @@ class BattleUI:
                     sprite_heroi = next((s for s in self.sprites_herois if s.personagem is self.heroi_ativo), None)
                     sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
 
-                    dash_frames = self.carregar_animacao_dash(self.heroi_ativo)
+                    # A habilidade especial do Cezar é conjurada parado no
+                    # lugar (sem dash): ele saca a pistola na magia e o projétil
+                    # sai dela. Os demais ataques continuam usando o dash.
+                    usar_dash = acao != "habilidade_especial"
+                    dash_frames = self.carregar_animacao_dash(self.heroi_ativo) if usar_dash else []
                     if dash_frames and sprite_heroi and sprite_alvo:
                         origem_dash = pygame.Vector2(sprite_heroi.centro)
                         alvo_dash = pygame.Vector2(sprite_alvo.centro)
@@ -936,68 +1167,32 @@ class BattleUI:
                             velocidade_animacao=0.04,
                         )
                         self.animacao_apos_dash = (acao, self.heroi_ativo, alvo, alvo_dash.copy())
-                    elif acao == "atacar":
-                        frames = self.carregar_animacao_ataque(self.heroi_ativo)
-                        if frames and sprite_heroi and sprite_alvo:
-                            self.animacao_ataque = AnimacaoAtaque(
-                                frames,
-                                self.heroi_ativo,
-                                sprite_heroi.centro,
-                                sprite_alvo.centro,
-                            )
-                    elif acao == "ultimate":
-                        if self.heroi_ativo.nome == "Guilherme":
-                            frames_mago, frames_buraco_negro = self.carregar_animacao_ultimate_mago(self.heroi_ativo)
-                            if frames_mago and frames_buraco_negro and sprite_heroi and sprite_alvo:
-                                self.animacao_ultimate = AnimacaoUltimateMago(
-                                    frames_mago,
-                                    frames_buraco_negro,
-                                    self.heroi_ativo,
-                                    sprite_heroi.centro,
-                                    sprite_alvo.centro,
-                                )
-                        elif self.heroi_ativo.nome == "Cezar":
-                            frames = self.carregar_animacao_ultimate_cezar(self.heroi_ativo)
-                            if frames and sprite_heroi and sprite_alvo:
-                                self.animacao_ultimate = AnimacaoUltimateCezar(
-                                    frames,
-                                    self.heroi_ativo,
-                                    sprite_heroi.centro,
-                                    sprite_alvo.centro,
-                                )
-                        else:
-                            frames = self.carregar_animacao_ultimate(self.heroi_ativo)
-                            if frames and sprite_heroi and sprite_alvo:
-                                self.animacao_ultimate = AnimacaoUltimate(
-                                    frames,
-                                    self.heroi_ativo,
-                                    sprite_heroi.centro,
-                                    sprite_alvo.centro,
-                                )
-                    elif acao == "habilidade_especial" and self.heroi_ativo.ClasseRPG == "Mago":
-                        frames_mago, frames_bola = self.carregar_animacao_habilidade_mago(self.heroi_ativo)
-                        if frames_mago and frames_bola and sprite_heroi and sprite_alvo:
-                            self.animacao_habilidade_mago = AnimacaoHabilidadeMago(
-                                frames_mago,
-                                frames_bola,
-                                self.heroi_ativo,
-                                sprite_heroi.centro,
-                                sprite_alvo.centro,
-                            )
+                    else:
+                        self.iniciar_animacao_acao(
+                            acao,
+                            self.heroi_ativo,
+                            sprite_heroi.centro,
+                            sprite_heroi,
+                            sprite_alvo,
+                        )
 
         if not executou:
+            # Uma ação recusada pelo modelo não consome o turno; o jogador pode
+            # escolher outra sem perder a barra ATB.
             self.acao_pendente = None
             self.mensagem = "Ação indisponível. Escolha outra opção."
             return
 
         self.verificar_resultado()
         if self.resultado is None:
+            # A ação válida consome o turno e reinicia a ATB desse herói.
             self.heroi_ativo.resetar_atb()
             self.heroi_ativo = None
             self.acao_pendente = None
             self.mensagem = "Aguardando a próxima barra ATB ficar cheia."
 
     def processar_evento(self, evento: pygame.event.Event) -> None:
+        # Apenas teclas pressionadas participam do menu de ações por turno.
         if evento.type != pygame.KEYDOWN:
             return
 
@@ -1010,6 +1205,8 @@ class BattleUI:
             return
 
         if self.acao_pendente is not None:
+            # A troca de alvo percorre somente inimigos vivos; ENTER confirma
+            # e ESC cancela sem executar a ação.
             total = len(self.inimigos_vivos())
             if total == 0:
                 return
@@ -1091,10 +1288,12 @@ class BattleUI:
             )
         }
 
-        # A entidade cósmica fica atrás do mago enquanto a Ultimate estiver pronta.
-        if self.efeito_cosmico_guilherme is not None and regras.ultimate_disponivel(self.efeito_cosmico_guilherme.personagem):
-            if self.efeito_cosmico_guilherme.personagem not in personagens_em_animacao:
-                self.efeito_cosmico_guilherme.desenhar(self.tela)
+        # As entidades (cósmica do mago e serpente do Cezar) ficam atrás dos
+        # heróis enquanto a Ultimate do dono estiver pronta.
+        for entidade in self.entidades_atras:
+            if regras.ultimate_disponivel(entidade.personagem):
+                if entidade.personagem not in personagens_em_animacao:
+                    entidade.desenhar(self.tela)
 
         for sprite in self.sprites_herois:
             if sprite.personagem not in personagens_em_animacao:

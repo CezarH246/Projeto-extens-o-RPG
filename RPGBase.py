@@ -979,13 +979,15 @@ def exibir_barra_atb(combatentes):
 # ESCALAS DOS COMBATENTES
 # ============================================================
 # Centraliza a escala visual de cada combatente em um único lugar.
+# O valor multiplica o tamanho padrão do corpo (125 px em batalha_ui.py).
+# 1.0 = tamanho padrão da maioria dos combatentes.
 # Ajuste os valores aqui para mudar o tamanho do sprite sem alterar
 # a lógica de criação dos personagens.
 
 ESCALAS = {
     "Lucas": 1.5,
-    "Guilherme": 0.95,
-    "Cezar": 1.1,
+    "Guilherme": 1.0,
+    "Cezar": 1.0,
 }
 
 
