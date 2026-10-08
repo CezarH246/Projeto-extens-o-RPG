@@ -37,7 +37,7 @@ ULTIMATE_GUILHERME = ASSETS / "ultimates" / "Guilherme_Ultimate" / "pixellab-O-m
 ULTIMATE_GUILHERME_ATAQUE = ASSETS / "ultimates" / "Guilherme_Ultimate" / "pixellab-The-black-hole-slowly-rotates--1788882096725"
 GUILHERME_ULTIMATE_PRONTA = ASSETS / "personagens" / "Guilherme_Protagonista" / "Ultimate_Pronta" / "guilherme_ultimate_pronta.gif"
 ENTIDADE_COSMICA_GUILHERME = ASSETS / "efeitos" / "Entidade_Cosmica" / "entidade_cosmica.gif"
-ENTIDADE_MAIOR_CEZAR = ASSETS / "efeitos" / "Entidade_maior" / "Idle_custom-The_giant_serpent_remains_in_a_south-east.gif"
+ENTIDADE_MAIOR_CEZAR = ASSETS / "efeitos" / "Entidade_maior" / "Idle_custom-The_serpent_goddess_remains_in_south-east (1).gif"
 REI_TRITAO_IDLE = ASSETS / "inimigos" / "Rei_Tritao" / "rei_tritao_idle.gif"
 
 CEZAR_ANIMACOES = ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations"
