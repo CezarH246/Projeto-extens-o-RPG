@@ -48,7 +48,7 @@ import time
 # 1.0 = tamanho padrão da maioria dos combatentes, acima disso o personagem
 # aparece maior na tela.
 ESCALAS = {
-    "Lucas": 1.5,
+    "Lucas": 1.1,
     "Guilherme": 1.0,
     "Cezar": 1.0,
 }

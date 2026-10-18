@@ -38,6 +38,9 @@ ULTIMATE_GUILHERME_ATAQUE = ASSETS / "ultimates" / "Guilherme_Ultimate" / "pixel
 GUILHERME_ULTIMATE_PRONTA = ASSETS / "personagens" / "Guilherme_Protagonista" / "Ultimate_Pronta" / "guilherme_ultimate_pronta.gif"
 ENTIDADE_COSMICA_GUILHERME = ASSETS / "efeitos" / "Entidade_Cosmica" / "entidade_cosmica.gif"
 ENTIDADE_MAIOR_CEZAR = ASSETS / "efeitos" / "Entidade_maior" / "Idle_custom-The_serpent_goddess_remains_in_south-east (1).gif"
+# Entidade maior atrás do Lucas: o Rei Antigo Caído, na MESMA escala da
+# serpente do Cezar (mesmo arquivo de tamanho base e mesmo deslocamento).
+ENTIDADE_MAIOR_LUCAS = ASSETS / "efeitos" / "Entidade_maior" / "Idle_custom-The_ancient_Fallen_King_of_Ete_south-east.gif"
 REI_TRITAO_IDLE = ASSETS / "inimigos" / "Rei_Tritao" / "rei_tritao_idle.gif"
 
 CEZAR_ANIMACOES = ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "animations"
@@ -55,10 +58,35 @@ PROJETIL_CEZAR_GIF = CEZAR_ANIMACOES / "Cezar_Projetil" / "gif_Projetil_Cezar.gi
 ESPECIAL_CEZAR = CEZAR_ANIMACOES / "Cezar_Especial"
 
 # Efeito do Cezar enquanto a Ultimate estiver pronta.
-ULTIMATE_PRONTA_CEZAR = CEZAR_ANIMACOES / "UltimateOn_Cezar"
+ULTIMATE_PRONTA_CEZAR = CEZAR_ANIMACOES / "UltimateOn_Cezar" / "Idle_custom-The_rogue_remains_in_his_origi_east.gif"
+
+# Assets do Lucas (todos em gif).
+LUCAS_PASTA = ASSETS / "personagens" / "Lucas_Protagonista"
+ATAQUE_BASICO_LUCAS = LUCAS_PASTA / "ataque-basico" / "pixellab-Sim--Para-a-Skill-1--eu-deixar-1791222561909.gif"
+CORRIDA_LUCAS = LUCAS_PASTA / "corrida" / "pixellab-Create-a-powerful-and-aggressi-1792291730927.gif"
+# Especial: o rugido anima o Lucas; o efeito separado percorre o caminho até o inimigo.
+ESPECIAL_LUCAS = LUCAS_PASTA / "especial" / "pixellab-Spirit-Bear-Roar--Keep-the-exa-1791222794389.gif"
+EFEITO_ESPECIAL_LUCAS = LUCAS_PASTA / "especial" / "efeito-especial" / "pixellab-Create-ONLY-the-visual-effects-1791224098878.gif"
+# Skill: dash de fogo até perto do inimigo.
+SKILL_LUCAS = LUCAS_PASTA / "skill" / "pixellab-Skill-1---Flaming-Berserker-Ch-1791222772863.gif"
+# Ultimate: igual ao especial, mas sem projétil — o efeito aparece no inimigo
+# já no começo da animação.
+ULTIMATE_LUCAS = LUCAS_PASTA / "ultimate" / "pixellab-Sim---o-problema---que-o-promp-1791224532715.gif"
+EFEITO_ULTIMATE_LUCAS = LUCAS_PASTA / "ultimate" / "efeito-ultimate" / "pixellab-Pixel-art-ice-impact-effect-on-1791224973868.gif"
 
 ANIMACAO_MAGO_HABILIDADE = ASSETS / "efeitos" / "Idle_custom-Animate_the_character_performing_a_magical_firebal_south.gif"
 BOLA_FOGO_MAGO = ASSETS / "efeitos" / "Idle_custom-Create_only_the_fireball_attack_particle_effect._D_south.gif"
+
+# Especial do Guilherme em quatro estágios, nessa ordem:
+#   1. o mago toca a animação dele (Idle_custom-The_character...), parado;
+#   2. a magia se forma na posição dele (pixellab-fa-a-a-magia);
+#   3. a bola de fogo viaja até o inimigo (pixellab-bola-de-fogo-pulsa);
+#   4. o impacto aparece dentro do inimigo (pixellab-the-dark--fiery).
+GUILHERME_ESPECIAL_PASTA = ASSETS / "personagens" / "Guilherme_Protagonista" / "especial"
+ANIMACAO_GUILHERME_ESPECIAL = GUILHERME_ESPECIAL_PASTA / "Idle_custom-The_character_performs_a_dark_south-east (1).gif"
+MAGIA_GUILHERME = GUILHERME_ESPECIAL_PASTA / "efeito_especial" / "pixellab-Fa-a-a-magia-do-mago-aumentar-1788878475120 (1).gif"
+BOLA_GUILHERME = GUILHERME_ESPECIAL_PASTA / "efeito_especial" / "pixellab-Bola-de-fogo-pulsando-de-energ-1788878970060 (1).gif"
+EFEITO_GUILHERME = GUILHERME_ESPECIAL_PASTA / "efeito_especial" / "pixellab-The-dark--fiery-sphere-streaks-1788879210316 (1).gif"
 
 ATAQUE_INIMIGO = ASSETS / "inimigos" / "Ataque_inimigo" 
 
@@ -79,6 +107,13 @@ TAMANHO_ENTIDADE_MAIOR = 150      # serpente atrás do Cezar: maior que o corpo,
 TAMANHO_PROJETIL = 96             # projétil lançado pela habilidade especial
 TAMANHO_ULTIMATE_CEZAR = (220, 220)      # personagem ampliado da ultimate do Cezar
 TAMANHO_ULTIMATE_CEZAR_EFEITO = (275, 275)  # efeito do golpe da ultimate do Cezar
+TAMANHO_ANIMACAO_PERSONAGEM = TAMANHO_ULTIMATE_CEZAR
+# Padrão de projéteis/efeitos de especial e ultimate: o mesmo tamanho do
+# corpo do INIMIGO ALVO (tamanho_corpo do alvo), nunca um tamanho fixo.
+# Bola de fogo do especial do Guilherme: menor que o inimigo (uma fração
+# do corpo do alvo) e nasce um pouco à frente do mago, não grudada nele.
+PROPORCAO_BOLA_FOGO = 0.40            # fração do tamanho do inimigo
+DISTANCIA_NASCIMENTO_BOLA = 80        # px à frente do mago onde a bola surge
 
 
 # ============================================================
@@ -107,11 +142,13 @@ ATAQUES_INIMIGOS = {
 ATAQUES_BASICOS = {
     "Cezar": ATAQUE_BASICO_CEZAR, 
     "Guilherme": ATAQUE_BASICO_GUILHERME,
+    "Lucas": ATAQUE_BASICO_LUCAS,
 }
 
 #CRIAR LISTA DE DASH
 DASHES = {
     "Cezar": DASH_CEZAR,
+    "Lucas": CORRIDA_LUCAS,
 }
 
 #CRIAR LISTA DE ATQUES ESPECIAIS
@@ -121,6 +158,8 @@ HABILIDADES_ESPECIAIS = {
 }
 
 # Segunda habilidade (tecla 3): animação própria do personagem.
+# O Lucas não entra aqui: a tecla 2 dele abre a skill1 (dash) e a tecla 3
+# abre o especial do rugido, tratadas direto em iniciar_animacao_acao.
 SEGUNDAS_HABILIDADES = {
     "Cezar": ESPECIAL_CEZAR,
 }
@@ -138,6 +177,9 @@ ENTIDADES_ATRAS = {
     # A serpente fica menor e mais acima: o corpo do Cezar cobre só a base
     # dela, deixando o resto visível atrás/por cima dos ombros dele.
     "Cezar": (ENTIDADE_MAIOR_CEZAR, TAMANHO_ENTIDADE_MAIOR, (-48, -80)),
+    # O Rei Antigo Caído do Lucas usa exatamente o mesmo tamanho base e o
+    # mesmo deslocamento da serpente do Cezar: mesma escala, não grudado.
+    "Lucas": (ENTIDADE_MAIOR_LUCAS, TAMANHO_ENTIDADE_MAIOR, (-48, -80)),
 }
 
 # Cada herói pode ter até duas animações de batalha:
@@ -149,7 +191,7 @@ ENTIDADES_ATRAS = {
 ANIMACOES_HEROIS = {
     "Lucas": (
         ASSETS / "personagens" / "Lucas_Protagonista" / "standard-animation.gif",
-        ASSETS / "personagens" / "Lucas_Protagonista" / "ultimate-pronta.gif",
+        ASSETS / "personagens" / "Lucas_Protagonista" / "Idle_custom-Idle_animation._Keep_the_same_south-east.gif",
     ),
     "Guilherme": (
         ASSETS / "personagens" / "Guilherme_Protagonista" / "Idle" / "animations" / "Guilherme_Batalha" / "south-east",
@@ -371,6 +413,138 @@ class AnimacaoUltimateCezar:
         tela.blit(imagem, imagem.get_rect(center=(round(centro.x), round(centro.y))))
 
 
+class AnimacaoEspecialLucas(AnimacaoHabilidadeMago):
+    """Toca o rugido no Lucas enquanto o efeito separado viaja até o inimigo."""
+
+    def atualizar(self, tempo_frame: float) -> bool:
+        self.tempo += tempo_frame
+        while self.tempo >= self.velocidade_animacao:
+            self.tempo -= self.velocidade_animacao
+            self.indice += 1
+        return self.indice < max(len(self.frames_mago), len(self.frames_bola))
+
+    def desenhar(self, tela: pygame.Surface) -> None:
+        if self.indice < len(self.frames_mago):
+            personagem = self.frames_mago[self.indice]
+            tela.blit(
+                personagem,
+                personagem.get_rect(center=(round(self.origem.x), round(self.origem.y))),
+            )
+
+        if self.indice < len(self.frames_bola):
+            progresso = self.indice / max(1, len(self.frames_bola) - 1)
+            projetil = self.frames_bola[self.indice]
+            centro = self.origem.lerp(self.alvo, progresso)
+            tela.blit(projetil, projetil.get_rect(center=(round(centro.x), round(centro.y))))
+
+
+class AnimacaoEspecialSequencial(AnimacaoHabilidadeMago):
+    """Especial em sequência (especial do Guilherme), quatro estágios:
+
+    1. O mago toca a animação dele, parado no lugar;
+    2. só depois de terminar, a magia se forma na posição dele;
+    3. em seguida a bola de fogo viaja da origem até o alvo;
+    4. por fim o efeito de impacto aparece centrado dentro do inimigo."""
+
+    def __init__(self, frames_mago, frames_formacao, frames_bola, frames_efeito, personagem, origem, alvo):
+        super().__init__(frames_mago, frames_bola, personagem, origem, alvo)
+        self.frames_formacao = frames_formacao
+        self.frames_efeito = frames_efeito
+
+    @property
+    def duracao_formacao(self) -> int:
+        return len(self.frames_formacao)
+
+    @property
+    def duracao_efeito(self) -> int:
+        return len(self.frames_efeito)
+
+    @property
+    def duracao_total(self) -> int:
+        return (
+            self.duracao_mago
+            + self.duracao_formacao
+            + len(self.frames_bola)
+            + self.duracao_efeito
+        )
+
+    def atualizar(self, tempo_frame: float) -> bool:
+        self.tempo += tempo_frame
+        while self.tempo >= self.velocidade_animacao:
+            self.tempo -= self.velocidade_animacao
+            self.indice += 1
+        return self.indice < self.duracao_total
+
+    def _origem_bola(self) -> pygame.Vector2:
+        # A bola nasce um pouco à frente do mago (no sentido do inimigo).
+        vetor = self.alvo - self.origem
+        if vetor.length_squared() > 0:
+            return self.origem + vetor.normalize() * DISTANCIA_NASCIMENTO_BOLA
+        return self.origem.copy()
+
+    def desenhar(self, tela: pygame.Surface) -> None:
+        indice = self.indice
+        if indice < self.duracao_mago:
+            # Estágio 1: animação do mago, com ele parado na posição dele.
+            imagem = self.frames_mago[min(indice, len(self.frames_mago) - 1)]
+            tela.blit(imagem, imagem.get_rect(center=(round(self.origem.x), round(self.origem.y))))
+        elif indice < self.duracao_mago + self.duracao_formacao:
+            # Estágio 2: a magia se forma na posição do mago.
+            indice_formacao = indice - self.duracao_mago
+            imagem = self.frames_formacao[min(indice_formacao, self.duracao_formacao - 1)]
+            tela.blit(imagem, imagem.get_rect(center=(round(self.origem.x), round(self.origem.y))))
+        elif indice < self.duracao_mago + self.duracao_formacao + len(self.frames_bola):
+            # Estágio 3: a bola de fogo viaja da origem um pouco à frente até o inimigo.
+            indice_bola = indice - self.duracao_mago - self.duracao_formacao
+            progresso = indice_bola / max(1, len(self.frames_bola) - 1)
+            bola = self.frames_bola[min(indice_bola, len(self.frames_bola) - 1)]
+            origem_bola = self._origem_bola()
+            centro = origem_bola.lerp(self.alvo, progresso)
+            tela.blit(bola, bola.get_rect(center=(round(centro.x), round(centro.y))))
+        elif self.frames_efeito:
+            # Estágio 4: efeito de impacto dentro do inimigo.
+            indice_efeito = min(
+                indice - self.duracao_mago - self.duracao_formacao - len(self.frames_bola),
+                self.duracao_efeito - 1,
+            )
+            efeito = self.frames_efeito[indice_efeito]
+            tela.blit(efeito, efeito.get_rect(center=(round(self.alvo.x), round(self.alvo.y))))
+
+
+class AnimacaoUltimateComEfeito:
+    """Ultimate do Lucas: mostra o impacto no alvo quando o martelo atinge o chão."""
+
+    frame_impacto_martelo = 38
+
+    def __init__(self, frames, frames_efeito, personagem, origem, alvo, velocidade_animacao: float = 0.06):
+        self.frames = frames
+        self.frames_efeito = frames_efeito
+        self.personagem = personagem
+        self.origem = pygame.Vector2(origem)
+        self.alvo = pygame.Vector2(alvo)
+        self.velocidade_animacao = velocidade_animacao
+        self.indice = 0
+        self.tempo = 0.0
+
+    def atualizar(self, tempo_frame: float) -> bool:
+        self.tempo += tempo_frame
+        while self.tempo >= self.velocidade_animacao:
+            self.tempo -= self.velocidade_animacao
+            self.indice += 1
+        return self.indice < max(len(self.frames), self.frame_impacto_martelo + len(self.frames_efeito))
+
+    def desenhar(self, tela: pygame.Surface) -> None:
+        if self.frames_efeito and self.indice >= self.frame_impacto_martelo:
+            indice_efeito = min(
+                self.indice - self.frame_impacto_martelo,
+                len(self.frames_efeito) - 1,
+            )
+            efeito = self.frames_efeito[indice_efeito]
+            tela.blit(efeito, efeito.get_rect(center=(round(self.alvo.x), round(self.alvo.y))))
+        imagem = self.frames[min(self.indice, len(self.frames) - 1)]
+        tela.blit(imagem, imagem.get_rect(center=(round(self.origem.x), round(self.origem.y))))
+
+
 def registrar_evento(*args, sep=" ", **_kwargs) -> None:
     """Recebe as mensagens produzidas pelas regras e as mostra na tela."""
     texto = sep.join(str(item) for item in args).strip()
@@ -415,19 +589,35 @@ def tamanho_corpo(personagem, tamanho_base: int = TAMANHO_CORPO_BASE) -> tuple[i
     return tamanho_com_escala((tamanho_base, tamanho_base), personagem)
 
 
+def tamanho_efeito_com_escala_alvo(
+    tamanho_base: tuple[int, int],
+    tamanho_alvo: tuple[int, int],
+) -> tuple[int, int]:
+    escala_alvo = min(
+        tamanho_alvo[0] / TAMANHO_CORPO_BASE,
+        tamanho_alvo[1] / TAMANHO_CORPO_BASE,
+    )
+    return tuple(max(1, round(dimensao * escala_alvo)) for dimensao in tamanho_base)
+
+
 def mediana(valores: list[int]) -> int:
     ordenados = sorted(valores)
     return ordenados[len(ordenados) // 2]
 
 
-def ajustar_quadros_ao_conteudo(quadros: list[pygame.Surface], tamanho: tuple[int, int]) -> list[pygame.Surface]:
+def ajustar_quadros_ao_conteudo(
+    quadros: list[pygame.Surface],
+    tamanho: tuple[int, int],
+    limitar_ao_tamanho: bool = False,
+) -> list[pygame.Surface]:
     """Redimensiona os quadros para que o desenho visível ocupe a caixa `tamanho`.
 
     Cada arquivo de animação tem uma margem transparente maior ou menor, por isso
     a margem é descartada e a escala vem da altura do desenho visível: assim o
     personagem fica com o mesmo corpo em todas as animações dele, sem depender da
     largura da pose. O corte usa a união do conteúdo de todos os quadros, então
-    nenhum frame é cortado e o movimento da animação é preservado.
+    nenhum frame é cortado e o movimento da animação é preservado. Quando
+    `limitar_ao_tamanho` está ativo, essa união também fica contida na caixa pedida.
     """
     altura_alvo = tamanho[1]
     limites = [quadro.get_bounding_rect() for quadro in quadros]
@@ -440,6 +630,8 @@ def ajustar_quadros_ao_conteudo(quadros: list[pygame.Surface], tamanho: tuple[in
     largura = max(limite.right for limite in visiveis) - x0
     altura = max(limite.bottom for limite in visiveis) - y0
     escala = altura_alvo / mediana([limite.height for limite in visiveis])
+    if limitar_ao_tamanho:
+        escala = min(escala, tamanho[0] / largura, tamanho[1] / altura)
     destino_tamanho = (max(1, round(largura * escala)), max(1, round(altura * escala)))
 
     ajustados = []
@@ -681,8 +873,19 @@ class BattleUI:
         if caminho is None:
             return []
 
-        tamanho = tamanho_corpo(personagem, TAMANHO_DASH)
-        return self.carregar_frames_pasta(caminho, tamanho)
+        tamanho = tamanho_com_escala(TAMANHO_ANIMACAO_PERSONAGEM, personagem)
+        if personagem.nome == "Lucas":
+            frames = self.carregar_frames_gif(
+                caminho,
+                tamanho,
+                ajustar_ao_conteudo=False,
+            )
+            return frames[::3]
+        return self.carregar_frames_pasta(
+            caminho,
+            tamanho,
+            limitar_ao_tamanho=True,
+        )
 
     def carregar_animacao_ataque(self, personagem) -> list[pygame.Surface]:
         caminho = ATAQUES_BASICOS.get(personagem.nome)
@@ -690,7 +893,22 @@ class BattleUI:
             return []
 
         tamanho = tamanho_corpo(personagem, TAMANHO_ATAQUE)
-        return self.carregar_frames_pasta(caminho, tamanho)
+        if personagem.nome == "Lucas":
+            return self.carregar_frames_gif(caminho, tamanho, ajustar_ao_conteudo=False)
+        if personagem.nome in {"Cezar", "Guilherme"}:
+            if caminho.is_file() and caminho.suffix.lower() == ".gif":
+                return self.carregar_frames_gif(
+                    caminho,
+                    tamanho,
+                    ajustar_ao_conteudo=True,
+                    limitar_ao_tamanho=True,
+                )
+            return self.carregar_frames_pasta(
+                caminho,
+                tamanho,
+                limitar_ao_tamanho=True,
+            )
+        return self.carregar_animacao_arquivo(caminho, tamanho)
 
     def carregar_animacao_ataque_inimigo(self, personagem) -> list[pygame.Surface]:
         caminho = ATAQUES_INIMIGOS.get(normalizar_nome(personagem.nome.split(" Lv.")[0]))
@@ -716,14 +934,21 @@ class BattleUI:
         caminho: Path,
         tamanho: tuple[int, int],
         ajustar_ao_conteudo: bool = False,
+        limitar_ao_tamanho: bool = False,
     ) -> list[pygame.Surface]:
         try:
             quadros = carregar_quadros_gif(caminho)
         except (OSError, ValueError, pygame.error):
             return []
         if ajustar_ao_conteudo:
-            return ajustar_quadros_ao_conteudo(quadros, tamanho)
+            return ajustar_quadros_ao_conteudo(quadros, tamanho, limitar_ao_tamanho)
         return [pygame.transform.smoothscale(quadro, tamanho) for quadro in quadros]
+
+    def carregar_animacao_arquivo(self, caminho: Path, tamanho: tuple[int, int]) -> list[pygame.Surface]:
+        """Carrega uma animação que pode ser uma pasta de frames PNG ou um gif."""
+        if caminho.is_file() and caminho.suffix.lower() == ".gif":
+            return self.carregar_frames_gif(caminho, tamanho, ajustar_ao_conteudo=True)
+        return self.carregar_frames_pasta(caminho, tamanho)
 
     def carregar_animacao_habilidade_mago(self, personagem) -> tuple[list[pygame.Surface], list[pygame.Surface]]:
         frames_mago = self.carregar_frames_gif(
@@ -756,7 +981,7 @@ class BattleUI:
         caminho = SEGUNDAS_HABILIDADES.get(personagem.nome)
         if caminho is None:
             return []
-        return self.carregar_frames_pasta(caminho, tamanho_corpo(personagem, TAMANHO_ATAQUE))
+        return self.carregar_animacao_arquivo(caminho, tamanho_corpo(personagem, TAMANHO_ATAQUE))
 
     def carregar_animacao_ultimate_mago(self, personagem) -> tuple[list[pygame.Surface], list[pygame.Surface]]:
         tamanho_mago = tamanho_corpo(personagem, TAMANHO_ULTIMATE)
@@ -820,11 +1045,85 @@ class BattleUI:
             frames.extend(self.carregar_frames_gif(caminho, (300, 300)))
         return frames
 
+    def carregar_animacao_especial_lucas(
+        self,
+        personagem,
+        tamanho_alvo: tuple[int, int],
+    ) -> tuple[list[pygame.Surface], list[pygame.Surface]]:
+        """Carrega o rugido do Lucas e o efeito de projétil em escalas distintas."""
+        frames_rugido = self.carregar_frames_gif(
+            ESPECIAL_LUCAS,
+            tamanho_com_escala(TAMANHO_ANIMACAO_PERSONAGEM, personagem),
+            ajustar_ao_conteudo=False,
+        )
+        frames_projetil = self.carregar_frames_gif(
+            EFEITO_ESPECIAL_LUCAS,
+            tamanho_efeito_com_escala_alvo(
+                TAMANHO_ULTIMATE_CEZAR_EFEITO,
+                tamanho_alvo,
+            ),
+            ajustar_ao_conteudo=False,
+        )
+        return frames_rugido, frames_projetil
+
+    def carregar_animacao_ultimate_lucas(self, personagem, tamanho_alvo: tuple[int, int]) -> tuple[list, list]:
+        """Ultimate do Lucas: mesma animação do especial, mas sem projétil.
+        O efeito aparece no inimigo desde o começo da animação, no tamanho
+        do próprio inimigo (padrão dos efeitos)."""
+        frames_ultimate = self.carregar_frames_gif(
+            ULTIMATE_LUCAS,
+            tamanho_com_escala(TAMANHO_ANIMACAO_PERSONAGEM, personagem),
+            ajustar_ao_conteudo=True,
+            limitar_ao_tamanho=True,
+        )
+        frames_efeito = self.carregar_frames_gif(
+            EFEITO_ULTIMATE_LUCAS,
+            tamanho_efeito_com_escala_alvo(
+                TAMANHO_ULTIMATE_CEZAR_EFEITO,
+                tamanho_alvo,
+            ),
+            ajustar_ao_conteudo=False,
+        )
+        return frames_ultimate, frames_efeito
+
+    def carregar_animacao_especial_guilherme(self, personagem, tamanho_alvo: tuple[int, int]) -> tuple[list, list, list, list]:
+        """Especial do Guilherme em quatro estágios: mago, formação, projétil
+        e impacto. Os efeitos ficam limitados ao tamanho do inimigo alvo."""
+        frames_personagem = self.carregar_frames_gif(
+            ANIMACAO_GUILHERME_ESPECIAL,
+            tamanho_corpo(personagem),
+            ajustar_ao_conteudo=True,
+            limitar_ao_tamanho=True,
+        )
+        frames_formacao = self.carregar_frames_gif(
+            MAGIA_GUILHERME,
+            tamanho_alvo,
+            ajustar_ao_conteudo=True,
+            limitar_ao_tamanho=True,
+        )
+        frames_bola = self.carregar_frames_gif(
+            BOLA_GUILHERME,
+            (
+                max(1, round(tamanho_alvo[0] * PROPORCAO_BOLA_FOGO)),
+                max(1, round(tamanho_alvo[1] * PROPORCAO_BOLA_FOGO)),
+            ),
+            ajustar_ao_conteudo=True,
+            limitar_ao_tamanho=True,
+        )
+        frames_efeito = self.carregar_frames_gif(
+            EFEITO_GUILHERME,
+            tamanho_alvo,
+            ajustar_ao_conteudo=True,
+            limitar_ao_tamanho=True,
+        )
+        return frames_personagem, frames_formacao, frames_bola, frames_efeito
+
     def carregar_frames_pasta(
         self,
         caminho: Path,
         tamanho: tuple[int, int],
         ajustar_ao_conteudo: bool = True,
+        limitar_ao_tamanho: bool = False,
     ) -> list[pygame.Surface]:
         """Carrega `frame_*.png` de uma pasta, no tamanho pedido.
 
@@ -838,7 +1137,11 @@ class BattleUI:
             except pygame.error:
                 continue
         if ajustar_ao_conteudo:
-            return ajustar_quadros_ao_conteudo(quadros, tamanho)
+            return ajustar_quadros_ao_conteudo(
+                quadros,
+                tamanho,
+                limitar_ao_tamanho=limitar_ao_tamanho,
+            )
         return [pygame.transform.smoothscale(quadro, tamanho) for quadro in quadros]
 
     def criar_sprites(self) -> None:
@@ -851,8 +1154,11 @@ class BattleUI:
             sprite = SpriteCombatente(heroi, posicoes_herois[indice], caminho, tamanho, caminho_ultimate)
             self.sprites_herois.append(sprite)
 
-            # Efeito que fica atrás do herói (Guilherme/entidade cósmica e
-            # Cezar/serpente) enquanto a Ultimate dele estiver pronta.
+            # Efeito que fica atrás do herói (entidade cósmica do Guilherme,
+            # serpente do Cezar e Rei Antigo Caído do Lucas) enquanto a
+            # Ultimate dele estiver pronta. O tamanho é o base da constante,
+            # SEM multiplicar pela escala do herói: assim a entidade do Lucas
+            # fica exatamente no mesmo tamanho da serpente do Cezar.
             entidade = ENTIDADES_ATRAS.get(heroi.nome)
             if entidade is not None:
                 caminho_entidade, tamanho_entidade, deslocamento = entidade
@@ -861,7 +1167,7 @@ class BattleUI:
                         heroi,
                         (posicoes_herois[indice][0] + deslocamento[0], posicoes_herois[indice][1] + deslocamento[1]),
                         caminho_entidade,
-                        tamanho_corpo(heroi, tamanho_entidade),
+                        (tamanho_entidade, tamanho_entidade),
                     )
                 )
 
@@ -896,6 +1202,18 @@ class BattleUI:
             return
 
         if acao == "habilidade_especial":
+            if heroi.nome == "Lucas":
+                # Tecla 2 do Lucas: skill1 — dash de fogo em direção ao inimigo.
+                frames = self.carregar_frames_gif(
+                    SKILL_LUCAS,
+                    tamanho_com_escala(TAMANHO_ANIMACAO_PERSONAGEM, heroi),
+                    ajustar_ao_conteudo=False,
+                )
+                if frames:
+                    self.animacao_ataque = AnimacaoUltimateCezar(
+                        frames, heroi, origem, sprite_alvo.centro, velocidade_animacao=0.06,
+                    )
+                return
             frames_conjuracao, frames_projetil = self.carregar_animacao_habilidade_especial(heroi)
             if frames_conjuracao and frames_projetil:
                 self.animacao_habilidade_mago = AnimacaoHabilidadeMago(
@@ -908,6 +1226,42 @@ class BattleUI:
             return
 
         if acao == "segunda_habilidade":
+            if heroi.nome == "Guilherme":
+                # Tecla 3 (SPECIAL) do Guilherme: animação do mago parado e,
+                # depois, a sequência de efeitos — magia se formando, bola de
+                # fogo indo até o inimigo e impacto dentro dele.
+                frames_personagem, frames_formacao, frames_bola, frames_efeito = (
+                    self.carregar_animacao_especial_guilherme(
+                        heroi, tamanho_corpo(sprite_alvo.personagem)
+                    )
+                )
+                if frames_personagem and frames_bola:
+                    self.animacao_habilidade_mago = AnimacaoEspecialSequencial(
+                        frames_personagem,
+                        frames_formacao,
+                        frames_bola,
+                        frames_efeito,
+                        heroi,
+                        origem,
+                        sprite_alvo.centro,
+                    )
+                return
+            if heroi.nome == "Lucas":
+                # O rugido fica no Lucas; somente o efeito separado voa ao alvo.
+                frames_rugido, frames_projetil = (
+                    self.carregar_animacao_especial_lucas(
+                        heroi, tamanho_corpo(sprite_alvo.personagem)
+                    )
+                )
+                if frames_rugido and frames_projetil:
+                    self.animacao_habilidade_mago = AnimacaoEspecialLucas(
+                        frames_rugido,
+                        frames_projetil,
+                        heroi,
+                        origem,
+                        sprite_alvo.centro,
+                    )
+                return
             frames = self.carregar_animacao_segunda_habilidade(heroi)
             if frames:
                 self.animacao_ataque = AnimacaoAtaque(frames, heroi, origem, sprite_alvo.centro)
@@ -928,6 +1282,21 @@ class BattleUI:
                 frames = self.carregar_animacao_ultimate_cezar(heroi)
                 if frames:
                     self.animacao_ultimate = AnimacaoUltimateCezar(frames, heroi, origem, sprite_alvo.centro)
+            elif heroi.nome == "Lucas":
+                frames_ultimate, frames_efeito = self.carregar_animacao_ultimate_lucas(
+                    heroi, tamanho_corpo(sprite_alvo.personagem)
+                )
+                if frames_ultimate:
+                    # 0.12 s por quadro (2× mais lento que o padrão 0.06):
+                    # a animação do herói e o efeito no inimigo ficam mais lentos.
+                    self.animacao_ultimate = AnimacaoUltimateComEfeito(
+                        frames_ultimate,
+                        frames_efeito,
+                        heroi,
+                        origem,
+                        sprite_alvo.centro,
+                        velocidade_animacao=0.12,
+                    )
             else:
                 frames = self.carregar_animacao_ultimate(heroi)
                 if frames:
@@ -1145,10 +1514,13 @@ class BattleUI:
                     sprite_heroi = next((s for s in self.sprites_herois if s.personagem is self.heroi_ativo), None)
                     sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
 
-                    # A habilidade especial do Cezar é conjurada parado no
-                    # lugar (sem dash): ele saca a pistola na magia e o projétil
-                    # sai dela. Os demais ataques continuam usando o dash.
-                    usar_dash = acao != "habilidade_especial"
+                    # Cezar conjura a habilidade especial parado. Lucas usa a
+                    # corrida antes do ataque básico e da skill de dash.
+                    usar_dash = (
+                        acao in {"atacar", "habilidade_especial"}
+                        if self.heroi_ativo.nome == "Lucas"
+                        else acao != "habilidade_especial"
+                    )
                     dash_frames = self.carregar_animacao_dash(self.heroi_ativo) if usar_dash else []
                     if dash_frames and sprite_heroi and sprite_alvo:
                         origem_dash = pygame.Vector2(sprite_heroi.centro)
@@ -1164,7 +1536,7 @@ class BattleUI:
                             self.heroi_ativo,
                             origem_dash,
                             alvo_dash,
-                            velocidade_animacao=0.04,
+                            velocidade_animacao=0.02,
                         )
                         self.animacao_apos_dash = (acao, self.heroi_ativo, alvo, alvo_dash.copy())
                     else:
@@ -1288,8 +1660,9 @@ class BattleUI:
             )
         }
 
-        # As entidades (cósmica do mago e serpente do Cezar) ficam atrás dos
-        # heróis enquanto a Ultimate do dono estiver pronta.
+        # As entidades (cósmica do Guilherme, serpente do Cezar e Rei Antigo
+        # Caído do Lucas) ficam atrás dos heróis enquanto a Ultimate do dono
+        # estiver pronta.
         for entidade in self.entidades_atras:
             if regras.ultimate_disponivel(entidade.personagem):
                 if entidade.personagem not in personagens_em_animacao:

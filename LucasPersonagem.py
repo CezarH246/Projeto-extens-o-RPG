@@ -1,4 +1,7 @@
 import pygame
+from pathlib import Path
+
+from PIL import Image
 
 #========================================================
 # Classe personagem Lucas — segue o Cezar pelo mapa
@@ -10,6 +13,10 @@ class Lucas(pygame.sprite.Sprite):
 
         self.alvo = alvo
         self.pasta_personagem = "personagens/Lucas_O_Barbaro"
+        self.pasta_caminhadas = (
+            Path(__file__).resolve().parent
+            / "assets" / "personagens" / "Lucas_Protagonista" / "caminhadas"
+        )
 
         self.imagens_parado = {
             "east": self.carregar_imagem("Idle/rotations/east.png"),
@@ -18,21 +25,11 @@ class Lucas(pygame.sprite.Sprite):
             "west": self.carregar_imagem("Idle/rotations/west.png"),
         }
 
-        # A animação de caminhada para oeste usa pasta com sufixo do exportador.
-        pastas_caminhada = {
-            "east": "east",
-            "north": "north",
-            "south": "south",
-            "west": "west-c61c6cb2",
-        }
+        # A caminhada do Lucas é um gif por direção (diferente do Cezar, que
+        # usa pastas de frames PNG).
         self.imagens_caminhada = {
-            direcao: [
-                self.carregar_imagem(
-                    f"Idle/animations/Walking/{pastas_caminhada[direcao]}/frame_{quadro:03d}.png"
-                )
-                for quadro in range(4)
-            ]
-            for direcao in pastas_caminhada
+            direcao: self.carregar_gif_caminhada(f"Idle_walk_{direcao}.gif")
+            for direcao in ("east", "north", "south", "west")
         }
 
         self.direcao_atual = "south"
@@ -56,6 +53,17 @@ class Lucas(pygame.sprite.Sprite):
         caminho_imagem = f"{self.pasta_personagem}/{caminho}"
         imagem = pygame.image.load(caminho_imagem).convert_alpha()
         return pygame.transform.scale(imagem, [32, 32])
+
+    def carregar_gif_caminhada(self, nome):
+        """Carrega todos os quadros de um gif de caminhada, no tamanho do sprite."""
+        quadros = []
+        with Image.open(self.pasta_caminhadas / nome) as gif:
+            for indice in range(getattr(gif, "n_frames", 1)):
+                gif.seek(indice)
+                dados = gif.convert("RGBA").tobytes()
+                imagem = pygame.image.fromstring(dados, gif.size, "RGBA").convert_alpha()
+                quadros.append(pygame.transform.scale(imagem, [32, 32]))
+        return quadros
 
     def obter_destino(self):
         historico = self.alvo.historico_posicoes
@@ -84,7 +92,8 @@ class Lucas(pygame.sprite.Sprite):
             self.tempo_animacao += tempo_frame
             if self.tempo_animacao >= self.velocidade_animacao:
                 self.tempo_animacao -= self.velocidade_animacao
-                self.quadro_animacao = (self.quadro_animacao + 1) % 4
+                total_quadros = len(self.imagens_caminhada[self.direcao_atual])
+                self.quadro_animacao = (self.quadro_animacao + 1) % total_quadros
             self.image = self.imagens_caminhada[self.direcao_atual][self.quadro_animacao]
         else:
             self.direcao_atual = self.alvo.direcao_atual
