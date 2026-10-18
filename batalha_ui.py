@@ -47,6 +47,8 @@ CEZAR_ANIMACOES = ASSETS / "personagens" / "Cezar_Protagonista" / "Idle" / "anim
 
 ATAQUE_BASICO_CEZAR = CEZAR_ANIMACOES / "Ataque_Basico"
 ATAQUE_BASICO_GUILHERME = ASSETS / "personagens" / "Guilherme_Protagonista" / "Idle" / "animations" / "Ataque_Basico"
+ATAQUE_BASICO_GUILHERME_GIF = ASSETS / "personagens" / "Guilherme_Protagonista" / "ataque-basico" / "pixellab-Create-a-smooth-and-powerful-e-1792330609816 (1).gif"
+EFEITO_ATAQUE_BASICO_GUILHERME = ASSETS / "personagens" / "Guilherme_Protagonista" / "ataque-basico" / "efeito-ataque-basico" / "pixellab-Create-a-smooth-pixel-art-anim-1792332655276.gif"
 
 DASH_CEZAR = CEZAR_ANIMACOES / "Dash_Combate"
 
@@ -64,7 +66,7 @@ ULTIMATE_PRONTA_CEZAR = CEZAR_ANIMACOES / "UltimateOn_Cezar" / "Idle_custom-The_
 LUCAS_PASTA = ASSETS / "personagens" / "Lucas_Protagonista"
 ATAQUE_BASICO_LUCAS = LUCAS_PASTA / "ataque-basico" / "pixellab-Sim--Para-a-Skill-1--eu-deixar-1791222561909.gif"
 CORRIDA_LUCAS = LUCAS_PASTA / "corrida" / "pixellab-Create-a-powerful-and-aggressi-1792291730927.gif"
-# Especial: o rugido anima o Lucas; o efeito separado percorre o caminho até o inimigo.
+# Especial: o rugido anima o Lucas; o efeito separado termina como impacto no inimigo.
 ESPECIAL_LUCAS = LUCAS_PASTA / "especial" / "pixellab-Spirit-Bear-Roar--Keep-the-exa-1791222794389.gif"
 EFEITO_ESPECIAL_LUCAS = LUCAS_PASTA / "especial" / "efeito-especial" / "pixellab-Create-ONLY-the-visual-effects-1791224098878.gif"
 # Skill: dash de fogo até perto do inimigo.
@@ -74,8 +76,9 @@ SKILL_LUCAS = LUCAS_PASTA / "skill" / "pixellab-Skill-1---Flaming-Berserker-Ch-1
 ULTIMATE_LUCAS = LUCAS_PASTA / "ultimate" / "pixellab-Sim---o-problema---que-o-promp-1791224532715.gif"
 EFEITO_ULTIMATE_LUCAS = LUCAS_PASTA / "ultimate" / "efeito-ultimate" / "pixellab-Pixel-art-ice-impact-effect-on-1791224973868.gif"
 
-ANIMACAO_MAGO_HABILIDADE = ASSETS / "efeitos" / "Idle_custom-Animate_the_character_performing_a_magical_firebal_south.gif"
-BOLA_FOGO_MAGO = ASSETS / "efeitos" / "Idle_custom-Create_only_the_fireball_attack_particle_effect._D_south.gif"
+SKILL1_GUILHERME = ASSETS / "personagens" / "Guilherme_Protagonista" / "skill-1"
+ANIMACAO_MAGO_HABILIDADE = SKILL1_GUILHERME / "pixellab-Create-a-smooth-pixel-art-fire-1792330513653.gif"
+BOLA_FOGO_MAGO = SKILL1_GUILHERME / "efeito-skill1" / "Idle_custom-Create_only_the_fireball_attack_particle_effect._D_south.gif"
 
 # Especial do Guilherme em quatro estágios, nessa ordem:
 #   1. o mago toca a animação dele (Idle_custom-The_character...), parado;
@@ -413,8 +416,10 @@ class AnimacaoUltimateCezar:
         tela.blit(imagem, imagem.get_rect(center=(round(centro.x), round(centro.y))))
 
 
-class AnimacaoEspecialLucas(AnimacaoHabilidadeMago):
-    """Toca o rugido no Lucas enquanto o efeito separado viaja até o inimigo."""
+class AnimacaoPersonagemProjetil(AnimacaoHabilidadeMago):
+    """Toca o personagem parado enquanto o projétil viaja e explode no alvo."""
+
+    frame_inicio_impacto = 27
 
     def atualizar(self, tempo_frame: float) -> bool:
         self.tempo += tempo_frame
@@ -432,9 +437,12 @@ class AnimacaoEspecialLucas(AnimacaoHabilidadeMago):
             )
 
         if self.indice < len(self.frames_bola):
-            progresso = self.indice / max(1, len(self.frames_bola) - 1)
             projetil = self.frames_bola[self.indice]
-            centro = self.origem.lerp(self.alvo, progresso)
+            if self.indice >= self.frame_inicio_impacto:
+                centro = self.alvo
+            else:
+                progresso = self.indice / max(1, self.frame_inicio_impacto - 1)
+                centro = self.origem.lerp(self.alvo, progresso)
             tela.blit(projetil, projetil.get_rect(center=(round(centro.x), round(centro.y))))
 
 
@@ -873,42 +881,44 @@ class BattleUI:
         if caminho is None:
             return []
 
-        tamanho = tamanho_com_escala(TAMANHO_ANIMACAO_PERSONAGEM, personagem)
-        if personagem.nome == "Lucas":
+        tamanho = tamanho_corpo(personagem)
+        if caminho.is_file() and caminho.suffix.lower() == ".gif":
             frames = self.carregar_frames_gif(
                 caminho,
                 tamanho,
-                ajustar_ao_conteudo=False,
+                ajustar_ao_conteudo=True,
             )
-            return frames[::3]
-        return self.carregar_frames_pasta(
-            caminho,
-            tamanho,
-            limitar_ao_tamanho=True,
-        )
+            return frames[::3] if personagem.nome == "Lucas" else frames
+        return self.carregar_frames_pasta(caminho, tamanho)
 
     def carregar_animacao_ataque(self, personagem) -> list[pygame.Surface]:
         caminho = ATAQUES_BASICOS.get(personagem.nome)
         if caminho is None:
             return []
 
-        tamanho = tamanho_corpo(personagem, TAMANHO_ATAQUE)
-        if personagem.nome == "Lucas":
-            return self.carregar_frames_gif(caminho, tamanho, ajustar_ao_conteudo=False)
-        if personagem.nome in {"Cezar", "Guilherme"}:
-            if caminho.is_file() and caminho.suffix.lower() == ".gif":
-                return self.carregar_frames_gif(
-                    caminho,
-                    tamanho,
-                    ajustar_ao_conteudo=True,
-                    limitar_ao_tamanho=True,
-                )
-            return self.carregar_frames_pasta(
-                caminho,
-                tamanho,
+        if personagem.nome == "Guilherme":
+            return self.carregar_frames_gif(
+                ATAQUE_BASICO_GUILHERME_GIF,
+                tamanho_corpo(personagem, TAMANHO_ATAQUE),
+                ajustar_ao_conteudo=True,
                 limitar_ao_tamanho=True,
             )
+
+        tamanho = tamanho_corpo(personagem, TAMANHO_ATAQUE)
         return self.carregar_animacao_arquivo(caminho, tamanho)
+
+    def carregar_animacao_projetil_ataque_guilherme(
+        self,
+        personagem,
+    ) -> list[pygame.Surface]:
+        tamanho_base = tamanho_corpo(personagem, TAMANHO_ATAQUE)
+        tamanho_projetil = tuple(round(dimensao * 1.25) for dimensao in tamanho_base)
+        return self.carregar_frames_gif(
+            EFEITO_ATAQUE_BASICO_GUILHERME,
+            tamanho_projetil,
+            ajustar_ao_conteudo=True,
+            limitar_ao_tamanho=True,
+        )
 
     def carregar_animacao_ataque_inimigo(self, personagem) -> list[pygame.Surface]:
         caminho = ATAQUES_INIMIGOS.get(normalizar_nome(personagem.nome.split(" Lv.")[0]))
@@ -1197,6 +1207,17 @@ class BattleUI:
 
         if acao == "atacar":
             frames = self.carregar_animacao_ataque(heroi)
+            if heroi.nome == "Guilherme":
+                frames_projetil = self.carregar_animacao_projetil_ataque_guilherme(heroi)
+                if frames and frames_projetil:
+                    self.animacao_habilidade_mago = AnimacaoPersonagemProjetil(
+                        frames,
+                        frames_projetil,
+                        heroi,
+                        origem,
+                        sprite_alvo.centro,
+                    )
+                return
             if frames:
                 self.animacao_ataque = AnimacaoAtaque(frames, heroi, origem, sprite_alvo.centro)
             return
@@ -1254,7 +1275,7 @@ class BattleUI:
                     )
                 )
                 if frames_rugido and frames_projetil:
-                    self.animacao_habilidade_mago = AnimacaoEspecialLucas(
+                    self.animacao_habilidade_mago = AnimacaoPersonagemProjetil(
                         frames_rugido,
                         frames_projetil,
                         heroi,
