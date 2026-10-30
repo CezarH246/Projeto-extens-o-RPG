@@ -3,7 +3,7 @@
 ## Como executar
 
 1. Abra o terminal na pasta do projeto.
-2. Instale o pygame, se necessário: `pip install pygame`.
+2. Instale as dependencias: `pip install -r requirements.txt`.
 3. Inicie o mapa com `python mapa_teste.py`.
 
 ## Fluxo do jogo
@@ -30,8 +30,8 @@ Cada personagem mantém `image`, `rect` e `posicao`. O `rect` participa da colis
 
 ### Regras de combate
 
-1. `Combate.py` cria heróis, inimigos, atributos, HP, PA, ATB, XP e regras de dano.
-2. `batalha_ui.py` cria os sprites de batalha e acompanha a barra ATB.
+1. `Combate.py` e a entrada documentada das regras, separadas em `combate_core/`.
+2. `batalha_ui.py` e a entrada visual, separada em `batalha_core/`.
 3. Quando um herói fica pronto, o jogador escolhe ataque, habilidade, ultimate, poção ou defesa.
 4. A ação chama o método correspondente de `Combate.py`, que valida custo e condição e aplica dano.
 5. O dano recebido é guardado em `_ultimo_dano_recebido` para a animação visual.
@@ -44,9 +44,37 @@ O Cezar pode usar a ultimate desde o início para testes. `batalha_ui.py` carreg
 ### Transparência dos obstáculos
 
 Durante o desenho do mapa, o código verifica se o corpo do herói está sobre pixels de árvore ou pilar. Nessa situação, ele é desenhado com alpha reduzido para indicar que está passando por trás do elemento.
+
+## Organização dos módulos
+
+Os arquivos de entrada preservam os imports usados pelo jogo e deixam visivel a
+arquitetura geral. As implementacoes foram divididas em arquivos menores, com
+ate 500 linhas cada:
+
+- `Combate.py`: ciclo principal da luta e escolha de acoes, com comentarios
+  didaticos sobre abstracao, encapsulamento, heranca e polimorfismo.
+- `combate_core/personagens.py` e `combate_core/habilidades.py`: modelos dos
+  personagens e acoes dos herois.
+- `combate_core/inimigos.py` e `combate_core/criacao.py`: inimigos e encontros.
+- `combate_core/turnos.py` e `combate_core/batalha.py`: fachadas de
+  compatibilidade; o codigo ativo dos turnos e da luta esta em `Combate.py`.
+- `combate_core/recompensas.py` e `combate_core/utilitarios.py`: recompensas
+  e consulta da barra ATB.
+- `batalha_ui.py`: fachada da interface de batalha.
+- `batalha_core/assets.py`, `batalha_core/sprites.py` e
+  `batalha_core/animacoes.py`: caminhos dos recursos, sprites e animacoes.
+- `batalha_core/carregadores.py`, `batalha_core/acoes.py`,
+  `batalha_core/fluxo.py` e `batalha_core/renderizacao.py`: carregamento,
+  sequencias de acao, estado dos turnos e desenho.
+- `RPGBase.py`: compatibilidade com imports antigos; `Combate.py` e a entrada
+  recomendada para evitar duas versoes diferentes das regras.
+
 # Documentação do Arquivo `batalha_ui.py`
 
-O módulo `batalha_ui.py` é responsável por toda a interface gráfica e visual do sistema de combate do jogo, utilizando a biblioteca **Pygame**. Ele conecta as regras lógicas de batalha (vindas de `Combate.py`) com a renderização de sprites, barras de status, animações de habilidades e gerenciamento de turnos via sistema **ATB (Active Time Battle)**.
+O arquivo `batalha_ui.py` preserva os imports publicos e encaminha a interface
+para os modulos especializados em `batalha_core/`. Em conjunto, eles conectam
+as regras de `Combate.py` com os sprites, animacoes, barras de status e turnos
+via sistema **ATB (Active Time Battle)**.
 
 ---
 
