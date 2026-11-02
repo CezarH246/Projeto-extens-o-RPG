@@ -8,8 +8,9 @@ from PIL import Image
 #=====================================================
 class Lucas(pygame.sprite.Sprite):
 
-    def __init__(self, alvo, *groups):
+    def __init__(self, alvo, *groups, tamanho=32):
         super().__init__(*groups)
+        self.tamanho = tamanho
 
         self.alvo = alvo
         self.pasta_personagem = "personagens/Lucas_O_Barbaro"
@@ -35,7 +36,7 @@ class Lucas(pygame.sprite.Sprite):
         self.direcao_atual = "south"
         self.image = self.imagens_parado[self.direcao_atual]
 
-        self.rect = pygame.Rect(80, 150, 32, 32)
+        self.rect = pygame.Rect(80, 150, tamanho, tamanho)
         self.posicao = pygame.Vector2(self.rect.topleft)
 
         # Histórico usado pelo Guilherme, que segue o Lucas.
@@ -52,7 +53,9 @@ class Lucas(pygame.sprite.Sprite):
     def carregar_imagem(self, caminho):
         caminho_imagem = f"{self.pasta_personagem}/{caminho}"
         imagem = pygame.image.load(caminho_imagem).convert_alpha()
-        return pygame.transform.scale(imagem, [32, 32])
+        # Reduzir usa escala suave (sem serrilhado); em 1:1 ou ampliando, mantém o pixel art.
+        escalar = pygame.transform.smoothscale if imagem.get_width() > self.tamanho else pygame.transform.scale
+        return escalar(imagem, [self.tamanho, self.tamanho])
 
     def carregar_gif_caminhada(self, nome):
         """Carrega todos os quadros de um gif de caminhada, no tamanho do sprite."""
@@ -61,8 +64,9 @@ class Lucas(pygame.sprite.Sprite):
             for indice in range(getattr(gif, "n_frames", 1)):
                 gif.seek(indice)
                 dados = gif.convert("RGBA").tobytes()
-                imagem = pygame.image.fromstring(dados, gif.size, "RGBA").convert_alpha()
-                quadros.append(pygame.transform.scale(imagem, [32, 32]))
+                imagem = pygame.image.frombytes(dados, gif.size, "RGBA").convert_alpha()
+                escalar = pygame.transform.smoothscale if imagem.get_width() > self.tamanho else pygame.transform.scale
+                quadros.append(escalar(imagem, [self.tamanho, self.tamanho]))
         return quadros
 
     def obter_destino(self):

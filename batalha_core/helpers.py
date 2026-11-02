@@ -1,4 +1,4 @@
-"""Shared helpers for sprites, sizing, and event logging."""
+﻿"""Shared helpers for sprites, sizing, and event logging."""
 
 import unicodedata
 from pathlib import Path
@@ -9,6 +9,30 @@ from PIL import Image
 from .assets import *
 
 LOG_BATALHA: list[str] = []
+
+# Segoe UI e Calibri são mais nítidas que a Arial; a Arial é o reserva.
+FAMILIAS_FONTE = "segoeui,calibri,arial"
+
+
+def criar_fonte(tamanho: int, negrito: bool = False) -> pygame.font.Font:
+    """Única porta de entrada das fontes da batalha: trocar a família aqui vale para tudo."""
+    return pygame.font.SysFont(FAMILIAS_FONTE, tamanho, bold=negrito)
+
+
+def texto_com_sombra(
+    tela: pygame.Surface,
+    fonte: pygame.font.Font,
+    texto: str,
+    cor: tuple[int, int, int],
+    posicao: tuple[int, int],
+    centralizado: bool = False,
+) -> None:
+    """Desenha o texto com uma sombra escura, para ler bem sobre qualquer fundo."""
+    sombra = fonte.render(texto, True, (5, 8, 25))
+    principal = fonte.render(texto, True, cor)
+    retangulo = principal.get_rect(center=posicao) if centralizado else principal.get_rect(topleft=posicao)
+    tela.blit(sombra, retangulo.move(2, 2))
+    tela.blit(principal, retangulo)
 
 def cor_barra_hp(valor: float, maximo: float) -> tuple[int, int, int]:
     proporcao = 0.0 if maximo <= 0 else max(0.0, min(1.0, valor / maximo))
@@ -21,10 +45,13 @@ def cor_barra_hp(valor: float, maximo: float) -> tuple[int, int, int]:
 
 def registrar_evento(*args, sep=" ", **_kwargs) -> None:
     """Recebe as mensagens produzidas pelas regras e as mostra na tela."""
-    texto = sep.join(str(item) for item in args).strip()
-    if texto:
-        LOG_BATALHA.append(texto)
-        del LOG_BATALHA[:-6]
+    texto = sep.join(str(item) for item in args)
+    for linha in texto.splitlines():
+        # A fonte do jogo não desenha emojis; as linhas de "=====" são só enfeite.
+        linha = "".join(c for c in linha if ord(c) <= 0x24F or 0x2010 <= ord(c) <= 0x2027).strip()
+        if any(c.isalnum() for c in linha):
+            LOG_BATALHA.append(linha)
+    del LOG_BATALHA[:-400]
 
 
 def normalizar_nome(texto: str) -> str:
@@ -129,5 +156,5 @@ def carregar_quadros_gif(caminho: Path) -> list[pygame.Surface]:
         for indice in range(getattr(gif, "n_frames", 1)):
             gif.seek(indice)
             dados = gif.convert("RGBA").tobytes()
-            quadros.append(pygame.image.fromstring(dados, gif.size, "RGBA").convert_alpha())
+            quadros.append(pygame.image.frombytes(dados, gif.size, "RGBA").convert_alpha())
     return quadros

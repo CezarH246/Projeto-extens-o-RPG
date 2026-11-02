@@ -1,4 +1,4 @@
-"""Load assets and create arena sprites."""
+﻿"""Load assets and create arena sprites."""
 
 from pathlib import Path
 
@@ -8,6 +8,7 @@ from .assets import *
 from .animacoes import *
 from .helpers import *
 from .sprites import SpriteCombatente
+from .temas import tema_atual
 
 class CarregadoresBattleUI:
     """Interface methods dedicated to loading visual resources."""
@@ -173,13 +174,13 @@ class CarregadoresBattleUI:
                     # Frame do flash de efeito: mantém o quadro inteiro menor.
                     if largura > 300 or altura > 300:
                         dados = quadro.tobytes()
-                        imagem = pygame.image.fromstring(dados, quadro.size, "RGBA").convert_alpha()
+                        imagem = pygame.image.frombytes(dados, quadro.size, "RGBA").convert_alpha()
                         frames.append(pygame.transform.smoothscale(imagem, tamanho_efeito))
                         continue
                     # Frame do personagem: corta o fundo ocioso e amplia.
                     recorte = quadro.crop(bbox)
                     dados = recorte.tobytes()
-                    imagem = pygame.image.fromstring(dados, recorte.size, "RGBA").convert_alpha()
+                    imagem = pygame.image.frombytes(dados, recorte.size, "RGBA").convert_alpha()
                     escala = min(
                         largura_personagem / max(1, largura),
                         altura_personagem / max(1, altura),
@@ -304,9 +305,42 @@ class CarregadoresBattleUI:
             )
         return [pygame.transform.smoothscale(quadro, tamanho) for quadro in quadros]
 
+    def posicoes_da_formacao(self) -> tuple[list, list]:
+        """Posições de heróis e inimigos para o tema atual."""
+        if tema_atual() == "moderno":
+            por_nome, reserva = POSICOES_HEROIS_MODERNO, POSICOES_HEROIS_MODERNO_RESERVA
+            inimigos, boss = POSICOES_INIMIGOS_MODERNO, POSICAO_BOSS_MODERNO
+        else:
+            por_nome, reserva = POSICOES_HEROIS, POSICOES_HEROIS_RESERVA
+            inimigos, boss = POSICOES_INIMIGOS, POSICAO_BOSS_CENTRAL
+        if self.pasta_fundo_animado == FUNDO_BATALHA_GUARDAS:
+            por_nome, reserva, inimigos = FORMACAO_GUARDAS[tema_atual()]
+        # A posição depende do papel do herói (tanque na frente), não da ordem da lista.
+        posicoes_herois = [
+            por_nome.get(heroi.nome, reserva[indice]) for indice, heroi in enumerate(self.herois[:3])
+        ]
+        # O Rei Tritão luta sozinho: ele ocupa o lugar de destaque do lado inimigo.
+        posicoes_inimigos = [
+            boss if eh_rei_tritao(inimigo) else inimigos[indice] for indice, inimigo in enumerate(self.inimigos[:3])
+        ]
+        return posicoes_herois, posicoes_inimigos
+
+    def aplicar_formacao(self) -> None:
+        """Reposiciona os sprites quando o tema muda no meio da batalha."""
+        posicoes_herois, posicoes_inimigos = self.posicoes_da_formacao()
+        for sprite, posicao in zip(self.sprites_herois, posicoes_herois):
+            sprite.centro = sprite.centro_inicial = posicao
+        for sprite, posicao in zip(self.sprites_inimigos, posicoes_inimigos):
+            sprite.centro = sprite.centro_inicial = posicao
+        for entidade in self.entidades_atras:
+            dono = next(s for s in self.sprites_herois if s.personagem is entidade.personagem)
+            deslocamento = entidade.deslocamento
+            entidade.centro = entidade.centro_inicial = (
+                dono.centro[0] + deslocamento[0], dono.centro[1] + deslocamento[1],
+            )
+
     def criar_sprites(self) -> None:
-        posicoes_herois = [(220, 280), (170, 455), (390, 430)]
-        posicoes_inimigos = [(1060, 270), (970, 445), (835, 360)]
+        posicoes_herois, posicoes_inimigos = self.posicoes_da_formacao()
 
         for indice, heroi in enumerate(self.herois[:3]):
             caminho, caminho_ultimate = ANIMACOES_HEROIS.get(heroi.nome, (None, None))
@@ -319,22 +353,19 @@ class CarregadoresBattleUI:
             # Ultimate dele estiver pronta. O tamanho é o base da constante,
             # SEM multiplicar pela escala do herói: assim a entidade do Lucas
             # fica exatamente no mesmo tamanho da serpente do Cezar.
-            entidade = ENTIDADES_ATRAS.get(heroi.nome)
+            entidade = ENTIDADES_ATRAS.get(heroi.nome) if ENTIDADES_ATRAS_ATIVAS else None
             if entidade is not None:
                 caminho_entidade, tamanho_entidade, deslocamento = entidade
-                self.entidades_atras.append(
-                    SpriteCombatente(
-                        heroi,
-                        (posicoes_herois[indice][0] + deslocamento[0], posicoes_herois[indice][1] + deslocamento[1]),
-                        caminho_entidade,
-                        (tamanho_entidade, tamanho_entidade),
-                    )
+                sprite_entidade = SpriteCombatente(
+                    heroi,
+                    (posicoes_herois[indice][0] + deslocamento[0], posicoes_herois[indice][1] + deslocamento[1]),
+                    caminho_entidade,
+                    (tamanho_entidade, tamanho_entidade),
                 )
+                sprite_entidade.deslocamento = deslocamento
+                self.entidades_atras.append(sprite_entidade)
 
         for indice, inimigo in enumerate(self.inimigos[:3]):
             caminho = resolver_sprite_inimigo(inimigo)
             tamanho = tamanho_corpo(inimigo)
-            # O Rei Tritão luta sozinho: em vez da coluna de inimigos, ele
-            # entra no centro do campo, de frente para o grupo de heróis.
-            posicao = POSICAO_BOSS_CENTRAL if eh_rei_tritao(inimigo) else posicoes_inimigos[indice]
-            self.sprites_inimigos.append(SpriteCombatente(inimigo, posicao, caminho, tamanho))
+            self.sprites_inimigos.append(SpriteCombatente(inimigo, posicoes_inimigos[indice], caminho, tamanho))

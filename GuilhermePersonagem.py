@@ -5,8 +5,9 @@ import pygame
 #=====================================================
 class Guilherme(pygame.sprite.Sprite):
 
-    def __init__(self, alvo, *groups):
+    def __init__(self, alvo, *groups, tamanho=32):
         super().__init__(*groups)
+        self.tamanho = tamanho
 
         self.alvo = alvo
         self.pasta_personagem = "personagens/Guilherme_O_Mago"
@@ -39,7 +40,7 @@ class Guilherme(pygame.sprite.Sprite):
         self.direcao_atual = "south"
         self.image = self.imagens_parado[self.direcao_atual]
 
-        self.rect = pygame.Rect(80, 220, 32, 32)
+        self.rect = pygame.Rect(80, 220, tamanho, tamanho)
         self.posicao = pygame.Vector2(self.rect.topleft)
 
         self.velocidade = 50
@@ -53,7 +54,9 @@ class Guilherme(pygame.sprite.Sprite):
     def carregar_imagem(self, caminho):
         caminho_imagem = f"{self.pasta_personagem}/{caminho}"
         imagem = pygame.image.load(caminho_imagem).convert_alpha()
-        return pygame.transform.scale(imagem, [32, 32])
+        # Reduzir usa escala suave (sem serrilhado); em 1:1 ou ampliando, mantém o pixel art.
+        escalar = pygame.transform.smoothscale if imagem.get_width() > self.tamanho else pygame.transform.scale
+        return escalar(imagem, [self.tamanho, self.tamanho])
 
     def obter_destino(self):
         historico = self.alvo.historico_posicoes

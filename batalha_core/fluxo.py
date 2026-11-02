@@ -8,6 +8,7 @@ import Combate as regras
 from .assets import *
 from .animacoes import *
 from .helpers import LOG_BATALHA
+from .temas import alternar_tema, nome_do_tema, tema_atual
 
 class FluxoBattleUI:
     """Coordinate battle state and forward actions to the rules."""
@@ -38,9 +39,48 @@ class FluxoBattleUI:
             self.mensagem = "Derrota. Pressione ENTER para retornar ao mapa."
             LOG_BATALHA.append("O grupo foi derrotado.")
 
+    def animacoes_ativas(self) -> bool:
+        return (
+            self.animacao_dash is not None
+            or self.animacao_ataque is not None
+            or self.animacao_ultimate is not None
+            or self.animacao_habilidade_mago is not None
+            or self.animacao_ataque_inimigo is not None
+        )
+
+    def iniciar_impacto(self) -> tuple[dict, int]:
+        """Guarda a vida de todos e o tamanho do log antes de uma ação das regras."""
+        sprites = self.sprites_herois + self.sprites_inimigos
+        return {sprite: sprite.personagem.hp for sprite in sprites}, len(LOG_BATALHA)
+
+    def reter_impactos(self, estado: tuple[dict, int]) -> None:
+        """Segura na tela o dano que as regras já aplicaram.
+
+        As regras calculam o golpe na hora, mas a vida só cai, o número só
+        aparece e a morte só é mostrada quando a animação termina."""
+        vidas_antes, linhas_antes = estado
+        for sprite, hp_antes in vidas_antes.items():
+            if sprite.personagem.hp < hp_antes:
+                sprite.hp_exibido = hp_antes
+                self.impactos_pendentes.append((sprite, int(sprite.personagem._ultimo_dano_recebido)))
+        if self.impactos_pendentes and self.log_retido_desde is None:
+            self.log_retido_desde = linhas_antes
+
+    def liberar_impactos(self) -> None:
+        """A animação acabou: mostra o dano, a morte, o log e confere o resultado."""
+        for sprite, dano in self.impactos_pendentes:
+            sprite.hp_exibido = None
+            sprite.adicionar_dano_flutuante(dano)
+        self.impactos_pendentes.clear()
+        self.log_retido_desde = None
+        self.pausa_turno = PAUSA_ENTRE_ACOES
+        self.verificar_resultado()
+
     def atualizar(self, tempo_frame: float) -> None:
-        # Atualiza danos flutuantes de todos os inimigos
-        for sprite in self.sprites_inimigos:
+        if self.fundo_animado is not None:
+            self.fundo_animado.atualizar(tempo_frame)
+        # Atualiza os danos flutuantes de heróis e inimigos.
+        for sprite in self.sprites_herois + self.sprites_inimigos:
             sprite.danos_flutuantes = [d for d in sprite.danos_flutuantes if d.atualizar(tempo_frame)]
 
         if self.animacao_dash is not None:
@@ -94,25 +134,28 @@ class FluxoBattleUI:
                 # volta para a posição inicial do campo de batalha.
                 self.restaurar_posicao_inicial_heroi(animacao_finalizada.personagem)
         
+        # O golpe só "acerta" na tela quando a animação inteira termina.
+        if self.impactos_pendentes and not self.animacoes_ativas():
+            self.liberar_impactos()
+
         if self.resultado is not None or self.heroi_ativo is not None:
             return
 
         # Enquanto qualquer animação estiver em andamento, o ATB fica pausado
         # para que os inimigos não ataquem antes de a animação e o efeito terminarem.
-        animacoes_ativas = (
-            self.animacao_dash is not None
-            or self.animacao_ataque is not None
-            or self.animacao_ultimate is not None
-            or self.animacao_habilidade_mago is not None
-            or self.animacao_ataque_inimigo is not None
-        )
-        if animacoes_ativas:
+        if self.animacoes_ativas():
+            return
+
+        # Respiro entre uma ação e a próxima, para dar tempo de ler o que houve.
+        if self.pausa_turno > 0:
+            self.pausa_turno -= tempo_frame
             return
 
         # Cada modelo Personagem avança sua própria ATB; Heroi e Inimigo
         # compartilham esse comportamento herdado da classe base.
         for combatente in self.herois + self.inimigos:
-            combatente.carregar_atb(tempo_frame * 3.0)
+            ritmo = 1.0 if isinstance(combatente, regras.Heroi) else VELOCIDADE_ATB_INIMIGOS
+            combatente.carregar_atb(tempo_frame * 3.0 * ritmo)
 
         # Escolhe o primeiro combatente vivo que alcançou o limite da barra.
         pronto = next(
@@ -129,6 +172,7 @@ class FluxoBattleUI:
         # é resolvido automaticamente como turno de inimigo.
         if isinstance(pronto, regras.Heroi):
             self.heroi_ativo = pronto
+            self.cursor_acao = 0
             self.mensagem = f"Turno de {pronto.nome}. Use as teclas 1 a 6."
             LOG_BATALHA.append(f"Turno de {pronto.nome}.")
             return
@@ -150,16 +194,17 @@ class FluxoBattleUI:
                 )
 
         # Delega o ataque ao modelo do inimigo, que aplica as regras de dano.
+        estado = self.iniciar_impacto()
         pronto.atacar(alvo)
+        self.reter_impactos(estado)
         # Reinicia a ATB após a ação para começar o próximo ciclo do combatente.
         pronto.resetar_atb()
+        self.pausa_turno = PAUSA_ENTRE_ACOES
         self.mensagem = f"{pronto.nome} atacou {alvo.nome}."
 
-        # Mostra dano flutuante para o alvo (se for inimigo)
-        if sprite_alvo and hasattr(alvo, '_ultimo_dano_recebido'):
-            sprite_alvo.adicionar_dano_flutuante(int(alvo._ultimo_dano_recebido))
-
-        self.verificar_resultado()
+        # Com golpe em andamento, o resultado só é conferido quando ele termina.
+        if not self.impactos_pendentes:
+            self.verificar_resultado()
 
     def escolher_acao(self, numero: int) -> None:
         # Sem um herói no turno, uma tecla não pode iniciar uma ação de combate.
@@ -178,6 +223,7 @@ class FluxoBattleUI:
         }
         if numero not in acoes:
             return
+        self.cursor_acao = numero - 1
 
         nome, acao = acoes[numero]
         if acao in {"usar_pocao_pa", "defender"}:
@@ -193,6 +239,7 @@ class FluxoBattleUI:
         if self.heroi_ativo is None:
             return
 
+        estado = self.iniciar_impacto()
         executou = False
         if acao == "defender":
             # Defender altera atributos e contador pertencentes a este herói.
@@ -216,11 +263,6 @@ class FluxoBattleUI:
                 
                 # Mostra dano flutuante após ataque
                 if executou and acao in {"atacar", "habilidade_especial", "segunda_habilidade", "ultimate"}:
-                    if hasattr(alvo, '_ultimo_dano_recebido'):
-                        sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
-                        if sprite_alvo:
-                            sprite_alvo.adicionar_dano_flutuante(int(alvo._ultimo_dano_recebido))
-
                     sprite_heroi = next((s for s in self.sprites_herois if s.personagem is self.heroi_ativo), None)
                     sprite_alvo = next((s for s in self.sprites_inimigos if s.personagem is alvo), None)
 
@@ -246,7 +288,7 @@ class FluxoBattleUI:
                             self.heroi_ativo,
                             origem_dash,
                             alvo_dash,
-                            velocidade_animacao=0.02,
+                            velocidade_animacao=DASH_TEMPO_POR_QUADRO.get(self.heroi_ativo.nome, 0.04),
                         )
                         self.animacao_apos_dash = (acao, self.heroi_ativo, alvo, alvo_dash.copy())
                     else:
@@ -265,9 +307,13 @@ class FluxoBattleUI:
             self.mensagem = "Ação indisponível. Escolha outra opção."
             return
 
-        self.verificar_resultado()
+        self.reter_impactos(estado)
+        # Com golpe em andamento, o resultado só é conferido quando ele termina.
+        if not self.impactos_pendentes:
+            self.verificar_resultado()
         if self.resultado is None:
             # A ação válida consome o turno e reinicia a ATB desse herói.
+            self.pausa_turno = PAUSA_ENTRE_ACOES
             self.heroi_ativo.resetar_atb()
             self.heroi_ativo = None
             self.acao_pendente = None
@@ -278,8 +324,17 @@ class FluxoBattleUI:
         if evento.type != pygame.KEYDOWN:
             return
 
+        # F2 troca o visual (Clássico / Moderno). Durante um golpe a troca é
+        # ignorada, para nenhum personagem mudar de lugar no meio da animação.
+        if evento.key == pygame.K_F2:
+            if not self.animacoes_ativas():
+                alternar_tema()
+                self.aplicar_formacao()
+                LOG_BATALHA.append(f"Visual: {nome_do_tema()}.")
+            return
+
         if self.resultado is not None:
-            if evento.key in (pygame.K_RETURN, pygame.K_SPACE):
+            if evento.key in (pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_SPACE):
                 self.concluida = True
             return
 
@@ -292,16 +347,31 @@ class FluxoBattleUI:
             total = len(self.inimigos_vivos())
             if total == 0:
                 return
-            if evento.key in (pygame.K_LEFT, pygame.K_a):
+            if evento.key in (pygame.K_LEFT, pygame.K_a, pygame.K_KP4):
                 self.indice_alvo = (self.indice_alvo - 1) % total
-            elif evento.key in (pygame.K_RIGHT, pygame.K_d):
+            elif evento.key in (pygame.K_RIGHT, pygame.K_d, pygame.K_KP6):
                 self.indice_alvo = (self.indice_alvo + 1) % total
-            elif evento.key == pygame.K_RETURN:
+            elif evento.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                 self.executar_acao(self.acao_pendente)
             elif evento.key == pygame.K_ESCAPE:
                 self.acao_pendente = None
                 self.mensagem = "Seleção de alvo cancelada. Escolha uma ação."
             return
 
+        # Tema Moderno: menu em lista, navegado com ↑/↓ (ou W/S) e ENTER.
+        if tema_atual() == "moderno":
+            if evento.key in (pygame.K_UP, pygame.K_w):
+                self.cursor_acao = (self.cursor_acao - 1) % 6
+                return
+            if evento.key in (pygame.K_DOWN, pygame.K_s):
+                self.cursor_acao = (self.cursor_acao + 1) % 6
+                return
+            if evento.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+                self.escolher_acao(self.cursor_acao + 1)
+                return
+
         if pygame.K_1 <= evento.key <= pygame.K_6:
             self.escolher_acao(evento.key - pygame.K_0)
+        elif pygame.K_KP1 <= evento.key <= pygame.K_KP6:
+            # Teclado numérico: K_KP1 a K_KP6 equivalem às teclas 1 a 6.
+            self.escolher_acao(evento.key - pygame.K_KP1 + 1)

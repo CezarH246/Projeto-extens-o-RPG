@@ -34,5 +34,5 @@ from batalha_core.helpers import (
     tamanho_corpo,
     tamanho_efeito_com_escala_alvo,
 )
-from batalha_core.interface import BattleUI, criar_batalha, iniciar_janela_batalha
+from batalha_core.interface import BattleUI, criar_batalha, iniciar_janela_batalha, preparar_fundo_animado
 from batalha_core.sprites import SpriteCombatente

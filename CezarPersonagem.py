@@ -5,9 +5,11 @@ import pygame
 #=====================================================
 class Cezar(pygame.sprite.Sprite):
 
-    def __init__(self, *groups):
+    def __init__(self, *groups, tamanho=32):
         # Registra o personagem nos grupos de sprites recebidos.
-        super().__init__(*groups)   
+        super().__init__(*groups)
+        # Lado do sprite em pixels (32 no mapa antigo, maior no covil).
+        self.tamanho = tamanho
 
         # Carrega as imagens usadas quando o personagem está parado.
         # A chave (east, north, south ou west) identifica a direção da imagem.
@@ -36,7 +38,7 @@ class Cezar(pygame.sprite.Sprite):
         self.image = self.imagens_parado[self.direcao_atual]
 
         # O rect guarda a posição e o tamanho usados pelo Pygame para desenhar.
-        self.rect = pygame.Rect(80, 80, 32, 32)
+        self.rect = pygame.Rect(80, 80, tamanho, tamanho)
 
         # Vector2 permite guardar posições com casas decimais durante o movimento.
         self.posicao = pygame.Vector2(self.rect.topleft)
@@ -56,7 +58,9 @@ class Cezar(pygame.sprite.Sprite):
         # Centraliza o carregamento e o redimensionamento de todas as imagens.
         caminho_imagem = f"personagens/Cezar_O_Ladino/{caminho}"
         imagem = pygame.image.load(caminho_imagem).convert_alpha()
-        return pygame.transform.scale(imagem, [32, 32])
+        # Reduzir usa escala suave (sem serrilhado); em 1:1 ou ampliando, mantém o pixel art.
+        escalar = pygame.transform.smoothscale if imagem.get_width() > self.tamanho else pygame.transform.scale
+        return escalar(imagem, [self.tamanho, self.tamanho])
 
     def update(self, tempo_frame):
         # Este método é chamado uma vez por frame pelo grupo de sprites.

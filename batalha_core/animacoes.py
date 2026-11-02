@@ -34,8 +34,13 @@ class FloatingDamage:
         cor = (r, g, b)
         
         texto = fonte.render(f"-{self.dano}", True, cor)
+        sombra = fonte.render(f"-{self.dano}", True, (20, 8, 8))
         texto.set_alpha(int(alpha))
+        sombra.set_alpha(int(alpha))
         rect = texto.get_rect(center=(int(self.x), int(y_flutuante)))
+        # Contorno escuro nos quatro lados, para o número aparecer sobre qualquer cenário.
+        for deslocamento in ((-2, 0), (2, 0), (0, -2), (0, 2)):
+            tela.blit(sombra, rect.move(deslocamento))
         tela.blit(texto, rect)
 
 
@@ -77,6 +82,17 @@ class AnimacaoDash(AnimacaoUltimate):
     """Animação curta de deslocamento do personagem antes do ataque."""
     def __init__(self, frames: list[pygame.Surface], personagem, origem: tuple[int, int], alvo: tuple[int, int], velocidade_animacao: float = 0.04):
         super().__init__(frames, personagem, origem, alvo, velocidade_animacao=velocidade_animacao)
+        # O deslocamento ocupa a corrida inteira: o herói chega ao destino no
+        # último quadro, sem parar no meio do caminho e dar um salto.
+        self.fim_ataque = max(1, len(frames) - 1)
+
+    def atualizar(self, tempo_frame: float) -> bool:
+        # Guarda a sobra de tempo entre quadros, para a velocidade não depender do FPS.
+        self.tempo += tempo_frame
+        while self.tempo >= self.velocidade_animacao and self.indice < len(self.frames):
+            self.tempo -= self.velocidade_animacao
+            self.indice += 1
+        return self.indice < len(self.frames)
 
 
 class AnimacaoHabilidadeMago:

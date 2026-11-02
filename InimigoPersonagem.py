@@ -9,8 +9,9 @@ BASE_DIR = Path(__file__).resolve().parent
 #=====================================================
 class InimigoPeixe(pygame.sprite.Sprite):
 
-    def __init__(self, x, y, eixo="horizontal", limites=None, *groups):
+    def __init__(self, x, y, eixo="horizontal", limites=None, *groups, tamanho=32):
         super().__init__(*groups)
+        self.tamanho = tamanho
 
         self.pasta_inimigo = "inimigos/Inimgo_Peixei"
         self.eixo = eixo
@@ -37,7 +38,7 @@ class InimigoPeixe(pygame.sprite.Sprite):
         self.direcao_atual = "east" if eixo == "horizontal" else "south"
         self.image = self.imagens_caminhada[self.direcao_atual][0]
 
-        self.rect = pygame.Rect(x, y, 32, 32)
+        self.rect = pygame.Rect(x, y, tamanho, tamanho)
         self.posicao = pygame.Vector2(self.rect.topleft)
 
         self.velocidade = 45
@@ -50,7 +51,9 @@ class InimigoPeixe(pygame.sprite.Sprite):
     def carregar_imagem(self, caminho):
         caminho_imagem = f"{self.pasta_inimigo}/{caminho}"
         imagem = pygame.image.load(caminho_imagem).convert_alpha()
-        return pygame.transform.scale(imagem, [32, 32])
+        # Reduzir usa escala suave (sem serrilhado); em 1:1 ou ampliando, mantém o pixel art.
+        escalar = pygame.transform.smoothscale if imagem.get_width() > self.tamanho else pygame.transform.scale
+        return escalar(imagem, [self.tamanho, self.tamanho])
 
     def retangulo_colisao(self):
         return self.rect.inflate(-18, -18)
@@ -88,8 +91,9 @@ class InimigoPeixe(pygame.sprite.Sprite):
 
 class ReiTritaoMapa(pygame.sprite.Sprite):
     """Rei Tritão parado no mapa, usando sua animação idle especial."""
-    def __init__(self, x, y, *groups):
+    def __init__(self, x, y, *groups, tamanho=72):
         super().__init__(*groups)
+        self.tamanho = tamanho
         self.eh_rei_tritao = True
         self.quantidade_combate = 1
         self.eixo = "horizontal"
@@ -111,8 +115,8 @@ class ReiTritaoMapa(pygame.sprite.Sprite):
             for i in range(getattr(gif, "n_frames", 1)):
                 gif.seek(i)
                 dados = gif.convert("RGBA").tobytes()
-                img = pygame.image.fromstring(dados, gif.size, "RGBA").convert_alpha()
-                frames.append(pygame.transform.smoothscale(img, (72, 72)))
+                img = pygame.image.frombytes(dados, gif.size, "RGBA").convert_alpha()
+                frames.append(pygame.transform.smoothscale(img, (self.tamanho, self.tamanho)))
         return frames
 
     def retangulo_colisao(self):

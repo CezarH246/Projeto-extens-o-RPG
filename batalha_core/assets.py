@@ -6,9 +6,20 @@ LARGURA = 1280
 ALTURA = 720
 FPS = 60
 
+# ============================================================
+# RITMO DA BATALHA
+# ============================================================
+# Pausa (segundos) depois de cada ação, antes de o ATB voltar a encher.
+PAUSA_ENTRE_ACOES = 1.0
+# Fração da velocidade do ATB dos inimigos (1.0 = igual à dos heróis).
+# Diminua para os inimigos demorarem mais a agir.
+VELOCIDADE_ATB_INIMIGOS = 0.6
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 ASSETS = PROJECT_DIR / "assets"
 FUNDO_BATALHA = ASSETS / "backgrounds" / "docas_batalha.jpg"
+# Fundo animado (quadros convertidos de vídeo) das batalhas contra os guardas do covil.
+FUNDO_BATALHA_GUARDAS = ASSETS / "mapas_animados" / "batalha_guardas"
 
 ULTIMATE_CEZAR = ASSETS / "ultimates" / "Cezar_Ultimate" / "Cezar_Ultimate"
 ULTIMATE_CEZAR_GIF = ULTIMATE_CEZAR / "Cezar_ultimate.gif"
@@ -111,7 +122,50 @@ DISTANCIA_NASCIMENTO_BOLA = 80        # px à frente do mago onde a bola surge
 # Arena: os heróis ficam à esquerda e os inimigos à direita. O confronto contra o
 # Rei Tritão é uma luta de chefe contra o grupo inteiro, então o boss entra sozinho
 # no meio do campo, entre os dois lados, para ocupar o centro da tela.
-POSICAO_BOSS_CENTRAL = (LARGURA // 2, 330)
+POSICAO_BOSS_CENTRAL = (930, 330)
+
+# Formação em zigue-zague: o tanque (Lucas) na frente, o ladino (Cezar) no
+# meio e mais ao fundo, o mago (Guilherme) atrás. Cada herói tem a própria
+# "coluna" (~215 px, a largura do painel de status), então o painel acima da
+# cabeça de um nunca cobre outro personagem.
+POSICOES_HEROIS = {
+    "Guilherme": (135, 420),
+    "Cezar": (350, 320),
+    "Lucas": (565, 405),
+}
+# Usadas por heróis que não estejam no dicionário acima.
+POSICOES_HEROIS_RESERVA = [(135, 420), (350, 320), (565, 405)]
+# Inimigos em "V" fundo (o do meio bem mais alto): o nome dos inimigos das
+# pontas fica abaixo do corpo do inimigo do meio, mesmo com nomes longos.
+POSICOES_INIMIGOS = [(810, 430), (990, 225), (1170, 430)]
+
+# Formação do tema Moderno: sem painéis acima das cabeças, os personagens
+# descem; o menu de comandos ocupa o canto superior esquerdo, a linha do tempo
+# o topo e os cartões do grupo/registro o rodapé (a partir de y = 605).
+POSICOES_HEROIS_MODERNO = {
+    "Guilherme": (150, 514),
+    "Cezar": (365, 435),
+    "Lucas": (580, 490),
+}
+POSICOES_HEROIS_MODERNO_RESERVA = [(150, 514), (365, 435), (580, 490)]
+POSICOES_INIMIGOS_MODERNO = [(830, 465), (1010, 290), (1190, 465)]
+POSICAO_BOSS_MODERNO = (960, 395)
+
+# Formação no fundo dos guardas do covil: os heróis na plataforma circular à
+# esquerda e os inimigos sobre a ponte de pedra (à direita dela só há mar e
+# penhasco). (heróis por nome, heróis reserva, inimigos), por tema.
+FORMACAO_GUARDAS = {
+    "classico": (
+        {"Guilherme": (175, 415), "Cezar": (365, 330), "Lucas": (550, 405)},
+        [(175, 415), (365, 330), (550, 405)],
+        [(770, 420), (900, 270), (1045, 400)],
+    ),
+    "moderno": (
+        {"Guilherme": (190, 500), "Cezar": (380, 430), "Lucas": (560, 465)},
+        [(190, 500), (380, 430), (560, 465)],
+        [(765, 420), (900, 315), (1045, 425)],
+    ),
+}
 
 
 #CRIAR LISTA DE ATAQUES DE INIMIGOS
@@ -133,6 +187,9 @@ ATAQUES_BASICOS = {
     "Guilherme": ATAQUE_BASICO_GUILHERME,
     "Lucas": ATAQUE_BASICO_LUCAS,
 }
+
+# Segundos por quadro da corrida até o inimigo (maior = corrida mais lenta).
+DASH_TEMPO_POR_QUADRO = {"Cezar": 0.035, "Lucas": 0.06}
 
 #CRIAR LISTA DE DASH
 DASHES = {
@@ -158,6 +215,9 @@ ULTIMATES = {
     "Cezar": ULTIMATE_CEZAR,
     "Guilherme": ULTIMATE_GUILHERME,
 }
+
+# Chave geral das entidades atrás dos heróis. Mude para True para reativá-las.
+ENTIDADES_ATRAS_ATIVAS = False
 
 # Efeito que fica atrás do herói enquanto a Ultimate estiver pronta.
 # Cada entrada define o arquivo, o tamanho base e o deslocamento do centro.
