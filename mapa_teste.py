@@ -17,6 +17,12 @@ from pathlib import Path
 
 import pygame
 
+from Musicas import (
+    tocar_musica_batalha,
+    tocar_musica_exploracao,
+    tocar_musica_vitoria,
+    tocar_musica_Boss,
+)
 
 def preparar_tela_do_sistema() -> None:
     """Ajustes que precisam acontecer antes de a primeira janela ser criada."""
@@ -299,6 +305,7 @@ def registrar_posicao(sprite: pygame.sprite.Sprite) -> None:
 class Jogo:
     def __init__(self):
         pygame.init()
+        tocar_musica_exploracao()
         self.tela_cheia = False
         tamanho_inicial = covil_tritao.TAMANHO if CENA_INICIAL == "covil" else (LARGURA_MAPA, ALTURA_MAPA)
         self.tela = self.criar_janela(tamanho_inicial)
@@ -313,6 +320,7 @@ class Jogo:
         self.mostrar_colisoes = False
         self.batalha = None
         self.inimigo_em_batalha = None
+        self.musica_vitoria_tocada = False
         self.inimigo_ignorado = None
         self.rei_tritao_spawnado = False
         self.rei_tritao_derrotado = False
@@ -531,6 +539,11 @@ class Jogo:
 
     def abrir_batalha(self, inimigo: InimigoPeixe) -> None:
         """Troca a janela do mapa pela tela definida em batalha_ui.py."""
+        pygame.mixer.music.stop()
+        if getattr(inimigo, "eh_rei_tritao", False):
+            tocar_musica_Boss()
+        else:
+            tocar_musica_batalha()
         self.inimigo_em_batalha = inimigo
         self.tela = self.criar_janela((LARGURA_COMBATE, ALTURA_COMBATE))
         pygame.display.set_caption("RPG Saga dos Falidos - Batalha")
@@ -539,6 +552,7 @@ class Jogo:
             rei_tritao=getattr(inimigo, "eh_rei_tritao", False),
             fundo_animado=FUNDO_BATALHA_GUARDAS if getattr(inimigo, "eh_guarda_covil", False) else None,
         )
+        self.musica_vitoria_tocada = False
         self.modo = "combate"
 
     def fechar_batalha(self) -> None:
@@ -560,6 +574,7 @@ class Jogo:
         self.batalha = None
         self.inimigo_em_batalha = None
         self.modo = "mapa"
+        tocar_musica_exploracao()
 
     def processar_eventos(self) -> None:
         for evento in pygame.event.get():
@@ -824,6 +839,9 @@ class Jogo:
                 self.editor.desenhar()
             else:
                 self.batalha.atualizar(tempo_frame)
+                if self.batalha.resultado is True and not self.musica_vitoria_tocada:
+                    tocar_musica_vitoria()
+                    self.musica_vitoria_tocada = True
                 self.batalha.desenhar()
                 if self.batalha.concluida:
                     self.fechar_batalha()

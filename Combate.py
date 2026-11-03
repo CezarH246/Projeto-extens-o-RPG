@@ -8,6 +8,7 @@ age, valida as escolhas e pede aos objetos que executem seus comportamentos.
 import random
 import time
 
+
 from combate_core.configuracao import ESCALAS, TESTE_ULTIMATES_SEM_RESTRICAO, VELOCIDADE_TEXTO
 from combate_core.criacao import (
     criar_cenario_batalha,
