@@ -56,8 +56,6 @@ ate 500 linhas cada:
 - `combate_core/personagens.py` e `combate_core/habilidades.py`: modelos dos
   personagens e acoes dos herois.
 - `combate_core/inimigos.py` e `combate_core/criacao.py`: inimigos e encontros.
-- `combate_core/turnos.py` e `combate_core/batalha.py`: fachadas de
-  compatibilidade; o codigo ativo dos turnos e da luta esta em `Combate.py`.
 - `combate_core/recompensas.py` e `combate_core/utilitarios.py`: recompensas
   e consulta da barra ATB.
 - `batalha_ui.py`: fachada da interface de batalha.
@@ -66,8 +64,28 @@ ate 500 linhas cada:
 - `batalha_core/carregadores.py`, `batalha_core/acoes.py`,
   `batalha_core/fluxo.py` e `batalha_core/renderizacao.py`: carregamento,
   sequencias de acao, estado dos turnos e desenho.
-- `RPGBase.py`: compatibilidade com imports antigos; `Combate.py` e a entrada
-  recomendada para evitar duas versoes diferentes das regras.
+
+### Mapa principal
+
+O antigo `mapa_teste.py` foi dividido para caber no limite de 500 linhas sem
+perder nenhuma funcao:
+
+- `mapa_teste.py`: ponto de entrada e reexportacao da API antiga.
+- `mapa_config.py`: constantes, caminhos, DPI e o dicionario `CENA`.
+- `mapa_colisao.py`: colisao, movimento, animacao e carga do mapa.
+- `mapa_janela.py`: criacao, escala e centralizacao da janela (mixin).
+- `mapa_cenas.py`: personagens, viagens de cena e entrada/saida de batalha
+  (mixin).
+- `mapa_desenho.py`: desenho do mapa, avisos e depuracao de colisoes (mixin).
+- `mapa_jogo.py`: classe `Jogo` e laco principal, combinando os mixins.
+
+### Editor de colisao
+
+- `ferramentas/editor_colisao.py`: classe `Editor` que combina os mixins.
+- `ferramentas/editor_config.py`: constantes, camadas e geometria.
+- `ferramentas/editor_dados.py`: JSON, desfazer e busca de elementos.
+- `ferramentas/editor_interacao.py`: mouse, teclado e modo de teste.
+- `ferramentas/editor_desenho.py`: desenho da interface do editor.
 
 # Documentação do Arquivo `batalha_ui.py`
 

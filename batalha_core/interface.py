@@ -30,6 +30,9 @@ def carregar_fundo_animado(pasta: Path) -> MapaAnimado:
     preparar_fundo_animado(pasta)
     return _FUNDOS_ANIMADOS[pasta].result()  # espera só se a leitura ainda não acabou
 
+# Pilar: Heranca multipla (mixins) - BattleUI recebe metodos de quatro classes.
+# Cada mixin cuida de uma responsabilidade: carregar, agir, controlar o fluxo e
+# desenhar. A classe final so combina os comportamentos, sem copiar codigo.
 class BattleUI(CarregadoresBattleUI, AcoesBattleUI, FluxoBattleUI, RenderizacaoBattleUI):
     """Combine loading, actions, flow, and rendering in one battle screen."""
 

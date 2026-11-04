@@ -1,4 +1,14 @@
-"""Reusable attack, skill, and damage animations."""
+"""Animacoes reutilizaveis de ataque, habilidade, dash e dano.
+
+PILAR DE POO: HERANCA
+    AnimacaoUltimate e AnimacaoHabilidadeMago sao classes base. As classes
+    AnimacaoAtaque, AnimacaoDash, AnimacaoUltimateMago, AnimacaoPersonagemProjetil
+    e AnimacaoEspecialSequencial herdam delas e mudam apenas o necessario.
+
+PILAR DE POO: POLIMORFISMO
+    O loop da batalha chama atualizar() e desenhar() em qualquer animacao. Cada
+    subclasse executa sua propria versao, sem o loop precisar de isinstance().
+"""
 
 import pygame
 
@@ -73,11 +83,13 @@ class AnimacaoUltimate:
         tela.blit(imagem, rect)
 
 
+# Pilar: Heranca - reaproveita atualizar()/desenhar() da classe base.
 class AnimacaoAtaque(AnimacaoUltimate):
     """Mesma lógica da animação de ultimate, mas para o ataque básico."""
     pass
 
 
+# Pilar: Heranca - reaproveita atualizar()/desenhar() da classe base.
 class AnimacaoDash(AnimacaoUltimate):
     """Animação curta de deslocamento do personagem antes do ataque."""
     def __init__(self, frames: list[pygame.Surface], personagem, origem: tuple[int, int], alvo: tuple[int, int], velocidade_animacao: float = 0.04):
@@ -135,6 +147,7 @@ class AnimacaoHabilidadeMago:
         tela.blit(imagem, imagem.get_rect(center=(round(centro.x), round(centro.y))))
 
 
+# Pilar: Heranca - reaproveita atualizar()/desenhar() da classe base.
 class AnimacaoUltimateMago(AnimacaoHabilidadeMago):
     """Mostra a conjuração do Mago e o buraco negro diretamente no alvo."""
 
@@ -206,6 +219,7 @@ class AnimacaoUltimateCezar:
         tela.blit(imagem, imagem.get_rect(center=(round(centro.x), round(centro.y))))
 
 
+# Pilar: Heranca - reaproveita atualizar()/desenhar() da classe base.
 class AnimacaoPersonagemProjetil(AnimacaoHabilidadeMago):
     """Toca o personagem parado enquanto o projétil viaja e explode no alvo."""
 
@@ -236,6 +250,7 @@ class AnimacaoPersonagemProjetil(AnimacaoHabilidadeMago):
             tela.blit(projetil, projetil.get_rect(center=(round(centro.x), round(centro.y))))
 
 
+# Pilar: Heranca - reaproveita atualizar()/desenhar() da classe base.
 class AnimacaoEspecialSequencial(AnimacaoHabilidadeMago):
     """Especial em sequência (especial do Guilherme), quatro estágios:
 

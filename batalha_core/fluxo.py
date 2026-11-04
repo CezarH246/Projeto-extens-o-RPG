@@ -19,6 +19,16 @@ class FluxoBattleUI:
     def herois_vivos(self) -> list:
         return [heroi for heroi in self.herois if heroi.estar_vivo()]
 
+    def restaurar_grupo_apos_vitoria(self) -> None:
+        # Ao vencer, o grupo é revivido e fica com PA cheio para o próximo
+        # encontro. As barras ATB de heróis e inimigos também voltam a zero.
+        for heroi in self.herois:
+            heroi.hp = heroi.hpMax
+            heroi.PA = heroi.PAMax
+
+        for combatente in self.herois + self.inimigos:
+            combatente.resetar_atb()
+
     def verificar_resultado(self) -> None:
         # Vitória ocorre quando todos os inimigos foram derrotados. As
         # recompensas são aplicadas uma única vez para evitar duplicação.
@@ -32,6 +42,7 @@ class FluxoBattleUI:
             self.resultado = True
             self.mensagem = "Vitória! Pressione ENTER para retornar ao mapa."
             LOG_BATALHA.append("Vitória! O inimigo do mapa será removido.")
+            self.restaurar_grupo_apos_vitoria()
 
         # Derrota ocorre quando não resta nenhum herói vivo.
         elif not self.herois_vivos():

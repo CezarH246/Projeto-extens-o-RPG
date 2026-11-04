@@ -58,7 +58,7 @@ class HeroiHabilidades:
         # Pilar: Encapsulamento — a regra da habilidade e seu custo ficam no herói.
         if self.ClasseRPG == "Berserk":
 
-            nome_skill = "Golpe Glamoroso"
+            nome_skill = "Fúria Desenfreada"
 
             dano = (
                 self.ataque
@@ -153,7 +153,7 @@ class HeroiHabilidades:
         # Cada classe recebe seu nome de habilidade e faixa de dano próprios.
         if self.ClasseRPG == "Berserk":
 
-            nome_skill = "Investida Fabulosa"
+            nome_skill = "Investida Furiosa"
 
             dano = (
                 self.ataque
@@ -257,7 +257,7 @@ class HeroiHabilidades:
 
                 return False
 
-            nome_skill = "NÃO ME ESTRESSA PORRA (O VAZIO SUSURRA)"
+            nome_skill = "(O VAZIO SUSURRA)"
 
             # Quanto mais PA gastou, mais forte.
             dano = (
@@ -288,7 +288,7 @@ class HeroiHabilidades:
 
                 return False
 
-            nome_skill = "NÃO TOCA NO CABELO"
+            nome_skill = "As Montanhas de Gelo Tremem"
 
             # Quanto mais dano recebeu,
             # mais forte fica a Ultimate.
@@ -320,7 +320,7 @@ class HeroiHabilidades:
 
                 return False
 
-            nome_skill = "AS SOMBRAS ME GUIAM(È A GARRAFA DE CERVEJA FALANDO)"
+            nome_skill = "O Veneno que Corroe"
 
             # Quanto mais ações realizou,
             # maior o dano.

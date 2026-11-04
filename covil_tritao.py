@@ -1,14 +1,14 @@
-"""Covil do Rei Tritão: mapa animado (convertido de mapa_tristão.mp4 e, depois
-do chefe, de mapa_tritãoposboss.mp4) e colisões.
+"""Covil do Rei Tritão: mapas animados, arena do chefe e colisões.
 
 O grupo chega pela entrada da caverna (alto, à direita), atravessa a ponte de
-pedra sobre o abismo e enfrenta os guardas e o Rei Tritão na plataforma do
-trono. O abismo, a água do mar, as paredes, o trono e as bases das estátuas
-bloqueiam o caminho.
+pedra sobre o abismo e enfrenta os quatro guardas. Quando o último cai, a
+caverna no alto da ponte brilha e leva à arena exclusiva do Rei Tritão; depois
+do chefe, o covil troca para a versão pós-boss com o caminho até o baú.
 
-Todas as coordenadas estão na resolução do mapa (1280x720). As posições de
-personagens são o ponto dos PÉS, assim continuam certas com qualquer tamanho
-de sprite.
+O abismo, a água do mar, as paredes, o trono e as bases das estátuas bloqueiam
+o caminho. Todas as coordenadas estão na resolução do mapa (1280x720). As
+posições de personagens são o ponto dos PÉS, assim continuam certas com
+qualquer tamanho de sprite.
 """
 
 from __future__ import annotations
@@ -91,13 +91,24 @@ ALCANCE_BAU = 75
 # rochedo da direita (o chão dela é o "chao_posboss" da colisão).
 PASTA_QUADROS_POSBOSS = PASTA_QUADROS.parent / "mapa_tritao_posboss"
 
+# Arena exclusiva do chefe: só entra nela depois de derrotar os quatro guardas.
+PASTA_QUADROS_BOSS = PASTA_QUADROS.parent / "mapa_covil_tritão"
+
 # Pés do líder ao chegar: na ponte, logo em frente à porta da caverna.
 ENTRADA = (1172, 190)
 # Pés do Rei Tritão, de pé diante do trono.
 POSICAO_REI = (380, 420)
 
+# Caverna no alto da ponte que começa a brilhar quando os guardas caem.
+# Pisar nela leva à arena exclusiva do Rei Tritão.
+CAVERNA_BOSS = pygame.Rect(1102, 114, 140, 140)
+
+# Chegada do grupo e posição do chefe na arena nova.
+ENTRADA_BOSS = (640, 620)
+POSICAO_REI_BOSS = (640, 400)
+
 # Guardas que patrulham o covil: (pés x, pés y, eixo da patrulha).
-# O Rei Tritão só surge no trono depois que todos eles forem derrotados.
+# A caverna do chefe só se acende depois que todos eles forem derrotados.
 PATRULHAS = [
     (780, 368, "horizontal"),   # na ponte, barrando a passagem
     (200, 420, "horizontal"),   # plataforma, à esquerda
@@ -111,4 +122,11 @@ def criar_mascara_chao(pos_boss: bool = False) -> pygame.mask.Mask:
     superficie = pygame.Surface(TAMANHO, pygame.SRCALPHA)
     for poligono in CHAO + (CHAO_POSBOSS if pos_boss else []):
         pygame.draw.polygon(superficie, (255, 255, 255, 255), poligono)
+    return pygame.mask.from_surface(superficie)
+
+
+def criar_mascara_chao_boss() -> pygame.mask.Mask:
+    """Máscara da arena do chefe: a tela inteira é chão livre."""
+    superficie = pygame.Surface(TAMANHO, pygame.SRCALPHA)
+    superficie.fill((255, 255, 255, 255))
     return pygame.mask.from_surface(superficie)
