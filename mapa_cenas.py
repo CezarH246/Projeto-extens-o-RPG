@@ -18,11 +18,14 @@ import covil_tritao
 from Musicas import (
     tocar_musica_Boss,
     tocar_musica_batalha,
-    tocar_musica_exploracao,
+    tocar_musica_deepcave,
 )
 
 # config contem CENA e as constantes compartilhadas.
 import mapa_config as config
+
+# Transicoes centraliza os fades usados entre as cenas.
+from Transicoes import executar_transicao
 
 # MapaAnimado desenha os quadros animados do covil (e do fundo da batalha).
 from mapa_animado import MapaAnimado
@@ -112,14 +115,23 @@ class CenasMixin:
 
     def abrir_batalha(self, inimigo: InimigoPeixe) -> None:
         """Troca a janela do mapa pela tela definida em batalha_ui.py."""
-        # Para a musica de exploracao antes de comecar a luta.
+        # A trilha da batalha comeca junto com a transicao para fora do mapa.
         pygame.mixer.music.stop()
-
-        # O chefe tem musica propria; inimigos comuns usam a musica de batalha.
         if getattr(inimigo, "eh_rei_tritao", False):
             tocar_musica_Boss()
         else:
             tocar_musica_batalha()
+
+        if not executar_transicao(
+            self.tela,
+            self.desenhar_mapa,
+            self.apresentar,
+            self.relogio,
+            fps=config.FPS,
+            direcao="fechar",
+        ):
+            self.rodando = False
+            return
 
         # Guarda o inimigo para remove-lo do mapa se o grupo vencer.
         self.inimigo_em_batalha = inimigo
@@ -142,9 +154,30 @@ class CenasMixin:
 
         # O loop principal passa a atualizar a batalha em vez do mapa.
         self.modo = "combate"
+        if not executar_transicao(
+            self.tela,
+            self.batalha.desenhar,
+            self.apresentar,
+            self.relogio,
+            fps=config.FPS,
+            direcao="abrir",
+        ):
+            self.rodando = False
 
     def fechar_batalha(self) -> None:
         'Volta ao mapa após o fim do combate. Em vitória, remove o inimigo tocado.'
+        # Fecha a cena de combate antes de restaurar a resolução do mapa.
+        if not executar_transicao(
+            self.tela,
+            self.batalha.desenhar,
+            self.apresentar,
+            self.relogio,
+            fps=config.FPS,
+            direcao="fechar",
+        ):
+            self.rodando = False
+            return
+
         # Vitoria com um inimigo do mapa: remove o sprite derrotado.
         if self.batalha.resultado is True and self.inimigo_em_batalha is not None:
             era_rei_tritao = getattr(self.inimigo_em_batalha, "eh_rei_tritao", False)
@@ -169,7 +202,18 @@ class CenasMixin:
         self.batalha = None
         self.inimigo_em_batalha = None
         self.modo = "mapa"
-        tocar_musica_exploracao()
+        tocar_musica_deepcave()
+
+        # Revela o mapa já atualizado após a vitória, derrota ou fuga.
+        if not executar_transicao(
+            self.tela,
+            self.desenhar_mapa,
+            self.apresentar,
+            self.relogio,
+            fps=config.FPS,
+            direcao="abrir",
+        ):
+            self.rodando = False
 
     def abrir_editor_colisao(self) -> None:
         'F3 no covil: o editor de colisão abre por cima do jogo, que fica pausado.'

@@ -18,8 +18,8 @@ import pygame
 # covil_tritao guarda tamanhos, entrada e patrulhas do mapa animado.
 import covil_tritao
 
-# Funcoes de musica da exploracao e da vitoria.
-from Musicas import tocar_musica_exploracao, tocar_musica_vitoria
+# Funcoes de musica da exploracao no covil e da vitoria.
+from Musicas import tocar_musica_deepcave, tocar_musica_vitoria
 
 # config concentra constantes e a cena atual.
 import mapa_config as config
@@ -54,7 +54,7 @@ class Jogo(JanelaMixin, CenasMixin, DesenhoMixin):
         pygame.init()
 
         # Comeca a tocar a musica de exploracao.
-        tocar_musica_exploracao()
+        tocar_musica_deepcave()
 
         # Flag de tela cheia (F11 alterna).
         self.tela_cheia = False
@@ -385,7 +385,9 @@ class Jogo(JanelaMixin, CenasMixin, DesenhoMixin):
             # Cada modo tem sua atualizacao e desenho.
             if self.modo == "mapa":
                 self.atualizar_mapa(tempo_frame)
-                self.desenhar_mapa()
+                # Abrir uma batalha durante a atualizacao ja desenha sua transicao.
+                if self.modo == "mapa":
+                    self.desenhar_mapa()
             elif self.modo == "bau":
                 # O mapa continua animado por tras do bolo e da carta.
                 if self.mapa_animado is not None:
