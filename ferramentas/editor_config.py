@@ -60,13 +60,17 @@ CAMADAS = {
     ),
 }
 
-# Ordem dos botoes e atalhos numericos das camadas.
+# Ordem dos botoes. Cada mapa usa so parte das camadas (veja colisoes_mapas.CENAS);
+# os atalhos 1, 2, 3... seguem a ordem das camadas que o mapa usa.
 ORDEM_CAMADAS = list(CAMADAS)
-TECLAS_CAMADA = {
-    pygame.K_1: "chao",
-    pygame.K_2: "chao_posboss",
-    pygame.K_3: "bloqueios",
-    pygame.K_4: "oclusores",
+TECLAS_NUMERO = [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4]
+
+# Nome de cada fundo mostrado ao trocar com Tab.
+NOMES_FUNDOS = {
+    "inicial": "mapa inicial",
+    "posboss": "mapa pós-boss",
+    "arena": "arena do Rei Tritão",
+    "mapa": "mapa",
 }
 
 # Raios de tolerancia para selecionar pontos, linhas e alcas.
@@ -153,7 +157,7 @@ class Botao:
 __all__ = [
     "copy", "json", "math", "pygame", "covil_tritao",
     "PROJETO", "LARGURA", "ALTURA", "CAMADAS", "ORDEM_CAMADAS",
-    "TECLAS_CAMADA", "RAIO_PONTO", "RAIO_LINHA", "LADO_ALCA",
+    "TECLAS_NUMERO", "NOMES_FUNDOS", "RAIO_PONTO", "RAIO_LINHA", "LADO_ALCA",
     "MAXIMO_DESFAZER", "ALTURA_BARRA", "ALTURA_EXPLICACAO", "ALTURA_RODAPE",
     "COR_PAINEL", "COR_TEXTO", "COR_DESTAQUE", "mapa_teste",
     "distancia_ate_segmento", "ponto_dentro", "cantos", "Botao",

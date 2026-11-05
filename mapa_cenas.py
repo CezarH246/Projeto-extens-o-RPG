@@ -27,6 +27,9 @@ import mapa_config as config
 # Transicoes centraliza os fades usados entre as cenas.
 from Transicoes import executar_transicao
 
+# Cutscene do kraken, antes da primeira luta contra o Rei Tritao.
+from cutscene import CUTSCENE_KRAKEN, tocar_cutscene
+
 # MapaAnimado desenha os quadros animados do covil (e do fundo da batalha).
 from mapa_animado import MapaAnimado
 
@@ -39,13 +42,17 @@ from GuilhermePersonagem import Guilherme
 from InimigoPersonagem import InimigoPeixe, ReiTritaoMapa
 
 # Funcoes de colisao reaproveitadas do mapa.
-from mapa_colisao import altura_dos_pes, posicionar_pelos_pes
+from mapa_colisao import altura_dos_pes, desenhar_mapa_provisorio, posicionar_pelos_pes
+
+# Colisao editavel (F3) de cada mapa, um arquivo por mapa.
+import colisoes_mapas
 
 # A fachada batalha_ui esconde os modulos de batalha_core.
 from batalha_ui import (
     ALTURA as ALTURA_COMBATE,
     LARGURA as LARGURA_COMBATE,
     FUNDO_BATALHA_GUARDAS,
+    FUNDO_BATALHA_REI_TRITAO,
     criar_batalha,
     preparar_fundo_animado,
 )
@@ -117,12 +124,32 @@ class CenasMixin:
         """Troca a janela do mapa pela tela definida em batalha_ui.py."""
         # A trilha da batalha comeca junto com a transicao para fora do mapa.
         pygame.mixer.music.stop()
-        if getattr(inimigo, "eh_rei_tritao", False):
+        eh_rei = getattr(inimigo, "eh_rei_tritao", False)
+
+        # Primeira vez contra o Rei: cutscene do kraken emergindo do mar (ela
+        # comeca na arena e termina no cenario da batalha). Da para pular.
+        tocou_cutscene = False
+        if eh_rei and not getattr(self, "cutscene_kraken_vista", False):
+            self.cutscene_kraken_vista = True
+            tocou_cutscene = True
+            # Quem esta no mapa (o lider e o Rei) continua aparecendo na cutscene,
+            # na mesma ordem de desenho do mapa (pes mais abaixo ficam na frente).
+            no_mapa = sorted(self.grupo_objetos, key=lambda item: item.rect.top + altura_dos_pes(item))
+            personagens = [(item.image, item.rect.copy()) for item in no_mapa]
+            if not tocar_cutscene(
+                CUTSCENE_KRAKEN, self.tela, self.apresentar, self.relogio,
+                fps=config.FPS, personagens=personagens,
+            ):
+                self.rodando = False
+                return
+
+        if eh_rei:
             tocar_musica_Boss()
         else:
             tocar_musica_batalha()
 
-        if not executar_transicao(
+        # A cutscene ja termina escurecendo a tela: nada de mosaico por cima.
+        if not tocou_cutscene and not executar_transicao(
             self.tela,
             self.desenhar_mapa,
             self.apresentar,
@@ -140,13 +167,21 @@ class CenasMixin:
         self.tela = self.criar_janela((LARGURA_COMBATE, ALTURA_COMBATE))
         pygame.display.set_caption("RPG Saga dos Falidos - Batalha")
 
+        # Fundo animado: guardas do covil e Rei Tritao tem cenario proprio.
+        if getattr(inimigo, "eh_rei_tritao", False):
+            fundo = FUNDO_BATALHA_REI_TRITAO
+        elif getattr(inimigo, "eh_guarda_covil", False):
+            fundo = FUNDO_BATALHA_GUARDAS
+        else:
+            fundo = None
+
         # criar_batalha pertence a batalha_ui: aqui so passamos os modelos e o fundo.
         self.batalha = criar_batalha(
             self.tela,
             self.herois_combate,
             inimigo.quantidade_combate,
             rei_tritao=getattr(inimigo, "eh_rei_tritao", False),
-            fundo_animado=FUNDO_BATALHA_GUARDAS if getattr(inimigo, "eh_guarda_covil", False) else None,
+            fundo_animado=fundo,
         )
 
         # Permite tocar a musica de vitoria apenas uma vez por luta.
@@ -215,29 +250,61 @@ class CenasMixin:
         ):
             self.rodando = False
 
+    def foto_do_mapa(self) -> pygame.Surface:
+        """So o fundo do mapa atual (sem personagens), para o editor desenhar por cima."""
+        if self.mapa_animado is not None:
+            return self.mapa_animado.imagem.copy()
+        if self.mapa_imagem is not None:
+            return self.mapa_imagem.copy()
+        foto = pygame.Surface(self.tela.get_size())
+        desenhar_mapa_provisorio(foto)
+        return foto
+
     def abrir_editor_colisao(self) -> None:
-        'F3 no covil: o editor de colisão abre por cima do jogo, que fica pausado.'
+        'F3 em qualquer mapa: o editor de colisão abre por cima do jogo, que fica pausado.'
         # Import adiado: evita carregar o editor quando o jogador nao o usa.
         from ferramentas.editor_colisao import Editor
+
+        # No covil o editor carrega os dois fundos (inicial e pos-boss); nos
+        # outros mapas usa o fundo que esta na tela agora.
+        if self.cena == "covil":
+            fundos, fundo = None, ("posboss" if self.rei_tritao_derrotado else "inicial")
+        else:
+            nome = "arena" if self.cena == "covil_boss" else "mapa"
+            fundos, fundo = {nome: self.foto_do_mapa()}, nome
 
         # O editor recebe a tela logica, a conversao do mouse e um callback de salvamento.
         self.editor = Editor(
             tela=self.tela,
             converter_mouse=self.mouse_na_tela,
             ao_salvar=self.aplicar_colisao_salva,
-            fundo="posboss" if self.rei_tritao_derrotado else "inicial",
+            fundo=fundo,
+            cena=self.cena,
+            fundos=fundos,
         )
         self.modo = "editor"
 
     def aplicar_colisao_salva(self) -> None:
-        'Relê a colisão salva no editor e passa a usá-la sem reiniciar o jogo.'
-        # Recarrega os dados do JSON e atualiza os bloqueios e a mascara de chao.
-        covil_tritao.recarregar_colisao()
-        config.CENA["bloqueios"] = covil_tritao.BLOQUEIOS
-        config.CENA["chao"] = covil_tritao.criar_mascara_chao(pos_boss=self.rei_tritao_derrotado)
+        'Lê a colisão salva do mapa atual e passa a usá-la sem reiniciar o jogo.'
+        if self.cena == "covil":
+            # Covil: chao (mais o caminho pos-boss, se o Rei ja caiu), bloqueios e estatuas.
+            covil_tritao.recarregar_colisao()
+            config.CENA["bloqueios"] = covil_tritao.BLOQUEIOS
+            config.CENA["chao"] = covil_tritao.criar_mascara_chao(pos_boss=self.rei_tritao_derrotado)
+            self.oclusores = [covil_tritao.Oclusor(poligono) for poligono in covil_tritao.OCLUSORES]
+            return
 
-        # Recria os oclusores (estatuas) com os poligonos atualizados.
-        self.oclusores = [covil_tritao.Oclusor(poligono) for poligono in covil_tritao.OCLUSORES]
+        # Arena do Rei e mapa de teste: cada um com o seu arquivo (colisoes_mapas).
+        dados = colisoes_mapas.carregar(self.cena)
+        config.CENA["bloqueios"] = colisoes_mapas.bloqueios(dados)
+        self.oclusores = colisoes_mapas.oclusores(dados)
+        self.poligonos_chao = [p for p in dados["chao"] if len(p) >= 3]
+        if self.cena == "covil_boss":
+            # Sem contorno de chao, a arena inteira continua livre.
+            config.CENA["chao"] = covil_tritao.criar_mascara_chao_boss()
+        else:
+            # Mapa de teste: sem contorno de chao, vale a regra antiga (tudo livre).
+            config.CENA["chao"] = colisoes_mapas.mascara_chao(dados["chao"], config.CENA["tamanho"])
 
     def fechar_editor_colisao(self) -> None:
         """Volta do editor para o mapa."""
@@ -264,6 +331,7 @@ class CenasMixin:
         # O fundo da batalha dos guardas e pesado: ja vai sendo lido em segundo
         # plano enquanto o grupo anda, para a primeira luta nao demorar a abrir.
         preparar_fundo_animado(FUNDO_BATALHA_GUARDAS)
+        preparar_fundo_animado(FUNDO_BATALHA_REI_TRITAO)
 
         # Tamanhos dos sprites especificos do covil.
         tamanhos = covil_tritao.TAMANHOS_SPRITES
@@ -302,7 +370,7 @@ class CenasMixin:
         self.escurecimento = 1.0
         self.mensagem = (
             "Covil do Rei Tritão: derrote os guardas | "
-            "WASD/setas: mover | F3: editar colisão | F11: tela cheia"
+            "WASD/setas: mover | M: música | F3: editar colisão | F11: tela cheia"
         )
 
     def liberar_caverna_boss(self) -> None:
@@ -314,15 +382,14 @@ class CenasMixin:
 
     def entrar_no_covil_boss(self) -> None:
         'Leva o grupo à arena exclusiva do Rei Tritão.'
-        # A arena ocupa a tela toda e não tem obstáculos.
+        # A colisao da arena vem do arquivo dela (editavel com F3); sem arquivo,
+        # a arena ocupa a tela toda e nao tem obstaculos.
         self.cena = "covil_boss"
         config.CENA["tamanho"] = covil_tritao.TAMANHO
-        config.CENA["bloqueios"] = []
-        config.CENA["chao"] = covil_tritao.criar_mascara_chao_boss()
 
-        # Carrega o video do novo mapa e remove os oclusores do covil antigo.
+        # Carrega o video do novo mapa; chao, bloqueios e estatuas sao os da arena.
         self.mapa_animado = MapaAnimado(covil_tritao.PASTA_QUADROS_BOSS)
-        self.oclusores = []
+        self.aplicar_colisao_salva()
 
         # Garante que a tela lógica já está no tamanho da arena.
         if self.tela.get_size() != covil_tritao.TAMANHO:

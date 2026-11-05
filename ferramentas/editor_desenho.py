@@ -16,15 +16,14 @@ import covil_tritao
 # config guarda a referencia ao mapa_teste usada no modo de teste.
 import ferramentas.editor_config as config
 from ferramentas.editor_config import (
-    ALTURA,
     ALTURA_BARRA,
     ALTURA_EXPLICACAO,
     ALTURA_RODAPE,
     CAMADAS,
+    NOMES_FUNDOS,
     COR_DESTAQUE,
     COR_PAINEL,
     COR_TEXTO,
-    LARGURA,
     cantos,
 )
 
@@ -38,7 +37,7 @@ class DesenhoMixin:
         _, cor, _, _ = CAMADAS[chave]
 
         # Superficie transparente para o preenchimento semitransparente.
-        preenchimento = pygame.Surface(covil_tritao.TAMANHO, pygame.SRCALPHA)
+        preenchimento = pygame.Surface(self.tamanho, pygame.SRCALPHA)
 
         for i, poligono in enumerate(self.dados[chave]):
             selecionado = ativa and i == self.selecionado
@@ -107,7 +106,7 @@ class DesenhoMixin:
         """Desenha os retangulos da camada de bloqueios."""
         # Cor e preenchimento proprio dos bloqueios.
         _, cor, _, _ = CAMADAS["bloqueios"]
-        preenchimento = pygame.Surface(covil_tritao.TAMANHO, pygame.SRCALPHA)
+        preenchimento = pygame.Surface(self.tamanho, pygame.SRCALPHA)
 
         for i, retangulo in enumerate(self.dados["bloqueios"]):
             r = pygame.Rect(retangulo)
@@ -169,7 +168,7 @@ class DesenhoMixin:
         """Desenha a barra superior de botoes e a explicacao da camada."""
         # Faixa semitransparente no topo.
         barra = pygame.Surface(
-            (LARGURA, ALTURA_BARRA + ALTURA_EXPLICACAO),
+            (self.largura, ALTURA_BARRA + ALTURA_EXPLICACAO),
             pygame.SRCALPHA,
         )
         barra.fill((*COR_PAINEL, 235))
@@ -238,13 +237,13 @@ class DesenhoMixin:
         mouse = self.mouse()
 
         # Faixa semitransparente.
-        rodape = pygame.Surface((LARGURA, ALTURA_RODAPE), pygame.SRCALPHA)
+        rodape = pygame.Surface((self.largura, ALTURA_RODAPE), pygame.SRCALPHA)
         rodape.fill((*COR_PAINEL, 235))
-        self.tela.blit(rodape, (0, ALTURA - ALTURA_RODAPE))
+        self.tela.blit(rodape, (0, self.altura - ALTURA_RODAPE))
 
         # Texto da direita: fundo e coordenadas.
         estado = (
-            f"fundo: {'pós-boss' if self.fundo == 'posboss' else 'inicial'} (Tab)"
+            f"fundo: {NOMES_FUNDOS.get(self.fundo, self.fundo)}{' (Tab)' if len(self.fundos) > 1 else ''}"
             f"   |   x {mouse[0]}, y {mouse[1]}"
         )
         if self.alterado:
@@ -257,13 +256,20 @@ class DesenhoMixin:
         )
         self.tela.blit(
             texto_estado,
-            (LARGURA - texto_estado.get_width() - 10, ALTURA - ALTURA_RODAPE + 4),
+            (self.largura - texto_estado.get_width() - 10, self.altura - ALTURA_RODAPE + 4),
         )
 
-        # Texto da esquerda: aviso atual.
+        # Texto da esquerda: aviso atual, encurtado com "..." se nao couber ao
+        # lado do estado (em mapas estreitos, como o de teste).
+        espaco = self.largura - texto_estado.get_width() - 30
+        aviso = self.aviso
+        if self.fonte.size(aviso)[0] > espaco:
+            while aviso and self.fonte.size(aviso + "…")[0] > espaco:
+                aviso = aviso[:-1]
+            aviso = aviso.rstrip() + "…"
         self.tela.blit(
-            self.fonte.render(self.aviso, True, (255, 235, 160)),
-            (10, ALTURA - ALTURA_RODAPE + 4),
+            self.fonte.render(aviso, True, (255, 235, 160)),
+            (10, self.altura - ALTURA_RODAPE + 4),
         )
 
     def desenhar_dica_do_cursor(self) -> None:
@@ -288,9 +294,9 @@ class DesenhoMixin:
         caixa.topleft = (mouse[0] + 16, mouse[1] + 14)
 
         # Evita que a caixa saia da tela.
-        if caixa.right > LARGURA:
+        if caixa.right > self.largura:
             caixa.right = mouse[0] - 8
-        if caixa.bottom > ALTURA - ALTURA_RODAPE:
+        if caixa.bottom > self.altura - ALTURA_RODAPE:
             caixa.bottom = mouse[1] - 8
 
         pygame.draw.rect(self.tela, (255, 236, 150), caixa, border_radius=5)
@@ -341,7 +347,7 @@ class DesenhoMixin:
         # Caixa no canto superior direito.
         largura = max(self.fonte.size(linha)[0] for linha in linhas) + 24
         caixa = pygame.Rect(
-            LARGURA - largura - 10,
+            self.largura - largura - 10,
             ALTURA_BARRA + ALTURA_EXPLICACAO + 8,
             largura,
             len(linhas) * 19 + 14,
@@ -372,7 +378,7 @@ class DesenhoMixin:
             mostrar_posboss = (
                 self.fundo == "posboss" or self.camada == "chao_posboss"
             )
-            for chave in ("chao", "chao_posboss", "oclusores"):
+            for chave in [c for c in ("chao", "chao_posboss", "oclusores") if c in self.camadas]:
                 if chave == "chao_posboss" and not mostrar_posboss:
                     continue
                 self.desenhar_contornos(chave, chave == self.camada)

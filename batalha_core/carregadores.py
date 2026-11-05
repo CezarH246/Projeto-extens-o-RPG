@@ -315,6 +315,8 @@ class CarregadoresBattleUI:
             inimigos, boss = POSICOES_INIMIGOS, POSICAO_BOSS_CENTRAL
         if self.pasta_fundo_animado == FUNDO_BATALHA_GUARDAS:
             por_nome, reserva, inimigos = FORMACAO_GUARDAS[tema_atual()]
+        elif self.pasta_fundo_animado == FUNDO_BATALHA_REI_TRITAO:
+            por_nome, reserva, boss = FORMACAO_REI_NA_ARENA[tema_atual()]
         # A posição depende do papel do herói (tanque na frente), não da ordem da lista.
         posicoes_herois = [
             por_nome.get(heroi.nome, reserva[indice]) for indice, heroi in enumerate(self.herois[:3])

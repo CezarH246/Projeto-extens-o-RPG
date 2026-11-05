@@ -15,14 +15,15 @@ import covil_tritao
 # Cezar e criado no modo de teste para simular o jogador andando.
 from CezarPersonagem import Cezar
 
+# colisoes_mapas monta mascara, bloqueios e oclusores para o modo de teste.
+import colisoes_mapas
+
 # config guarda a referencia compartilhada a mapa_teste e constantes.
 import ferramentas.editor_config as config
 from ferramentas.editor_config import (
-    ALTURA,
     ALTURA_BARRA,
     ALTURA_EXPLICACAO,
-    LARGURA,
-    TECLAS_CAMADA,
+    NOMES_FUNDOS,
     cantos,
 )
 
@@ -144,8 +145,8 @@ class InteracaoMixin:
     def arrastar(self, pos) -> None:
         """Atualiza o item sendo arrastado, limitando a posicao ao mapa."""
         # Mantem o mouse dentro dos limites do mapa.
-        x = max(0, min(LARGURA, pos[0]))
-        y = max(0, min(ALTURA, pos[1]))
+        x = max(0, min(self.largura, pos[0]))
+        y = max(0, min(self.altura, pos[1]))
 
         # O primeiro item da tupla diz o tipo de arraste.
         tipo = self.arraste[0]
@@ -187,27 +188,18 @@ class InteracaoMixin:
             self.aviso = "Voltou a editar."
             return
 
-        # Monta a mascara de chao a partir dos poligonos das camadas de chao.
+        # Monta a mascara de chao a partir dos poligonos das camadas de chao
+        # (sem nenhum poligono, o mapa inteiro e livre, como no jogo).
         pos_boss = self.fundo == "posboss"
         chao = self.dados["chao"] + (
-            self.dados["chao_posboss"] if pos_boss else []
+            self.dados.get("chao_posboss", []) if pos_boss else []
         )
-        superficie = pygame.Surface(covil_tritao.TAMANHO, pygame.SRCALPHA)
-        for poligono in chao:
-            if len(poligono) >= 3:
-                pygame.draw.polygon(superficie, (255, 255, 255, 255), poligono)
 
         # Copia os dados editados para a CENA usada pelas funcoes do mapa.
-        mapa_teste.CENA["tamanho"] = covil_tritao.TAMANHO
-        mapa_teste.CENA["chao"] = pygame.mask.from_surface(superficie)
-        mapa_teste.CENA["bloqueios"] = [
-            pygame.Rect(r) for r in self.dados["bloqueios"] if r[2] > 2 and r[3] > 2
-        ]
-        self.oclusores_teste = [
-            covil_tritao.Oclusor([tuple(p) for p in poligono])
-            for poligono in self.dados["oclusores"]
-            if len(poligono) >= 3
-        ]
+        mapa_teste.CENA["tamanho"] = self.tamanho
+        mapa_teste.CENA["chao"] = colisoes_mapas.mascara_chao(chao, self.tamanho)
+        mapa_teste.CENA["bloqueios"] = colisoes_mapas.bloqueios(self.dados)
+        self.oclusores_teste = colisoes_mapas.oclusores(self.dados)
 
         # Cria o Cezar no tamanho do covil e aplica a velocidade do mapa.
         self.cezar = Cezar(tamanho=covil_tritao.TAMANHOS_SPRITES["Cezar"])
@@ -215,13 +207,18 @@ class InteracaoMixin:
         self.cezar.quadro_animacao = 0
         self.cezar.tempo_animacao = 0.0
 
-        # Comeca no mouse se ele estiver sobre o chao; senao, na entrada.
-        if mapa_teste.CENA["chao"].get_at(
-            (min(pos[0], LARGURA - 1), min(pos[1], ALTURA - 1))
-        ):
+        # Comeca no mouse se ele estiver sobre o chao; senao, na entrada do covil
+        # (ou no meio de outro mapa).
+        mascara = mapa_teste.CENA["chao"]
+        no_chao = mascara is None or mascara.get_at(
+            (max(0, min(pos[0], self.largura - 1)), max(0, min(pos[1], self.altura - 1)))
+        )
+        if no_chao:
             inicio = pos
-        else:
+        elif self.cena == "covil":
             inicio = covil_tritao.ENTRADA
+        else:
+            inicio = (self.largura // 2, self.altura // 2)
         mapa_teste.posicionar_pelos_pes(self.cezar, inicio)
 
         self.testando = True
@@ -295,14 +292,13 @@ class InteracaoMixin:
         elif self.testando:
             # No teste, as outras teclas sao para andar.
             return
-        elif evento.key in TECLAS_CAMADA:
-            self.trocar_camada(TECLAS_CAMADA[evento.key])
-        elif evento.key == pygame.K_TAB:
-            # Alterna o fundo inicial/pos-boss.
-            self.fundo = "posboss" if self.fundo == "inicial" else "inicial"
-            self.aviso = (
-                f"Fundo: mapa {'pós-boss' if self.fundo == 'posboss' else 'inicial'}."
-            )
+        elif evento.key in self.teclas_camada:
+            self.trocar_camada(self.teclas_camada[evento.key])
+        elif evento.key == pygame.K_TAB and len(self.fundos) > 1:
+            # Passa para o proximo fundo do mapa (no covil: inicial/pos-boss).
+            nomes = list(self.fundos)
+            self.fundo = nomes[(nomes.index(self.fundo) + 1) % len(nomes)]
+            self.aviso = f"Fundo: {NOMES_FUNDOS.get(self.fundo, self.fundo)}."
         elif evento.key == pygame.K_f:
             self.preencher = not self.preencher
         elif evento.key == pygame.K_h:

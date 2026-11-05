@@ -3,6 +3,7 @@
 Uso (na pasta do projeto):
     pip install imageio-ffmpeg        # só para converter; o jogo não precisa
     python ferramentas/converter_video_mapa.py "caminho/do/video.mp4" nome_do_mapa
+    (opcional: --fim 4.75 usa só até 4,75 s, para cortar um final estranho)
 
 Gera assets/mapas_animados/<nome_do_mapa>/ com os quadros (JPEG) e o info.json,
 prontos para a classe MapaAnimado (mapa_animado.py). O último segundo do vídeo
@@ -46,24 +47,48 @@ def main() -> None:
     parser.add_argument("--altura", type=int, default=720)
     parser.add_argument("--qualidade", type=int, default=90, help="qualidade do JPEG (1 a 100)")
     parser.add_argument("--transicao", type=float, default=1.0, help="segundos de crossfade no loop")
+    parser.add_argument(
+        "--fim", type=float, default=None,
+        help="usa o vídeo só até este segundo (corta um final que não serve, ex.: --fim 4.75)",
+    )
+    parser.add_argument(
+        "--vai-e-volta", action="store_true",
+        help="em vez de fundir o fim no começo, toca para frente e depois de trás para frente "
+             "(sem emenda; bom quando o começo e o fim são muito diferentes)",
+    )
+    parser.add_argument(
+        "--cutscene", action="store_true",
+        help="vídeo que toca uma vez só (sem loop): grava em assets/cutscenes/<nome> e "
+             "extrai o som para audio.ogg (use junto com --fps 24 para ficar fluido)",
+    )
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory() as temporaria:
         quadros, fps_video = extrair_quadros(args.video, Path(temporaria))
+    if args.fim is not None:
+        quadros = quadros[: max(1, round(args.fim * fps_video))]
 
     total = len(quadros)
-    transicao = max(1, round(fps_video * args.transicao))
-    emendados = []
-    for i in range(total - transicao):
-        if i < transicao:
-            emendados.append(Image.blend(quadros[total - transicao + i], quadros[i], i / transicao))
-        else:
-            emendados.append(quadros[i])
+    if args.cutscene:
+        emendados = quadros  # toca uma vez, do começo ao fim: nada de emenda
+    elif args.vai_e_volta:
+        # Ida e volta sem repetir as pontas: 0 1 2 ... n-1 n-2 ... 1 (e recomeça no 0).
+        emendados = quadros + quadros[-2:0:-1]
+    else:
+        transicao = max(1, round(fps_video * args.transicao))
+        emendados = []
+        for i in range(total - transicao):
+            if i < transicao:
+                emendados.append(Image.blend(quadros[total - transicao + i], quadros[i], i / transicao))
+            else:
+                emendados.append(quadros[i])
 
     passo = max(1, round(fps_video / args.fps))
     selecionados = emendados[::passo]
-    saida = PROJETO / "assets" / "mapas_animados" / args.nome
+    saida = PROJETO / "assets" / ("cutscenes" if args.cutscene else "mapas_animados") / args.nome
     saida.mkdir(parents=True, exist_ok=True)
+    if args.cutscene:
+        extrair_audio(args.video, saida / "audio.ogg", args.fim)
     for antigo in saida.glob("quadro_*.jpg"):
         antigo.unlink()
     for indice, quadro in enumerate(selecionados):
@@ -77,8 +102,23 @@ def main() -> None:
     tamanho = sum(p.stat().st_size for p in saida.glob("quadro_*.jpg"))
     print(
         f"{saida}: {len(selecionados)} quadros, {fps_final} fps, "
-        f"{len(selecionados) / fps_final:.1f} s em loop, {tamanho / 1e6:.1f} MB"
+        f"{len(selecionados) / fps_final:.1f} s{'' if args.cutscene else ' em loop'}, {tamanho / 1e6:.1f} MB"
     )
+
+
+def extrair_audio(video: Path, destino: Path, fim: float | None) -> None:
+    """Grava o som do vídeo em OGG (formato que o pygame toca); sem som, não grava nada."""
+    import imageio_ffmpeg
+
+    destino.unlink(missing_ok=True)
+    comando = [imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error", "-i", str(video), "-vn"]
+    if fim is not None:
+        comando += ["-t", str(fim)]
+    comando += ["-c:a", "libvorbis", "-q:a", "6", str(destino)]
+    resultado = subprocess.run(comando, capture_output=True, text=True)
+    if resultado.returncode != 0 or not destino.exists():
+        destino.unlink(missing_ok=True)
+        print("(o vídeo não tem som, ou não deu para extrair: a cutscene fica muda)")
 
 
 if __name__ == "__main__":

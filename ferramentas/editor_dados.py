@@ -16,8 +16,8 @@ import math
 # pygame fornece Rect para testar cliques em retangulos.
 import pygame
 
-# covil_tritao indica onde o JSON deve ser salvo.
-import covil_tritao
+# colisoes_mapas sabe o arquivo e as camadas de cada mapa.
+import colisoes_mapas
 
 # Constantes e funcoes de geometria compartilhadas.
 from ferramentas.editor_config import (
@@ -72,38 +72,15 @@ class DadosMixin:
     def salvar(self) -> None:
         """Limpa dados invalidos e grava o JSON de colisao."""
         # Contornos com menos de 3 pontos e retangulos sem area nao servem para nada.
-        for chave, (_, _, contorno, _) in CAMADAS.items():
-            if contorno:
+        for chave in self.camadas:
+            if CAMADAS[chave][2]:
                 self.dados[chave] = [p for p in self.dados[chave] if len(p) >= 3]
         self.dados["bloqueios"] = [
             r for r in self.dados["bloqueios"] if r[2] > 2 and r[3] > 2
         ]
 
-        def poligono(p):
-            """Formata uma lista de pontos como [[x, y], ...]."""
-            return "[" + ", ".join(f"[{round(x)}, {round(y)}]" for x, y in p) + "]"
-
-        # Monta o texto do JSON manualmente para ficar legivel no Git.
-        blocos = []
-        for chave, (_, _, contorno, _) in CAMADAS.items():
-            if contorno:
-                itens = [poligono(p) for p in self.dados[chave]]
-            else:
-                itens = [
-                    "[" + ", ".join(str(round(v)) for v in r) + "]"
-                    for r in self.dados[chave]
-                ]
-
-            corpo = ",\n".join("    " + item for item in itens)
-            blocos.append(
-                f'  "{chave}": [\n{corpo}\n  ]' if itens else f'  "{chave}": []'
-            )
-
-        # Grava o arquivo lido pelo jogo.
-        covil_tritao.ARQUIVO_COLISAO.write_text(
-            "{\n" + ",\n".join(blocos) + "\n}\n",
-            encoding="utf-8",
-        )
+        # Grava o arquivo do mapa sendo editado (um JSON por mapa).
+        arquivo = colisoes_mapas.salvar(self.cena, self.dados)
 
         # A limpeza acima pode ter mudado os indices; limpa a selecao.
         self.alterado = False
@@ -114,17 +91,14 @@ class DadosMixin:
             self.ao_salvar()
             self.aviso = 'Salvo! A colisão nova já vale no jogo (F3 volta a jogar).'
         else:
-            self.aviso = (
-                f"Salvo em {covil_tritao.ARQUIVO_COLISAO.name}. "
-                "Abra o jogo de novo para ver."
-            )
+            self.aviso = f"Salvo em {arquivo.name}. Abra o jogo de novo para ver."
 
     def trocar_camada(self, chave: str) -> None:
         """Muda a camada ativa e, se necessario, o fundo exibido."""
         self.camada = chave
 
         # A camada pos-boss so faz sentido sobre o fundo pos-boss.
-        if chave == "chao_posboss":
+        if chave == "chao_posboss" and "posboss" in self.fundos:
             self.fundo = "posboss"
 
         self.selecionado = None

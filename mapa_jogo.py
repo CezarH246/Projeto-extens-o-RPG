@@ -19,7 +19,7 @@ import pygame
 import covil_tritao
 
 # Funcoes de musica da exploracao no covil e da vitoria.
-from Musicas import tocar_musica_deepcave, tocar_musica_vitoria
+from Musicas import alternar_musica, tocar_musica_deepcave, tocar_musica_vitoria
 
 # config concentra constantes e a cena atual.
 import mapa_config as config
@@ -29,6 +29,9 @@ from Combate import criar_herois
 
 # RecompensaBau e a tela do bau (bolo e carta).
 from recompensa_bau import RecompensaBau
+
+# MenuInicial e a primeira tela: titulo e botoes (novo jogo, opcoes...).
+from menu_inicial import MenuInicial
 
 # Funcoes de colisao/movimento reaproveitadas pelo loop.
 from mapa_colisao import (
@@ -49,7 +52,9 @@ from mapa_janela import JanelaMixin
 class Jogo(JanelaMixin, CenasMixin, DesenhoMixin):
     """Estado e loop principal do mapa."""
 
-    def __init__(self):
+    def __init__(self, tela_cheia: bool = False, abrir_menu: bool = True):
+        """`abrir_menu=False` comeca direto no mapa (usado ao iniciar um "Novo jogo"
+        com uma partida ja em andamento); `tela_cheia` mantem a escolha do jogador."""
         # Inicializa todos os subsistemas do pygame (video, audio, fontes...).
         pygame.init()
 
@@ -57,7 +62,7 @@ class Jogo(JanelaMixin, CenasMixin, DesenhoMixin):
         tocar_musica_deepcave()
 
         # Flag de tela cheia (F11 alterna).
-        self.tela_cheia = False
+        self.tela_cheia = tela_cheia
 
         # O jogo pode comecar no covil (720x480 como o mapa) ou no mapa antigo.
         tamanho_inicial = (
@@ -80,7 +85,7 @@ class Jogo(JanelaMixin, CenasMixin, DesenhoMixin):
 
         # Estado geral do jogo.
         self.rodando = True
-        self.modo = "mapa"  # mapa | combate | bau | editor
+        self.modo = "mapa"  # menu | mapa | combate | bau | editor
         self.mostrar_colisoes = False
         self.batalha = None
         self.inimigo_em_batalha = None
@@ -89,9 +94,13 @@ class Jogo(JanelaMixin, CenasMixin, DesenhoMixin):
         self.rei_tritao_spawnado = False
         self.rei_tritao_derrotado = False
         self.caverna_liberada = False
+        self.cutscene_kraken_vista = False  # cutscene do kraken: so na 1a luta contra o Rei
         self.bau_aberto = False
         self.recompensa: RecompensaBau | None = None
         self.editor = None  # editor de colisao (F3 no covil)
+
+        # Contornos de chao da arena/mapa de teste (para o F4 desenhar).
+        self.poligonos_chao: list = []
 
         # Estatuas do covil (recortes que escondem quem passa atras).
         self.oclusores = [
@@ -131,9 +140,75 @@ class Jogo(JanelaMixin, CenasMixin, DesenhoMixin):
             self.entrar_no_covil()
         else:
             self.criar_inimigos_mapa_teste()
+            # Colisao do mapa de teste: a do arquivo dele, se ja foi editada com F3.
+            self.aplicar_colisao_salva()
 
         # Estes mesmos objetos sao enviados a batalha e preservam nivel, HP, PA, XP e pocoes.
         self.herois_combate = criar_herois()
+
+        # Modo que estava ativo quando o jogador apertou Esc (para voltar a ele).
+        self.modo_antes_do_menu = "mapa"
+        self.partida_iniciada = not abrir_menu
+
+        # O jogo abre no menu inicial; "Novo jogo" leva ao mapa ja preparado acima.
+        if abrir_menu:
+            self.menu = self.criar_menu()
+            self.modo = "menu"
+            pygame.display.set_caption("A Saga dos Falidos")
+        else:
+            self.menu = None
+            self.escurecimento = 1.0
+
+    def criar_menu(self, pausa: bool = False) -> MenuInicial:
+        """Menu inicial ou, com `pausa`, o menu do Esc sobre a tela congelada."""
+        return MenuInicial(
+            converter_mouse=self.mouse_na_tela,
+            alternar_tela_cheia=self.alternar_tela_cheia,
+            tela_cheia=lambda: self.tela_cheia,
+            pode_continuar=self.partida_iniciada,
+            pausa_sobre=self.tela.copy() if pausa else None,
+        )
+
+    def pode_pausar(self) -> bool:
+        """Esc pausa no mapa e na batalha (menos enquanto se escolhe o alvo,
+        quando o Esc da batalha cancela a escolha)."""
+        if self.modo == "mapa":
+            return True
+        if self.modo == "combate":
+            return self.batalha.acao_pendente is None and self.batalha.resultado is None
+        return False
+
+    def abrir_pausa(self) -> None:
+        self.modo_antes_do_menu = self.modo
+        self.menu = self.criar_menu(pausa=True)
+        self.modo = "menu"
+
+    def tratar_escolha_do_menu(self) -> None:
+        """Faz o que o jogador escolheu no menu (inicial ou de pausa)."""
+        escolha = self.menu.escolha
+        if escolha == "novo_jogo" and self.partida_iniciada:
+            # Ja havia uma partida: recomeca tudo do zero, direto no mapa.
+            self.__init__(tela_cheia=self.tela_cheia, abrir_menu=False)
+        elif escolha == "novo_jogo":
+            self.partida_iniciada = True
+            self.menu = None
+            self.modo = "mapa"
+            self.escurecimento = 1.0
+        elif escolha in ("continuar", "retomar"):
+            self.menu = None
+            self.modo = self.modo_antes_do_menu
+        elif escolha == "menu_principal":
+            # A partida fica guardada: CONTINUAR no menu inicial volta a ela.
+            self.menu = self.criar_menu()
+            pygame.display.set_caption("A Saga dos Falidos")
+            return
+        elif escolha == "sair":
+            self.rodando = False
+            return
+        if self.modo == "combate":
+            pygame.display.set_caption("RPG Saga dos Falidos - Batalha")
+        else:
+            pygame.display.set_caption("RPG Saga dos Falidos - Mapa")
 
     def atualizar_lider(self, tempo_frame: float) -> None:
         """Le o teclado e move o Cezar (o lider do grupo)."""
@@ -286,8 +361,22 @@ class Jogo(JanelaMixin, CenasMixin, DesenhoMixin):
                 self.alternar_tela_cheia()
                 continue
 
+            # Esc pausa o jogo e abre o menu (continuar, configuracoes, menu principal).
+            if evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE and self.pode_pausar():
+                self.abrir_pausa()
+                continue
+
+            # M liga/desliga a musica em qualquer tela (menos no editor de colisao).
+            if evento.type == pygame.KEYDOWN and evento.key == pygame.K_m and self.modo != "editor":
+                ligada = alternar_musica()
+                if self.modo == "mapa":
+                    self.mensagem = "Música ligada (M desliga)" if ligada else "Música desligada (M liga de novo)"
+                continue
+
             # Cada modo tem um dono dos eventos.
-            if self.modo == "combate":
+            if self.modo == "menu":
+                self.menu.processar_evento(evento, self.tela)
+            elif self.modo == "combate":
                 self.batalha.processar_evento(evento)
             elif self.modo == "bau":
                 self.recompensa.processar_evento(evento)
@@ -298,11 +387,8 @@ class Jogo(JanelaMixin, CenasMixin, DesenhoMixin):
                 if not self.editor.rodando:
                     self.fechar_editor_colisao()
             elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_F3:
-                # No covil, F3 abre o editor; no mapa antigo, mostra colisoes.
-                if self.cena == "covil":
-                    self.abrir_editor_colisao()
-                else:
-                    self.mostrar_colisoes = not self.mostrar_colisoes
+                # F3 abre o editor de colisao do mapa atual (qualquer mapa).
+                self.abrir_editor_colisao()
             elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_F4:
                 # F4 tambem liga/desliga a visualizacao de colisoes.
                 self.mostrar_colisoes = not self.mostrar_colisoes
@@ -383,7 +469,12 @@ class Jogo(JanelaMixin, CenasMixin, DesenhoMixin):
             self.processar_eventos()
 
             # Cada modo tem sua atualizacao e desenho.
-            if self.modo == "mapa":
+            if self.modo == "menu":
+                self.menu.atualizar(tempo_frame)
+                self.menu.desenhar(self.tela)
+                if self.menu.escolha is not None:
+                    self.tratar_escolha_do_menu()
+            elif self.modo == "mapa":
                 self.atualizar_mapa(tempo_frame)
                 # Abrir uma batalha durante a atualizacao ja desenha sua transicao.
                 if self.modo == "mapa":

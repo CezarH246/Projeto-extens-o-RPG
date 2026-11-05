@@ -140,7 +140,7 @@ class DesenhoMixin:
         if self.passagem_aberta and self.cena == "mapateste":
             self.desenhar_passagem()
 
-        # No covil, a caverna brilha depois que os quatro guardas caem.
+        # No covil, a caverna brilha depois que os guardas caem.
         if self.cena == "covil" and self.caverna_liberada:
             self.desenhar_caverna_liberada()
 
@@ -151,14 +151,15 @@ class DesenhoMixin:
             (objeto.rect.top + altura_dos_pes(objeto), objeto)
             for objeto in self.grupo_objetos
         ]
-        if self.cena == "covil" and self.mapa_animado is not None:
+        fundo_atual = self.mapa_animado.imagem if self.mapa_animado is not None else self.mapa_imagem
+        if fundo_atual is not None:
             camadas += [(oclusor.base, oclusor) for oclusor in self.oclusores]
 
         # Ordena pela coordenada vertical da base e desenha do fundo para a frente.
         for _, item in sorted(camadas, key=lambda camada: camada[0]):
             # Oclusor tem desenho proprio (recorta a parte do mapa que fica na frente).
             if isinstance(item, covil_tritao.Oclusor):
-                item.desenhar(self.tela, self.mapa_animado.imagem)
+                item.desenhar(self.tela, fundo_atual)
                 continue
 
             # Personagem/inimigo: usa a imagem atual do sprite.
@@ -185,10 +186,13 @@ class DesenhoMixin:
         if self.mostrar_colisoes:
             if self.cena == "covil":
                 extra = covil_tritao.CHAO_POSBOSS if self.rei_tritao_derrotado else []
-                for poligono in covil_tritao.CHAO + extra:
-                    pygame.draw.polygon(self.tela, (0, 255, 120), poligono, 2)
-                for oclusor in self.oclusores:
-                    pygame.draw.polygon(self.tela, (200, 110, 255), oclusor.poligono, 2)
+                chao_visivel = covil_tritao.CHAO + extra
+            else:
+                chao_visivel = self.poligonos_chao  # arena e mapa de teste (colisoes_mapas)
+            for poligono in chao_visivel:
+                pygame.draw.polygon(self.tela, (0, 255, 120), poligono, 2)
+            for oclusor in self.oclusores:
+                pygame.draw.polygon(self.tela, (200, 110, 255), oclusor.poligono, 2)
 
             for obstaculo in config.CENA["bloqueios"]:
                 pygame.draw.rect(self.tela, (255, 120, 0), obstaculo, 2)

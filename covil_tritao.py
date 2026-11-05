@@ -1,9 +1,10 @@
 """Covil do Rei Tritão: mapas animados, arena do chefe e colisões.
 
 O grupo chega pela entrada da caverna (alto, à direita), atravessa a ponte de
-pedra sobre o abismo e enfrenta os quatro guardas. Quando o último cai, a
+pedra sobre o abismo e enfrenta os dois guardas. Quando o último cai, a
 caverna no alto da ponte brilha e leva à arena exclusiva do Rei Tritão; depois
-do chefe, o covil troca para a versão pós-boss com o caminho até o baú.
+do chefe, o grupo volta ao covil na versão pós-boss com o caminho até o baú, e
+a caverna se apaga (não dá para voltar à arena).
 
 O abismo, a água do mar, as paredes, o trono e as bases das estátuas bloqueiam
 o caminho. Todas as coordenadas estão na resolução do mapa (1280x720). As
@@ -91,7 +92,7 @@ ALCANCE_BAU = 75
 # rochedo da direita (o chão dela é o "chao_posboss" da colisão).
 PASTA_QUADROS_POSBOSS = PASTA_QUADROS.parent / "mapa_tritao_posboss"
 
-# Arena exclusiva do chefe: só entra nela depois de derrotar os quatro guardas.
+# Arena exclusiva do chefe: só entra nela depois de derrotar os guardas.
 PASTA_QUADROS_BOSS = PASTA_QUADROS.parent / "mapa_covil_tritão"
 
 # Pés do líder ao chegar: na ponte, logo em frente à porta da caverna.
@@ -111,9 +112,7 @@ POSICAO_REI_BOSS = (640, 400)
 # A caverna do chefe só se acende depois que todos eles forem derrotados.
 PATRULHAS = [
     (780, 368, "horizontal"),   # na ponte, barrando a passagem
-    (200, 420, "horizontal"),   # plataforma, à esquerda
     (520, 505, "horizontal"),   # plataforma, no meio (entre o círculo e as estátuas)
-    (320, 662, "horizontal"),   # plataforma, embaixo
 ]
 
 
@@ -126,7 +125,13 @@ def criar_mascara_chao(pos_boss: bool = False) -> pygame.mask.Mask:
 
 
 def criar_mascara_chao_boss() -> pygame.mask.Mask:
-    """Máscara da arena do chefe: a tela inteira é chão livre."""
-    superficie = pygame.Surface(TAMANHO, pygame.SRCALPHA)
-    superficie.fill((255, 255, 255, 255))
-    return pygame.mask.from_surface(superficie)
+    """Máscara da arena do chefe (editável com F3 na arena). Sem nenhum contorno
+    de chão salvo, a tela inteira é chão livre, como era antes do editor."""
+    from colisoes_mapas import carregar, mascara_chao
+
+    mascara = mascara_chao(carregar("covil_boss")["chao"], TAMANHO)
+    if mascara is None:
+        superficie = pygame.Surface(TAMANHO, pygame.SRCALPHA)
+        superficie.fill((255, 255, 255, 255))
+        mascara = pygame.mask.from_surface(superficie)
+    return mascara

@@ -20,6 +20,10 @@ ASSETS = PROJECT_DIR / "assets"
 FUNDO_BATALHA = ASSETS / "backgrounds" / "docas_batalha.jpg"
 # Fundo animado (quadros convertidos de vídeo) das batalhas contra os guardas do covil.
 FUNDO_BATALHA_GUARDAS = ASSETS / "mapas_animados" / "batalha_guardas"
+# Fundo animado da luta contra o Rei Tritão (arena com o kraken ao fundo).
+# Convertido de "batalha do rei tritão.mp4" só até 4,75 s (depois disso a cabeça
+# do kraken sai do chão da arena) e em vai e volta, para não haver emenda.
+FUNDO_BATALHA_REI_TRITAO = ASSETS / "mapas_animados" / "batalha_rei_tritao"
 
 ULTIMATE_CEZAR = ASSETS / "ultimates" / "Cezar_Ultimate" / "Cezar_Ultimate"
 ULTIMATE_CEZAR_GIF = ULTIMATE_CEZAR / "Cezar_ultimate.gif"
@@ -164,6 +168,23 @@ FORMACAO_GUARDAS = {
         {"Guilherme": (190, 500), "Cezar": (380, 430), "Lucas": (560, 465)},
         [(190, 500), (380, 430), (560, 465)],
         [(765, 420), (900, 315), (1045, 425)],
+    ),
+}
+
+# Formação no fundo da arena do kraken (batalha do Rei Tritão): o grupo na
+# metade esquerda da plataforma de runas (o mago no degrau de pedra, atrás),
+# o tanque na frente e o Rei na ponta direita da plataforma (mais à direita
+# ele ficaria sobre a cachoeira). (heróis por nome, heróis reserva, Rei), por tema.
+FORMACAO_REI_NA_ARENA = {
+    "classico": (
+        {"Guilherme": (215, 385), "Cezar": (440, 405), "Lucas": (655, 420)},
+        [(215, 385), (440, 405), (655, 420)],
+        (875, 378),
+    ),
+    "moderno": (
+        {"Guilherme": (300, 475), "Cezar": (480, 500), "Lucas": (660, 525)},
+        [(300, 475), (480, 500), (660, 525)],
+        (870, 450),
     ),
 }
 
