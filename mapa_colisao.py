@@ -1,13 +1,29 @@
 """Regras de colisao, movimento e animacao usadas pelo mapa.
 
-O mapa trabalha com duas ideias diferentes:
-- o "rect" do sprite e a area que o pygame usa para desenhar e para calcular
-  encontros;
-- o "retangulo de colisao" e uma area menor (ou os pes) que decide se o
-  personagem pode pisar ali.
+COMO ENTENDER AS COLISOES SEM MEXER EM SPRITES
+    Sprite e a imagem do personagem. Rect e uma caixa invisivel que o Pygame
+    usa para posicionar essa imagem; hitbox e outra caixa invisivel, usada
+    apenas para decidir se algo encostou. Elas sao retangulos simples: nao e
+    preciso desenhar ou recortar a imagem pixel por pixel.
 
-Separar essas funcoes em um modulo proprio deixa o loop principal (mapa_jogo.py)
-menor e permite que o editor de colisao reutilize exatamente as mesmas regras.
+    Este modulo tem duas hitboxes com finalidades diferentes:
+    - retangulo_colisao(): impede atravessar paredes, sair do mapa ou pisar fora
+      do chao permitido;
+    - retangulo_encontro(): detecta quando heroi e inimigo se encostam para
+      iniciar uma batalha.
+
+    As medidas dessas caixas usam as coordenadas logicas do mapa em pixels
+      (x, y, largura, altura), nao exigem conhecimento de arte. No covil, a
+    colisao acompanha os pes para dar a impressao de que o personagem anda
+    atras ou na frente de objetos. No mapa antigo, ela ocupa quase todo o
+    personagem.
+
+    Os bloqueios e areas de chao podem ser ajustados no editor de colisao (F3).
+    Seus dados ficam nos arquivos JSON carregados por colisoes_mapas.py; este
+    modulo transforma esses dados em regras que o movimento usa.
+
+Separar estas funcoes deixa mapa_jogo.py menor e permite que o jogo e o editor
+compartilhem a mesma verificacao de colisao.
 """
 
 from __future__ import annotations
@@ -110,7 +126,12 @@ def desenhar_mapa_provisorio(tela: pygame.Surface, mapa_atual: str = "Casa_teste
 
 
 def altura_dos_pes(sprite: pygame.sprite.Sprite) -> int:
-    'Distância do topo do sprite até a sola dos pés (parte visível mais baixa).'
+    """Distancia do topo da imagem ate o ponto mais baixo que nao e transparente.
+
+    Isso ajuda a alinhar a hitbox aos pes mesmo que a imagem tenha espaco
+    transparente ao redor. Nao precisamos contar pixels manualmente: o Pygame
+    encontra automaticamente o retangulo da parte visivel da imagem.
+    """
     # O calculo e caro; guardamos o resultado no proprio sprite na primeira vez.
     if not hasattr(sprite, "altura_pes"):
         # Prefere a imagem parada voltada para baixo (south); se nao existir,
@@ -125,7 +146,11 @@ def altura_dos_pes(sprite: pygame.sprite.Sprite) -> int:
 
 
 def posicionar_pelos_pes(sprite: pygame.sprite.Sprite, pes: tuple[int, int]) -> None:
-    'Coloca o sprite de modo que a sola dos pés fique no ponto indicado.'
+    """Posiciona o personagem usando os pes como referencia.
+
+    ``pes`` e o ponto do mapa (x, y) onde a sola deve ficar. Assim, imagens de
+    tamanhos diferentes podem ficar apoiadas no mesmo ponto do chao.
+    """
     # O rect e posicionado de forma que o centro horizontal fique em pes[0] e
     # a altura dos pes fique em pes[1].
     sprite.rect.topleft = (
@@ -138,17 +163,22 @@ def posicionar_pelos_pes(sprite: pygame.sprite.Sprite, pes: tuple[int, int]) -> 
 
 
 def retangulo_colisao(sprite: pygame.sprite.Sprite) -> pygame.Rect:
-    """Area que bate no terreno.
+    """Devolve a hitbox usada para impedir o personagem de atravessar o terreno.
 
-    No mapa antigo e quase o sprite inteiro. No covil (visao de cima, com chao
-    desenhado) e so a sola dos pes: o corpo pode passar na frente de paredes e
-    estatuas, como em RPGs vistos de cima, mas os pes nao saem do chao."""
-    # Sem mascara de chao (mapa antigo): usa o sprite inteiro com uma pequena
-    # margem para nao prender nas quinas.
+    Pense nela como uma caixa invisivel em volta da parte do personagem que
+    precisa respeitar paredes e bordas. Ela nao precisa acompanhar o contorno
+    da arte: e um retangulo simples, calculado a partir do ``rect`` do sprite.
+    """
+    # Mapa antigo: usa quase toda a caixa do sprite. O -8 reduz a largura e a
+    # altura totais em 8 pixels (4 de cada lado), para nao prender facilmente
+    # em quinas. Esta margem e uma regra geral, nao algo medido na arte.
     if config.CENA["chao"] is None:
         return sprite.rect.inflate(-8, -8)
 
-    # No covil, a caixa tem 45% da largura e 1/7 da altura do sprite.
+    # Covil: usa uma caixa pequena junto aos pes. Os percentuais sao uma
+    # proporcao do tamanho atual do sprite, entao a regra continua funcionando
+    # se o personagem for desenhado maior ou menor. Os valores minimos evitam
+    # uma caixa de largura/altura zero em sprites muito pequenos.
     caixa = pygame.Rect(
         0,
         0,
@@ -156,49 +186,78 @@ def retangulo_colisao(sprite: pygame.sprite.Sprite) -> pygame.Rect:
         max(6, sprite.rect.height // 7),
     )
 
-    # Alinha a caixa ao centro horizontal e a base dos pes do sprite.
+    # Centraliza a caixa sob o personagem e coloca a base dela na altura dos
+    # pes. Assim, e a posicao dos pes - e nao a cabeca ou o corpo da imagem -
+    # que determina se o personagem encosta no chao ou num obstaculo.
     caixa.midbottom = (sprite.rect.centerx, sprite.rect.top + altura_dos_pes(sprite))
     return caixa
 
 
 def retangulo_encontro(sprite: pygame.sprite.Sprite) -> pygame.Rect:
-    'Área do corpo que inicia a batalha quando herói e inimigo se encostam.'
-    # No mapa antigo, a area de encontro e a mesma da colisao.
+    """Devolve a hitbox usada somente para detectar encontro com um inimigo.
+
+    Esta caixa nao bloqueia o movimento. Ela responde a outra pergunta:
+    "as areas do heroi e do inimigo se sobrepoem?". Quando sim, mapa_jogo.py
+    pode iniciar a batalha.
+    """
+    # Mapa antigo: reaproveita a caixa de colisao para que os encontros
+    # correspondam ao contato usado nessa cena.
     if config.CENA["chao"] is None:
         return retangulo_colisao(sprite)
 
-    # No covil, o corpo e reduzido para o encontro nao acontecer de longe.
+    # Covil: usa uma versao menor do retangulo do sprite. Isso evita comecar uma
+    # batalha quando as imagens parecem proximas, mas os personagens ainda
+    # estao separados. inflate com valores negativos diminui a caixa.
     return sprite.rect.inflate(-sprite.rect.width * 2 // 5, -sprite.rect.height // 3)
 
 
 def colide_com_terreno(rect: pygame.Rect) -> bool:
-    """Diz se um retangulo esta fora do mapa, fora do chao ou sobre um bloqueio."""
-    # Limites da cena atual (720x480 no mapa antigo; tamanho do covil depois).
+    """Responde se a hitbox toca uma area onde nao e permitido andar.
+
+    A ordem das verificacoes e: dentro dos limites da tela, sobre o chao
+    permitido (quando existe mascara) e sem sobrepor os retangulos bloqueados.
+    """
+    # Retangulo que representa o tamanho jogavel da cena atual. As coordenadas
+    # do jogo comecam no canto superior esquerdo: (0, 0).
     limites_mapa = pygame.Rect((0, 0), config.CENA["tamanho"])
 
-    # Se o retangulo sair da tela, ja e colisao.
+    # Se qualquer parte da hitbox passar do limite, o movimento e proibido.
     if not limites_mapa.contains(rect):
         return True
 
-    # Mascara de chao: existe apenas no covil.
+    # A mascara e um desenho preto/branco invisivel que indica onde existe chao.
+    # None significa que esta cena nao usa uma mascara para limitar o caminho.
     chao = config.CENA["chao"]
     if chao is not None:
-        # Os pes (base do retangulo) precisam estar sobre o chao: assim ninguem
-        # anda sobre o abismo, a agua ou as paredes do covil.
+        # Testamos tres pontos na base da hitbox: esquerda, centro e direita.
+        # Se algum deles estiver fora da mascara branca de chao, bloqueamos o
+        # passo. Sao apenas tres consultas por movimento, nao uma analise da
+        # imagem do personagem pixel por pixel.
         y = rect.bottom - 1
         if not all(chao.get_at((x, y)) for x in (rect.left, rect.centerx, rect.right - 1)):
             return True
 
-    # Por fim, verifica os retangulos de bloqueio desenhados no mapa.
+    # Bloqueios sao retangulos invisiveis colocados sobre objetos solidos. O
+    # metodo colliderect() diz se a hitbox do personagem se sobrepoe a algum.
     return any(rect.colliderect(obstaculo) for obstaculo in config.CENA["bloqueios"])
 
 
 def mover_com_colisao(sprite: pygame.sprite.Sprite, dx: float, dy: float) -> bool:
-    'Move separadamente em X e Y para permitir deslizar pelos obstáculos.'
-    # Comeca assumindo que o sprite nao se moveu.
+    """Tenta mover o sprite e desfaz apenas os passos que causarem colisao.
+
+    ``dx`` e ``dy`` sao quanto queremos andar horizontal e verticalmente neste
+    quadro. Cada valor pode ser decimal; ``posicao`` guarda essa precisao e
+    ``rect`` usa coordenadas inteiras para desenhar e testar as hitboxes.
+
+    Os eixos sao testados separadamente. Se o personagem bater numa parede ao
+    andar para frente, ainda pode mover-se de lado junto a ela (deslizar), em
+    vez de ter todo o movimento diagonal cancelado.
+    """
+    # O retorno informa ao loop do mapa se pelo menos um eixo conseguiu mover.
     movimentou = False
 
-    # Eixo X: guarda a posicao antiga, tenta mover e desfaz se colidir.
+    # Eixo X (horizontal): guarda a posicao segura, tenta o passo e atualiza o
+    # retangulo usado pelas hitboxes. Se houver colisao, volta a posicao salva.
     if dx:
         x_anterior = sprite.posicao.x
         sprite.posicao.x += dx
@@ -209,7 +268,8 @@ def mover_com_colisao(sprite: pygame.sprite.Sprite, dx: float, dy: float) -> boo
         else:
             movimentou = True
 
-    # Eixo Y: o mesmo processo, independente do X, permitindo deslizar na parede.
+    # Eixo Y (vertical): repete o teste usando a posicao horizontal que ficou
+    # apos o primeiro passo. Separar X e Y permite contornar quinas e deslizar.
     if dy:
         y_anterior = sprite.posicao.y
         sprite.posicao.y += dy
@@ -220,7 +280,8 @@ def mover_com_colisao(sprite: pygame.sprite.Sprite, dx: float, dy: float) -> boo
         else:
             movimentou = True
 
-    # O chamador usa o retorno para saber se deve animar a caminhada.
+    # mapa_jogo.py usa este resultado para registrar o caminho e escolher
+    # animacao de caminhada ou parado.
     return movimentou
 
 
