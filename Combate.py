@@ -1,35 +1,39 @@
 """Regras e fluxo principal do combate por turnos.
 
-Este e o arquivo indicado para apresentar o ciclo da luta. As classes dos
-combatentes guardam seus proprios dados e regras; aqui, o fluxo escolhe quem
-age, valida as escolhas e pede aos objetos que executem seus comportamentos.
+Este modulo coordena a luta: cria os combatentes, carrega as barras ATB,
+encaminha cada turno e trata vitoria ou derrota. As regras especificas ficam
+nas classes de combate_core/.
 
-PILARES DE POO USADOS NESTE ARQUIVO
------------------------------------
-ABSTRACAO
-    "Heroi" e "Inimigo" sao tratados como "Personagem": o fluxo nao precisa
-    saber os detalhes internos de cada tipo para carregar a barra ATB, verificar
-    se esta vivo ou resetar a barra.
+ONDE APARECEM OS QUATRO PILARES
+--------------------------------
+ABSTRACAO (interface comum, sem classe abstrata formal)
+    Em batalha(), a lista combatentes reúne Heroi e Inimigo. O fluxo chama
+    operações que ambos possuem, como estar_vivo(), carregar_atb() e
+    resetar_atb(), sem precisar calcular o HP ou a barra ATB por conta própria.
+    Personagem não usa abc nem métodos abstratos: é uma classe base concreta.
 
 HERANCA
-    Heroi e Inimigo herdam de Personagem (combate_core/personagens.py e
-    combate_core/inimigos.py). Por isso ambos reaproveitam hp, ataque, defesa,
-    velocidade, atb_barra e metodos como estar_vivo().
+    As declarações estão em combate_core/personagens.py:
+    Heroi(Personagem, HeroiHabilidades) recebe estado e operações comuns de
+    Personagem e as ações de HeroiHabilidades. Em combate_core/inimigos.py,
+    Inimigo(Personagem) reutiliza a base e acrescenta regras de inimigo.
+    As chamadas super() nos construtores inicializam a parte herdada.
 
 POLIMORFISMO
-    Quando o fluxo chama receber_dano() ou atacar(), cada objeto executa a
-    versao definida para o seu tipo. O mesmo comando funciona para heroi e
-    inimigo porque a "mensagem" e a mesma, mas o comportamento muda.
+    Uma chamada de mesmo nome pode executar uma regra diferente conforme o
+    objeto. Heroi usa atacar() de HeroiHabilidades; Inimigo define seu próprio
+    atacar() em combate_core/inimigos.py. Heroi também sobrescreve
+    receber_dano() e mostrar_status() em combate_core/personagens.py. Por
+    exemplo, pronto.atacar(alvo) chama a implementação do objeto pronto, e
+    alvo.receber_dano(dano) chama a do tipo concreto do alvo.
 
 ENCAPSULAMENTO
-    Custo de habilidade, dano, HP, XP e pocoes ficam dentro dos objetos. O fluxo
-    pede a acao; sao as classes que validam recursos e alteram o proprio estado.
-
-METODO ABSTRATO / MODELO
-    Python nao exige a biblioteca abc aqui. A classe base Personagem define o
-    "contrato" (estar_vivo, receber_dano, carregar_atb, resetar_atb) e as
-    classes concretas substituem os metodos que precisam de regra propria. Isso
-    e o padrao "metodo modelo": a base desenha o esqueleto e as filhas completam.
+    Regras como calcular/aplicar dano e carregar/resetar ATB ficam em métodos
+    de Personagem; custo de habilidades e uso de poções ficam nos métodos de
+    HeroiHabilidades (combate_core/habilidades.py). Assim, o fluxo pede que o
+    objeto execute a regra. O encapsulamento é parcial: hp, PA e defesa são
+    atributos públicos e alguns são lidos ou alterados diretamente, por
+    exemplo na exibição de status e na ação de defender.
 """
 
 # random escolhe o alvo dos inimigos.
@@ -112,6 +116,9 @@ def escolher_inimigo(inimigos):
 
 def turno_jogador(heroi, inimigos):
     """Executa escolhas até o herói realizar uma ação válida."""
+    # O menu fica no fluxo, mas as regras de cada ação ficam no objeto heroi.
+    # Por exemplo, habilidade_especial() valida alvo e PA, cobra o custo e
+    # aplica o dano. Se retornar False, a ação não foi feita e o menu reaparece.
     # O laco so termina quando uma acao e realmente executada.
     while True:
         # Cabecalho com o estado atual do heroi.
@@ -213,8 +220,10 @@ def batalha(herois=None):
     # Mostra o status do grupo.
     mostrar_status_herois(herois)
 
-    # ABSTRACAO: herois e inimigos compartilham a interface de Personagem.
-    # Por isso podem ficar na mesma lista e receber os mesmos comandos.
+    # ABSTRAÇÃO: junta heróis e inimigos na mesma lista porque ambos oferecem
+    # operações definidas em Personagem. O loop abaixo não precisa de uma
+    # lista de HP/ATB separada nem conhecer os detalhes internos das classes.
+    # Personagem é uma base concreta, não uma classe abstrata feita com abc.
     combatentes = herois + inimigos
 
     # A cada 0.1 s, todos ganham 0.5 * velocidade pontos na barra ATB.
@@ -249,8 +258,9 @@ def batalha(herois=None):
             print("💀 Todos os heróis foram derrotados.")
             return False
 
-        # HERANCA: ambas as classes concretas reutilizam os metodos de Personagem.
-        # Cada combatente atualiza a propria barra ATB.
+        # HERANÇA: Heroi e Inimigo reaproveitam carregar_atb() de Personagem.
+        # ENCAPSULAMENTO: cada objeto calcula e atualiza sua própria ATB;
+        # o loop informa apenas o multiplicador de tempo.
         for personagem in combatentes:
             personagem.carregar_atb(multiplicador_tempo)
 
@@ -274,7 +284,9 @@ def batalha(herois=None):
         if pronto is None:
             continue
 
-        # POLIMORFISMO: o tipo do combatente define como seu turno e executado.
+        # Esta condição escolhe o fluxo de entrada do turno (jogador ou IA).
+        # O polimorfismo aparece nas chamadas de métodos dos objetos concretos,
+        # como atacar(), receber_dano() e mostrar_status(), não neste if.
         if isinstance(pronto, Heroi):
             # Heroi: o jogador escolhe a acao.
             turno_jogador(pronto, inimigos)
@@ -285,12 +297,13 @@ def batalha(herois=None):
                 alvo = random.choice(herois_vivos)
                 print(f"\n🚨 TURNO INIMIGO: {pronto.nome}")
 
-                # O inimigo usa o proprio atacar(); o alvo reage com seu
-                # receber_dano() especifico (polimorfismo em acao).
+                # POLIMORFISMO: pronto é um Inimigo e executa Inimigo.atacar().
+                # Dentro dele, alvo.receber_dano() usa Heroi.receber_dano()
+                # para um herói ou Personagem.receber_dano() para um inimigo.
                 pronto.atacar(alvo)
                 print(alvo.mostrar_status())
 
-        # ENCAPSULAMENTO: cada objeto zera a propria barra ao concluir o turno.
+        # ENCAPSULAMENTO: resetar_atb() centraliza a regra de zerar a barra.
         pronto.resetar_atb()
 
         # Mostra o estado atualizado do grupo e dos inimigos.

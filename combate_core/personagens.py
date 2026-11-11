@@ -4,6 +4,11 @@ from .habilidades import HeroiHabilidades
 from .texto import print
 
 class Personagem:
+    """Classe base concreta: concentra estado e comportamentos comuns.
+
+    ABSTRACAO: o restante do combate pode usar estar_vivo(), receber_dano() e
+    os metodos de ATB sem repetir seus detalhes. Esta classe nao usa ABC.
+    """
 
     # --------------------------------------------------------
     # CONSTRUTOR
@@ -71,7 +76,8 @@ class Personagem:
 
     def estar_vivo(self):
         # Consulta o HP por um método, sem repetir essa regra em cada sistema.
-        # Pilar: Encapsulamento — o estado do objeto é consultado por seu comportamento.
+        # ENCAPSULAMENTO: consulta o estado pelo comportamento do objeto, em
+        # vez de repetir a regra hp > 0 pelo sistema.
         return self.hp > 0
 
     # --------------------------------------------------------
@@ -81,7 +87,8 @@ class Personagem:
     def receber_dano(self, dano):
 
         # Subtrai a defesa do ataque, mas garante pelo menos 1 de dano.
-        # Pilar: Encapsulamento — concentra a alteração de HP nesta operação.
+        # ENCAPSULAMENTO: concentra nesta operacao a regra que calcula dano e
+        # altera o HP, evitando duplicar a regra em quem ataca.
         # A defesa reduz o dano recebido.
         dano_final = max(
             1,
@@ -131,7 +138,8 @@ class Heroi(Personagem, HeroiHabilidades):
 
     def __init__(self, nome, ClasseRPG, Level=1, escala=1.0):
 
-        # Inicializa a classe pai.
+        # HERANCA: recebe estado/comportamentos de Personagem e habilidades de
+        # HeroiHabilidades; super() inicializa a parte Personagem.
         super().__init__(nome, Level, escala)
 
         # Classe do personagem.
@@ -247,8 +255,8 @@ class Heroi(Personagem, HeroiHabilidades):
     def receber_dano(self, dano):
 
         # Estende o recebimento de dano da classe base para registrar progresso
-        # da Ultimate. Pilar: Polimorfismo — esta versão substitui a herdada e
-        # é chamada quando um alvo Heroi recebe dano.
+        # da Ultimate. POLIMORFISMO: substitui Personagem.receber_dano(); quando
+        # o alvo e um Heroi, esta versao estende a regra base.
         # Guarda o HP antes do ataque.
         hp_antes = self.hp
 
@@ -266,7 +274,7 @@ class Heroi(Personagem, HeroiHabilidades):
     def mostrar_status(self):
 
         # Monta o status com os recursos próprios do herói, incluindo PA.
-        # Pilar: Polimorfismo — substitui a versão de Personagem para apresentar
+        # POLIMORFISMO: substitui a versao de Personagem para apresentar
         # os dados adicionais desta subclasse.
         # Barra de HP.
         barra_hp = int(

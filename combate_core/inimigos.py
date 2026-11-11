@@ -6,7 +6,7 @@ from .personagens import Personagem
 from .texto import print
 
 class Inimigo(Personagem):
-    # Pilar: Herança — compartilha os dados e comportamentos de Personagem,
+    # HERANCA: compartilha dados e comportamentos de Personagem,
     # acrescentando categoria, tipo, recompensa e ataque próprios do inimigo.
 
     def __init__(
@@ -110,7 +110,8 @@ class Inimigo(Personagem):
     def calcular_xp_drop(self):
 
         # Define a recompensa do inimigo: nível multiplicado pelo valor da categoria.
-        # Pilar: Encapsulamento — a regra de XP pertence ao objeto que a concede.
+        # ENCAPSULAMENTO: a regra de XP pertence ao objeto que concede a
+        # recompensa e e reutilizada ao calcular XpDrop.
         # XP base aumenta conforme o nível.
         xp_base = 50 * self.level
 
@@ -138,6 +139,8 @@ class Inimigo(Personagem):
     # ========================================================
 
     def atacar(self, alvo):
+        # POLIMORFISMO: este ataque tem a mesma operacao atacar(alvo) oferecida
+        # aos herois por HeroiHabilidades, mas com regra propria de inimigo.
 
         # Não executa ataque se o alvo não existir ou já estiver derrotado.
         if not alvo or not alvo.estar_vivo():
